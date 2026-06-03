@@ -141,7 +141,9 @@ claude mcp add ros-graph -- python -m ros_graph_debugger.mcp_server
 
 Now an AI assistant can read the live robot — `get_runtime_briefing`,
 `get_node_briefing(target)` (a focused briefing for one node or topic and its
-neighbours — the right size for a large Autoware/Nav2 graph), `get_issues`, `get_graph`,
+neighbours — the right size for a large Autoware/Nav2 graph),
+`get_pipeline_path(target)` (the constraining source→sink route, to reason about
+*where* a pipeline is slow), `get_issues`, `get_graph`,
 `get_topics`, `get_nodes`, `get_tf`, `get_diagnostics`, `get_config` — and
 **act** on it: `set_expected_rate(topic, min_hz)` encodes what "healthy" looks
 like for a topic at runtime, so the issue engine starts flagging it immediately.

@@ -94,6 +94,15 @@ def test_get_node_briefing_focuses_the_graph(agent):
     assert '/objects' in md
 
 
+def test_get_pipeline_path_traces_the_constraining_route(agent):
+    base, _ = agent
+    from urllib.parse import quote
+    p = json.loads(mcp_server.fetch('/api/v1/path?target=' + quote('/detector'),
+                                    base=base))
+    assert p['pivot'] == '/detector'
+    assert '/detector' in p['nodes'] and '/tracker' in p['nodes']
+
+
 def test_set_expected_rate_round_trips_into_config(agent):
     base, thresholds = agent
     mcp_server.post('/api/v1/config',

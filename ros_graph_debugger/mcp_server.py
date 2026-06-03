@@ -94,6 +94,17 @@ def main() -> None:
         return fetch('/api/v1/snapshot.md?focus=' + quote(target, safe=''))
 
     @mcp.tool()
+    def get_pipeline_path(target: str) -> str:
+        """Get the constraining source->sink pipeline path through a node/topic.
+
+        Returns JSON ``{target, pivot, nodes, hops, bottleneck_topic}`` where the
+        path follows the lowest-rate link at each branch, so ``bottleneck_topic``
+        is the throttling hop. Use this to reason about *where* a pipeline is
+        slow, not just which node — e.g. after get_issues flags a bottleneck.
+        ``target`` may be a node id/name, topic name, or a suffix."""
+        return fetch('/api/v1/path?target=' + quote(target, safe=''))
+
+    @mcp.tool()
     def set_expected_rate(topic: str, min_hz: float) -> str:
         """Set the expected minimum publish rate (Hz) for a topic at runtime.
 

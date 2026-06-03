@@ -80,7 +80,9 @@ pattern.
 `python -m ros_graph_debugger.mcp_server` exposes the same data to AI assistants
 as tools. Read tools: `get_runtime_briefing` (`/snapshot.md`),
 `get_node_briefing(target)` (`/snapshot.md?focus=TARGET` — a focused briefing
-for one node or topic in a large graph), `get_issues`, `get_graph`, `get_topics`,
+for one node or topic in a large graph), `get_pipeline_path(target)`
+(`/path?target=TARGET` — the constraining source→sink route), `get_issues`,
+`get_graph`, `get_topics`,
 `get_nodes`, `get_tf`, `get_diagnostics`, `get_config`, plus `health`. Write
 tool: `set_expected_rate(topic, min_hz)`
 posts to `/config` so an AI can set a topic's expected-rate floor at runtime.
