@@ -7,10 +7,10 @@
 
 <p align="center">
   <a href="https://rsasaki0109.github.io/ros_graph_debugger/">
-    <img src="docs/img/screenshot-graph.png" alt="ROS Graph Debugger — the detector node lit up on its pipeline path, with the Inspector showing its bottleneck, slow callback, and callback p95" width="900">
+    <img src="docs/img/demo.gif" alt="ROS Graph Debugger: data flows along the graph, then the detector stalls — its node turns red, the readiness bar goes ERROR, and its pipeline path lights up the rate and callback bottleneck" width="900">
   </a>
   <br/>
-  <em>The detector stalls: its pipeline path lights up (rate <b>and</b> callback bottleneck), and the Inspector explains why. <a href="https://rsasaki0109.github.io/ros_graph_debugger/">Try it live →</a></em>
+  <em>Data flows along the graph; then the detector stalls — its node turns red, readiness goes ERROR, and its pipeline path lights up the rate <b>and</b> callback bottleneck. <a href="https://rsasaki0109.github.io/ros_graph_debugger/">Try it live →</a></em>
 </p>
 
 **Runtime DevTools for ROS 2.** A live, AI-friendly view of your running ROS 2
@@ -47,8 +47,7 @@ flowchart LR
 ```
 
 > The whole-system view, the focused pipeline path, and the issue evidence are
-> in [docs/example_briefing.md](docs/example_briefing.md) — exactly what an AI
-> sees. _(An animated GIF of the web UI is coming.)_
+> in [docs/example_briefing.md](docs/example_briefing.md) — exactly what an AI sees.
 
 ---
 
