@@ -163,7 +163,8 @@ def main(argv=None) -> int:
     args = p.parse_args(argv)
 
     if args.cmd in (None, 'version'):
-        print('ros_graph_debugger 0.1.0')
+        from . import __version__
+        print(f'ros_graph_debugger {__version__}')
         return 0
     if args.cmd == 'record':
         return _cmd_record(args)

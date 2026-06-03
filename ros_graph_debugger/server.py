@@ -19,6 +19,7 @@ from fastapi.responses import (
 )
 from fastapi.staticfiles import StaticFiles
 
+from . import __version__
 from .markdown import snapshot_to_markdown
 from .model import RuntimeGraphStore
 
@@ -28,7 +29,7 @@ def create_app(store, web_dir: str,
                stream_period: float = 1.0,
                replay=None, replay_interval: float = 0.5,
                thresholds=None) -> FastAPI:
-    app = FastAPI(title='ros_graph_debugger', version='0.1.0')
+    app = FastAPI(title='ros_graph_debugger', version=__version__)
 
     # A single background task advances the replay cursor, so playback speed is
     # independent of how many browser tabs are connected.
@@ -53,7 +54,7 @@ def create_app(store, web_dir: str,
     # ------------------------------------------------------------- REST API #
     @app.get('/api/v1/health')
     def health():
-        return {'status': 'ok', 'version': '0.1.0'}
+        return {'status': 'ok', 'version': __version__}
 
     @app.get('/api/v1/profile')
     def profile():

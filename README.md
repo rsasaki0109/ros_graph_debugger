@@ -267,7 +267,7 @@ node is modified.
 - [Architecture](docs/architecture.md) — modules, threading model, data flow
 - [HTTP API](docs/api.md) — REST / WebSocket / config schema (kept in sync by a test)
 - [Performance & safety](docs/performance_safety.md) — probing policy, latency tiers
-- [Roadmap](docs/roadmap.md) · [Contributing](CONTRIBUTING.md)
+- [Roadmap](docs/roadmap.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
 
 ## Comparison
 
@@ -283,18 +283,20 @@ node is modified.
 
 - **v0.1** — live graph, topic metrics, QoS, TF, diagnostics, issues, profiles,
   AI Markdown + MCP.
-- **v0.2** *(current)* — pipeline-stage grouping (stage colours + legend), an
+- **v0.2** — pipeline-stage grouping (stage colours + legend), an
   engage-readiness bar (per-stage OK/WARN/ERROR) for Autoware / Nav2,
   `rgd record` / `rgd report` (HTML + Markdown), `rgd serve` time-scrub replay
   (incl. a no-ROS `--demo`), live tuning (Settings tab + pattern-based expected
   rates), a topic Network table, **TF tree + Diagnostics views**, an **MCP
-  server** with full endpoint coverage, and **focused per-node/-topic AI
-  briefings** (REST + MCP + Copy buttons on nodes and issue cards), and a
-  **pipeline-path tracer** (the constraining source→sink route through a node).
-  *Next:* richer process mapping.
-- **v0.3** *(in progress)* — Tier C **callback execution-time** stats +
-  `slow_callback` issues (synthetic source shipped; live `ros2_tracing`/LTTng
-  adapter next), callback-duration timeline, multi-host.
+  server** with full endpoint coverage, and message latency Tier A.
+- **v0.3** *(current)* — Tier C **callback execution-time** stats +
+  `slow_callback` issues with **stage-aware budgets** (synthetic source shipped;
+  live `ros2_tracing`/LTTng adapter next), a **pipeline-path tracer** (rate +
+  callback bottleneck), a **system health verdict**, **focused per-node/-topic
+  AI briefings**, and report/Inspector polish. *Next:* live tracing adapter,
+  multi-host, richer process mapping.
+
+See [CHANGELOG.md](CHANGELOG.md) for the full per-release list.
 
 ## License
 

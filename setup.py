@@ -27,7 +27,7 @@ data_files += data_tree('share/' + package_name + '/web', 'ros_graph_debugger/we
 
 setup(
     name=package_name,
-    version='0.1.0',
+    version='0.3.0',
     packages=find_packages(exclude=['test']),
     data_files=data_files,
     install_requires=['setuptools'],
