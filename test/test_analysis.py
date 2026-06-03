@@ -1,21 +1,8 @@
 """Issue engine / bottleneck analyzer tests — fully synthetic, no ROS needed."""
 
 from ros_graph_debugger.analysis import analyze
+from ros_graph_debugger.config import Thresholds as Thr
 from ros_graph_debugger.model import NodeInfo, QoSInfo, RuntimeGraphStore, TopicInfo
-
-
-class Thr:
-    """Minimal thresholds stand-in (avoids importing the rclpy node module)."""
-    high_bandwidth_bps = 50_000_000
-    large_msg_bytes = 1_000_000
-    stale_topic_ms = 2000.0
-    tf_stale_ms = 1000.0
-    high_cpu_percent = 90.0
-    high_rss_bytes = 2_000_000_000
-
-    def __init__(self):
-        self.expected_min_rate = {}
-        self.expected_max_age_ms = {}
 
 
 def _kinds(issues):

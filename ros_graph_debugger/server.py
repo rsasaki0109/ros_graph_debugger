@@ -10,7 +10,7 @@ import asyncio
 import json
 import os
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import (
     FileResponse,
     HTMLResponse,
@@ -26,7 +26,8 @@ from .model import RuntimeGraphStore
 def create_app(store, web_dir: str,
                profile_data: dict | None = None,
                stream_period: float = 1.0,
-               replay=None, replay_interval: float = 0.5) -> FastAPI:
+               replay=None, replay_interval: float = 0.5,
+               thresholds=None) -> FastAPI:
     app = FastAPI(title='ros_graph_debugger', version='0.1.0')
 
     # A single background task advances the replay cursor, so playback speed is
@@ -110,6 +111,28 @@ def create_app(store, web_dir: str,
     @app.get('/api/v1/issues')
     def issues():
         return store.snapshot().to_dict()['issues']
+
+    # ------------------------------------------------- live config (tuning) #
+    @app.get('/api/v1/config')
+    def get_config():
+        if thresholds is None:
+            return {}
+        from .config import config_to_dict
+        return config_to_dict(thresholds)
+
+    @app.post('/api/v1/config')
+    async def post_config(request: Request):
+        if thresholds is None:
+            return JSONResponse({'error': 'config not available in this mode'},
+                                status_code=400)
+        from .config import apply_config
+        try:
+            payload = await request.json()
+        except Exception:
+            return JSONResponse({'error': 'invalid JSON'}, status_code=400)
+        if not isinstance(payload, dict):
+            return JSONResponse({'error': 'expected a JSON object'}, status_code=400)
+        return {'changed': apply_config(thresholds, payload)}
 
     # ------------------------------------------------------------ WebSocket #
     @app.websocket('/api/v1/stream')

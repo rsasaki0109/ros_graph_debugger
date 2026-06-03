@@ -90,8 +90,8 @@ def analyze(store: RuntimeGraphStore, thresholds) -> list[Issue]:
                                        'Check upstream inputs and CPU load'],
                     related_topics=[name], related_nodes=list(t.publishers)))
 
-        # 5: rate below profile expectation.
-        expected = thresholds.expected_min_rate.get(name)
+        # 5: rate below profile expectation (exact topic or matching pattern).
+        expected = thresholds.min_rate_for(name)
         if expected and t.probed and t.rate_hz is not None \
                 and t.rate_hz < expected:
             status = WARNING if status not in (CRITICAL,) else status
@@ -203,13 +203,15 @@ def _infer_bottlenecks(nodes, topics, thresholds) -> list[Issue]:
             and n.cpu_percent > thresholds.high_cpu_percent
         # Find a slow output.
         slow_topic = None
+        slow_expected = None
         for pub in n.publishers:
             t = topics.get(pub)
             if not t or not t.probed:
                 continue
-            expected = thresholds.expected_min_rate.get(pub)
+            expected = thresholds.min_rate_for(pub)
             if expected and t.rate_hz is not None and t.rate_hz < expected:
                 slow_topic = t
+                slow_expected = expected
                 break
         if not slow_topic:
             continue
@@ -220,7 +222,7 @@ def _infer_bottlenecks(nodes, topics, thresholds) -> list[Issue]:
             if t and t.probed and t.rate_hz:
                 healthy_inputs.append(f'{sub}: {t.rate_hz:.1f} Hz')
         evidence = [f'{slow_topic.name}: {slow_topic.rate_hz:.1f} Hz '
-                    f'(expected >= {thresholds.expected_min_rate[slow_topic.name]:.1f})']
+                    f'(expected >= {slow_expected:.1f})']
         if n.cpu_percent is not None:
             evidence.append(f'{n.name} CPU: {n.cpu_percent:.0f}%')
         evidence += healthy_inputs[:3]

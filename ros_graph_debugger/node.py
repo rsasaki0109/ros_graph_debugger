@@ -13,7 +13,6 @@ import fnmatch
 import re
 import time
 from collections import deque
-from dataclasses import dataclass, field
 
 import rclpy
 from rclpy.node import Node
@@ -28,6 +27,7 @@ from diagnostic_msgs.msg import DiagnosticArray
 from tf2_msgs.msg import TFMessage
 
 from .analysis import analyze
+from .config import ProbeConfig, Thresholds
 from .graph_build import build_graph, fq_node
 from .model import (
     DiagnosticStatus,
@@ -52,30 +52,6 @@ LARGE_TYPES = {
 
 # Internal / noisy topics we never auto-probe.
 SKIP_TOPICS = {'/parameter_events', '/rosout'}
-
-
-@dataclass
-class ProbeConfig:
-    enabled: bool = True
-    include_patterns: list[str] = field(default_factory=list)  # explicit allow
-    regex: str = ''
-    allow_large: bool = False
-    max_topics: int = 12
-    window: int = 50  # samples kept per topic for rate/size stats
-
-
-@dataclass
-class Thresholds:
-    high_bandwidth_bps: float = 50_000_000  # 50 MB/s
-    large_msg_bytes: float = 1_000_000      # 1 MB
-    stale_topic_ms: float = 2000.0
-    tf_stale_ms: float = 1000.0
-    high_cpu_percent: float = 90.0
-    high_rss_bytes: float = 2_000_000_000
-    # Per-topic expected minimum rate, filled from the active profile.
-    expected_min_rate: dict[str, float] = field(default_factory=dict)
-    # Per-topic expected maximum age (ms), filled from the active profile.
-    expected_max_age_ms: dict[str, float] = field(default_factory=dict)
 
 
 class _TopicProbe:

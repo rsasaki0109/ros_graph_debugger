@@ -105,6 +105,17 @@ main { flex: 1 1 auto; display: flex; min-height: 0; }
   padding: 10px; cursor: pointer; font-size: 13px; border-bottom: 2px solid transparent;
 }
 .tab.active { color: var(--text); border-bottom-color: var(--accent); }
+.tab.hidden { display: none; }
+
+.settings label { display: flex; justify-content: space-between; align-items: center;
+  gap: 10px; margin: 6px 0; color: var(--muted); }
+.settings input, .settings textarea {
+  background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 5px; padding: 4px 7px; font: inherit; }
+.settings input[type=number] { width: 130px; }
+.settings textarea { width: 100%; font-family: monospace; font-size: 12px; }
+.settings #cfg-save { margin-top: 8px; }
+.settings #cfg-status { margin-left: 8px; }
 .badge {
   background: var(--critical); color: #fff; border-radius: 9px;
   padding: 0 6px; font-size: 11px; margin-left: 4px;

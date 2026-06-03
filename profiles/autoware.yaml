@@ -40,3 +40,11 @@ expectations:
   /control/command/control_cmd:
     min_rate_hz: 30
     max_age_ms: 100
+
+# Pattern expectations apply a floor to a whole stage (first match wins, after
+# exact expectations above). Useful because real systems have many topics.
+expectation_patterns:
+  - pattern: '^/localization/.*pose.*'
+    min_rate_hz: 10
+  - pattern: '^/control/command/.*'
+    min_rate_hz: 10

@@ -90,7 +90,10 @@ detection into one live view — and one Markdown briefing you can hand to an AI
 - **/diagnostics** ingestion (WARN / ERROR become issues).
 - **Issue panel**: each issue has a plain-English explanation, evidence, and
   suggested actions, ranked by severity.
-- **Profiles**: `autoware`, `nav2`, `moveit` (grouping + expected rates).
+- **Profiles**: `autoware`, `nav2`, `moveit` (grouping + expected rates, incl.
+  regex patterns like `^/control/command/.*` that set a floor for a whole stage).
+- **Live tuning**: a Settings tab (and `POST /api/v1/config`) to adjust expected
+  rates and thresholds at runtime — no restart, the issue engine picks it up.
 
 ## AI-friendly by design
 
@@ -205,9 +208,9 @@ node is modified.
   AI Markdown + MCP.
 - **v0.2** *(current)* — pipeline-stage grouping (stage colours + legend), an
   engage-readiness bar (per-stage OK/WARN/ERROR) for Autoware / Nav2,
-  `rgd record` / `rgd report` (HTML + Markdown), and `rgd serve` time-scrub
-  replay (incl. a no-ROS `--demo`). *Next:* expected-rate config UI, richer
-  process mapping.
+  `rgd record` / `rgd report` (HTML + Markdown), `rgd serve` time-scrub replay
+  (incl. a no-ROS `--demo`), and live tuning (Settings tab + pattern-based
+  expected rates). *Next:* richer process mapping, in-UI topic network table.
 - **v0.3** — `ros2_tracing` adapter, callback/critical-path timeline, multi-host.
 
 ## License

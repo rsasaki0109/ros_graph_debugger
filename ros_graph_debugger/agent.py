@@ -15,7 +15,8 @@ import webbrowser
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
 
-from .node import DebuggerNode, ProbeConfig, Thresholds
+from .config import ProbeConfig, Thresholds
+from .node import DebuggerNode
 from .model import RuntimeGraphStore
 from .paths import find_profile, find_web_dir
 from .profile import load_profile
@@ -68,6 +69,9 @@ def main(argv=None) -> None:
                 profile_data.get('_expected_min_rate', {}))
             thresholds.expected_max_age_ms.update(
                 profile_data.get('_expected_max_age_ms', {}))
+            thresholds.set_patterns(
+                min_rate=profile_data.get('_min_rate_patterns', []),
+                max_age=profile_data.get('_max_age_patterns', []))
         else:
             print(f'[warn] profile not found: {args.profile}')
 
@@ -90,7 +94,8 @@ def main(argv=None) -> None:
     spin_thread.start()
 
     web_dir = find_web_dir()
-    app = create_app(store, web_dir, profile_data=profile_data)
+    app = create_app(store, web_dir, profile_data=profile_data,
+                     thresholds=thresholds)
 
     url = f'http://{args.host}:{args.port}'
     print(f'\n  ros_graph_debugger running at {url}')

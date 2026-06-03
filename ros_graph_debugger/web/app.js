@@ -325,8 +325,7 @@ cy.on('tap', 'node', evt => selectElement(evt.target.id()));
 // --- tabs ---
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-  document.getElementById('tab-issues').classList.toggle('active', name === 'issues');
-  document.getElementById('tab-detail').classList.toggle('active', name === 'detail');
+  document.querySelectorAll('.tab-body').forEach(b => b.classList.toggle('active', b.id === 'tab-' + name));
 }
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
 document.getElementById('fit-btn').addEventListener('click', () => cy.fit(undefined, 40));
@@ -392,5 +391,59 @@ async function initReplay() {
   }, 300);
 }
 
+// --- settings (live config tuning; absent in replay mode) ---
+async function initSettings() {
+  let cfg;
+  try { cfg = await (await fetch('/api/v1/config')).json(); } catch (e) { return; }
+  if (!cfg || cfg.high_cpu_percent === undefined) return;  // replay/no-config
+  document.getElementById('tab-settings-btn').classList.remove('hidden');
+
+  const rates = Object.entries(cfg.expected_min_rate || {})
+    .map(([t, hz]) => `${t} = ${hz}`).join('\n');
+  document.getElementById('tab-settings').innerHTML = `
+    <div class="settings">
+      <div class="section-title">Thresholds</div>
+      <label>High CPU % <input id="cfg-cpu" type="number" step="1"></label>
+      <label>High bandwidth (MB/s) <input id="cfg-bw" type="number" step="1"></label>
+      <label>Topic stale (ms) <input id="cfg-stale" type="number" step="100"></label>
+      <label>TF stale (ms) <input id="cfg-tf" type="number" step="100"></label>
+      <div class="section-title">Expected min rate — one <code>topic = Hz</code> per line</div>
+      <textarea id="cfg-rates" rows="6"></textarea>
+      <div><button id="cfg-save" class="btn">Save</button>
+        <span id="cfg-status" class="hint"></span></div>
+    </div>`;
+  const $ = id => document.getElementById(id);
+  $('cfg-cpu').value = cfg.high_cpu_percent;
+  $('cfg-bw').value = Math.round((cfg.high_bandwidth_bps || 0) / 1e6);
+  $('cfg-stale').value = cfg.stale_topic_ms;
+  $('cfg-tf').value = cfg.tf_stale_ms;
+  $('cfg-rates').value = rates;
+
+  $('cfg-save').addEventListener('click', async () => {
+    const expected = {};
+    $('cfg-rates').value.split('\n').forEach(line => {
+      const m = line.split('=');
+      if (m.length === 2) {
+        const t = m[0].trim(); const hz = parseFloat(m[1]);
+        if (t && !isNaN(hz)) expected[t] = hz;
+      }
+    });
+    const payload = {
+      high_cpu_percent: parseFloat($('cfg-cpu').value),
+      high_bandwidth_bps: parseFloat($('cfg-bw').value) * 1e6,
+      stale_topic_ms: parseFloat($('cfg-stale').value),
+      tf_stale_ms: parseFloat($('cfg-tf').value),
+      expected_min_rate: expected,
+    };
+    try {
+      const r = await fetch('/api/v1/config', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload) });
+      $('cfg-status').textContent = r.ok ? 'saved ✓ (applied live)' : 'error';
+    } catch (e) { $('cfg-status').textContent = 'error: ' + e; }
+  });
+}
+
 loadProfile().finally(connect);
 initReplay();
+initSettings();
