@@ -16,6 +16,8 @@ briefing + MCP server, and a demo pipeline.
   expectations that cover whole stages.
 - Topic Network view — a sortable/filterable DevTools-style table.
 - Message latency Tier A — `header.stamp` age + freshness issues.
+- Dedicated TF tree view (live `/tf` forest) and Diagnostics view.
+- MCP server with full endpoint coverage + a `set_expected_rate` write tool.
 
 ## v0.3 — explain it
 - **Tier C tracing**: `ros2_tracing` adapter → callback-duration timeline and
@@ -23,7 +25,6 @@ briefing + MCP server, and a demo pipeline.
 - Tier B latency via `/statistics` and pipeline-latency topics.
 - In-UI recording replay scrubbing improvements; snapshot export from the UI.
 - Multi-host / federated agents.
-- Dedicated TF tree and diagnostics views.
 - Richer node→process attribution.
 
 Scope is intentionally driven by "does this reduce a ROS 2 developer's daily

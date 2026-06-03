@@ -10,6 +10,7 @@
   --warning: #d29922;
   --critical: #f85149;
   --unknown: #6e7681;
+  --static: #6ea8fe;
 }
 
 * { box-sizing: border-box; }
@@ -40,13 +41,13 @@ body {
 }
 .viewtab.active { background: var(--accent); color: #06080d; font-weight: 600; }
 
-#graph-pane.hidden, #network-pane.hidden { display: none; }
-#network-pane { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
+#graph-pane.hidden, #network-pane.hidden, #tf-pane.hidden, #diag-pane.hidden { display: none; }
+#network-pane, #tf-pane, #diag-pane { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
 .net-toolbar {
   display: flex; align-items: center; gap: 10px; padding: 8px 12px;
   border-bottom: 1px solid var(--border); flex: 0 0 auto;
 }
-#net-filter {
+#net-filter, #tf-filter, #diag-filter {
   flex: 1; max-width: 360px; background: var(--panel-2); color: var(--text);
   border: 1px solid var(--border); border-radius: 6px; padding: 5px 9px; font: inherit;
 }
@@ -213,3 +214,49 @@ main { flex: 1 1 auto; display: flex; min-height: 0; }
 #replaybar .replay-chip { color: var(--accent); border-color: var(--accent); }
 #rp-seek { flex: 1; accent-color: var(--accent); cursor: pointer; }
 #rp-frame { min-width: 78px; text-align: center; }
+
+/* --- TF tree view --- */
+.dot.static { background: var(--static); }
+.tf-legend { color: var(--muted); font-size: 11px; display: flex; align-items: center; gap: 6px; }
+.tf-legend .dot { margin-left: 8px; }
+.tf-tree-wrap { flex: 1 1 auto; overflow: auto; min-height: 0; padding: 8px 12px; font-size: 12px; }
+.tf-row {
+  display: flex; align-items: center; gap: 8px; padding: 3px 0;
+  padding-left: calc(var(--d) * 22px);
+}
+.tf-row.dim { opacity: 0.3; }
+.tf-row .dot { flex: 0 0 auto; }
+.tf-frame { font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--text); }
+.tf-badge {
+  font-size: 10px; padding: 1px 6px; border-radius: 8px; border: 1px solid var(--border);
+  color: var(--muted);
+}
+.tf-badge.ok { color: var(--ok); border-color: var(--ok); }
+.tf-badge.warning { color: var(--warning); border-color: var(--warning); }
+.tf-badge.critical { color: var(--critical); border-color: var(--critical); }
+.tf-badge.static { color: var(--static); border-color: var(--static); }
+.tf-badge.root { color: var(--muted); }
+
+/* --- Diagnostics view --- */
+.diag-wrap { flex: 1 1 auto; overflow: auto; min-height: 0; padding: 8px 12px; }
+.diag-item {
+  display: flex; gap: 10px; padding: 8px 10px; margin-bottom: 6px;
+  background: var(--panel-2); border: 1px solid var(--border);
+  border-left-width: 3px; border-radius: 6px;
+}
+.diag-item.ok { border-left-color: var(--ok); }
+.diag-item.warning { border-left-color: var(--warning); }
+.diag-item.critical { border-left-color: var(--critical); }
+.diag-item.stale { border-left-color: var(--unknown); }
+.diag-level {
+  flex: 0 0 auto; align-self: flex-start; font-size: 10px; font-weight: 600;
+  padding: 2px 7px; border-radius: 8px; border: 1px solid var(--border);
+}
+.diag-level.ok { color: var(--ok); border-color: var(--ok); }
+.diag-level.warning { color: var(--warning); border-color: var(--warning); }
+.diag-level.critical { color: var(--critical); border-color: var(--critical); }
+.diag-level.stale { color: var(--unknown); border-color: var(--unknown); }
+.diag-body { min-width: 0; }
+.diag-name { font-family: ui-monospace, "SF Mono", Menlo, monospace; color: var(--text); }
+.diag-msg { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.diag-hw { color: var(--unknown); font-size: 11px; margin-top: 2px; }

@@ -150,10 +150,31 @@ def build_demo_recording(frames: int = 40):
             _node('/planner', 'planner', [TRAJ], [TRK]),
             _node('/controller', 'controller', [CMD], [TRAJ]),
         ]
-        tf_edges = [{
-            'parent': 'map', 'child': 'base_link', 'last_update_time': None,
-            'age_ms': 420.0 if stalled else 18.0, 'static': False,
-            'status': 'critical' if stalled else 'ok'}]
+        def _tf(parent, child, age, static, status):
+            return {'parent': parent, 'child': child, 'last_update_time': None,
+                    'age_ms': age, 'static': static, 'status': status}
+        tf_edges = [
+            _tf('map', 'base_link', 420.0 if stalled else 18.0, False,
+                'critical' if stalled else 'ok'),
+            _tf('base_link', 'lidar', None, True, 'ok'),
+            _tf('base_link', 'camera', None, True, 'ok'),
+            _tf('base_link', 'imu', None, True, 'ok'),
+            _tf('base_link', 'gnss', None, True, 'ok'),
+        ]
+        diagnostics = [
+            {'name': 'lidar_driver: scan', 'level': 0, 'message': 'OK',
+             'hardware_id': 'velodyne_top'},
+            {'name': 'camera_driver: image', 'level': 0, 'message': 'OK',
+             'hardware_id': 'camera_front'},
+            {'name': 'localization: ndt_scan_matcher',
+             'level': 1 if stalled else 0,
+             'message': 'execution time high' if stalled else 'OK',
+             'hardware_id': ''},
+            {'name': 'perception: detector',
+             'level': 2 if stalled else 0,
+             'message': 'output rate below target (4.1 < 10 Hz)' if stalled else 'OK',
+             'hardware_id': 'gpu0'},
+        ]
         issues = []
         if stalled:
             issues = [{
@@ -180,7 +201,7 @@ def build_demo_recording(frames: int = 40):
         snapshots.append({
             'timestamp': float(i), 'profile': 'autoware', 'nodes': nodes,
             'topics': topics, 'edges': _edges(topics), 'tf_edges': tf_edges,
-            'diagnostics': [], 'issues': issues})
+            'diagnostics': diagnostics, 'issues': issues})
 
     header = make_header(started=0.0, interval=0.5, profile=_DEMO_PROFILE)
     return header, snapshots

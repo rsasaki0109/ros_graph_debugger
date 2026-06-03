@@ -86,15 +86,20 @@ detection into one live view — and one Markdown briefing you can hand to an AI
 
 - **Live ROS graph** with auto layout (pub → topic → sub), plus a **Network
   view** — a sortable/filterable table of every topic (rate, bandwidth, p95
-  size, QoS, status), like a Chrome DevTools Network tab for ROS.
+  size, QoS, status), like a Chrome DevTools Network tab for ROS — and
+  dedicated **TF tree** and **Diagnostics** views.
 - **Topic metrics**: rate, bandwidth, avg / p95 message size (opt-in probing).
 - **QoS mismatch detection** — the classic "connected but no data flows" trap.
 - **Message latency (Tier A)** — `header.stamp` age (p50/p95) on probed topics,
   with a freshness issue when it exceeds a profile's `max_age_ms` (e.g. stale
   localization). Cheap approximation now; tracing-based tiers are on the roadmap.
 - **Node CPU / memory**, with honest node→process mapping confidence.
-- **TF freshness** — stale transform detection.
-- **/diagnostics** ingestion (WARN / ERROR become issues).
+- **TF freshness** — stale transform detection, plus a **TF tree view** that
+  renders the live `/tf` forest (parent → child) with per-edge age and
+  static/dynamic badges.
+- **/diagnostics** ingestion (WARN / ERROR become issues), plus a
+  **Diagnostics view** — every status grouped worst-first with level, message,
+  and hardware id.
 - **Issue panel**: each issue has a plain-English explanation, evidence, and
   suggested actions, ranked by severity.
 - **Profiles**: `autoware`, `nav2`, `moveit` (grouping + expected rates, incl.
@@ -226,8 +231,9 @@ node is modified.
 - **v0.2** *(current)* — pipeline-stage grouping (stage colours + legend), an
   engage-readiness bar (per-stage OK/WARN/ERROR) for Autoware / Nav2,
   `rgd record` / `rgd report` (HTML + Markdown), `rgd serve` time-scrub replay
-  (incl. a no-ROS `--demo`), and live tuning (Settings tab + pattern-based
-  expected rates). *Next:* richer process mapping, in-UI topic network table.
+  (incl. a no-ROS `--demo`), live tuning (Settings tab + pattern-based expected
+  rates), a topic Network table, **TF tree + Diagnostics views**, and an **MCP
+  server** with full endpoint coverage. *Next:* richer process mapping.
 - **v0.3** — `ros2_tracing` adapter, callback/critical-path timeline, multi-host.
 
 ## License

@@ -62,6 +62,28 @@ def test_demo_recording_has_bottleneck_window():
         assert s['nodes'] and s['topics'] and 'edges' in s
 
 
+def test_demo_recording_has_tf_tree_and_diagnostics():
+    _, snaps = build_demo_recording()
+    # TF forms a small tree (map -> base_link -> sensors), with statics present.
+    tf = snaps[0]['tf_edges']
+    parents = {e['parent'] for e in tf}
+    children = {e['child'] for e in tf}
+    assert 'map' in parents and 'base_link' in children
+    assert {e['child'] for e in tf if e['parent'] == 'base_link'}  # sensors hang off base_link
+    assert any(e['static'] for e in tf) and any(not e['static'] for e in tf)
+    # The dynamic map->base_link goes critical during the stall, ok otherwise.
+    def mbl(s):
+        return next(e for e in s['tf_edges']
+                    if e['parent'] == 'map' and e['child'] == 'base_link')
+    assert mbl(snaps[0])['status'] == 'ok'
+    assert any(mbl(s)['status'] == 'critical' for s in snaps)
+
+    # Diagnostics are present and escalate during the stall window.
+    assert all(s['diagnostics'] for s in snaps)
+    worst = [max(d['level'] for d in s['diagnostics']) for s in snaps]
+    assert worst[0] == 0 and max(worst) >= 2  # clean start, ERROR mid-run
+
+
 @pytest.fixture(scope='module')
 def replay_url():
     header, snaps = build_demo_recording()

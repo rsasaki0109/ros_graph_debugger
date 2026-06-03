@@ -216,6 +216,8 @@ function render(snap) {
   updateChrome(snap);
   renderReadiness(snap);
   if (netState.view === 'network') renderNetwork(snap);
+  else if (netState.view === 'tf') renderTf(snap);
+  else if (netState.view === 'diag') renderDiagnostics(snap);
   if (state.selected) refreshInspector();
 }
 
@@ -386,12 +388,16 @@ function renderNetwork(snap) {
     tr.addEventListener('click', () => selectElement('T:' + tr.dataset.topic)));
 }
 
+const VIEW_PANES = { graph: 'graph-pane', network: 'network-pane', tf: 'tf-pane', diag: 'diag-pane' };
+
 function setView(view) {
   netState.view = view;
   document.querySelectorAll('.viewtab').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-  document.getElementById('graph-pane').classList.toggle('hidden', view !== 'graph');
-  document.getElementById('network-pane').classList.toggle('hidden', view !== 'network');
+  Object.entries(VIEW_PANES).forEach(([v, id]) =>
+    document.getElementById(id).classList.toggle('hidden', v !== view));
   if (view === 'network' && state.last) renderNetwork(state.last);
+  else if (view === 'tf' && state.last) renderTf(state.last);
+  else if (view === 'diag' && state.last) renderDiagnostics(state.last);
   else if (view === 'graph') setTimeout(() => cy.resize(), 0);  // container was hidden
 }
 
@@ -402,6 +408,123 @@ document.getElementById('net-filter').addEventListener('input', e => {
   if (state.last) renderNetwork(state.last);
 });
 renderNetHead();
+
+// --- TF tree view ---
+const tfState = { query: '' };
+
+function fmtAge(ms) {
+  if (typeof ms !== 'number') return '';
+  if (ms >= 1000) return (ms / 1000).toFixed(1) + ' s';
+  return ms.toFixed(0) + ' ms';
+}
+
+function buildTfForest(edges) {
+  // edges: [{parent, child, age_ms, static, status}]. Build child lists keyed
+  // by parent; roots are frames that never appear as a child.
+  const byParent = {};
+  const children = new Set();
+  const edgeOf = {};  // child frame -> its incoming edge
+  edges.forEach(e => {
+    (byParent[e.parent] = byParent[e.parent] || []).push(e.child);
+    children.add(e.child);
+    edgeOf[e.child] = e;
+  });
+  const frames = new Set();
+  edges.forEach(e => { frames.add(e.parent); frames.add(e.child); });
+  const roots = [...frames].filter(f => !children.has(f)).sort();
+  return { byParent, edgeOf, roots, count: frames.size };
+}
+
+function renderTfNode(frame, forest, seen, depth) {
+  if (seen.has(frame)) return `<div class="tf-row" style="--d:${depth}"><span class="tf-frame">${escapeHtml(frame)} ↻ (cycle)</span></div>`;
+  seen.add(frame);
+  const e = forest.edgeOf[frame];
+  let meta = '';
+  if (e) {
+    const badge = e.static
+      ? '<span class="tf-badge static">static</span>'
+      : `<span class="tf-badge ${e.status || 'unknown'}">${fmtAge(e.age_ms) || '—'}</span>`;
+    meta = badge;
+  } else {
+    meta = '<span class="tf-badge root">root</span>';
+  }
+  const dot = e ? (e.static ? 'static' : (e.status || 'unknown')) : 'ok';
+  let html = `<div class="tf-row" style="--d:${depth}">
+    <i class="dot ${dot}"></i><span class="tf-frame">${escapeHtml(frame)}</span>${meta}</div>`;
+  const kids = (forest.byParent[frame] || []).slice().sort();
+  kids.forEach(c => { html += renderTfNode(c, forest, seen, depth + 1); });
+  return html;
+}
+
+function renderTf(snap) {
+  const edges = snap.tf_edges || [];
+  const wrap = document.getElementById('tf-tree');
+  document.getElementById('tf-count').textContent = `${edges.length} transforms`;
+  if (!edges.length) {
+    wrap.innerHTML = '<p class="hint">No TF frames seen yet. Is something publishing /tf?</p>';
+    return;
+  }
+  const q = tfState.query.trim().toLowerCase();
+  const forest = buildTfForest(edges);
+  const seen = new Set();
+  let html = forest.roots.map(r => renderTfNode(r, forest, seen, 0)).join('');
+  // Any frames not reached from a root (shouldn't happen, but be safe).
+  const all = new Set(); edges.forEach(e => { all.add(e.parent); all.add(e.child); });
+  [...all].filter(f => !seen.has(f)).sort().forEach(f => { html += renderTfNode(f, forest, seen, 0); });
+  if (q) {
+    // Simple highlight-by-filter: dim rows whose frame doesn't match.
+    wrap.innerHTML = html;
+    wrap.querySelectorAll('.tf-row').forEach(row => {
+      const name = row.querySelector('.tf-frame').textContent.toLowerCase();
+      row.classList.toggle('dim', !name.includes(q));
+    });
+  } else {
+    wrap.innerHTML = html;
+  }
+}
+
+document.getElementById('tf-filter').addEventListener('input', e => {
+  tfState.query = e.target.value;
+  if (state.last) renderTf(state.last);
+});
+
+// --- Diagnostics view ---
+const diagState = { query: '' };
+const DIAG_LEVEL = { 0: 'ok', 1: 'warning', 2: 'critical', 3: 'stale' };
+const DIAG_LABEL = { 0: 'OK', 1: 'WARN', 2: 'ERROR', 3: 'STALE' };
+
+function renderDiagnostics(snap) {
+  const diags = (snap.diagnostics || []).slice();
+  const q = diagState.query.trim().toLowerCase();
+  const wrap = document.getElementById('diag-list');
+  const rows = q ? diags.filter(d =>
+    (d.name || '').toLowerCase().includes(q) ||
+    (d.message || '').toLowerCase().includes(q) ||
+    (d.hardware_id || '').toLowerCase().includes(q)) : diags;
+  // Worst level first, then by name.
+  rows.sort((a, b) => (b.level - a.level) || String(a.name).localeCompare(String(b.name)));
+  document.getElementById('diag-count').textContent = `${rows.length} statuses`;
+  if (!diags.length) {
+    wrap.innerHTML = '<p class="hint">No /diagnostics received. Is a diagnostic_aggregator running?</p>';
+    return;
+  }
+  if (!rows.length) { wrap.innerHTML = '<p class="hint">No statuses match the filter.</p>'; return; }
+  wrap.innerHTML = rows.map(d => {
+    const lv = DIAG_LEVEL[d.level] || 'unknown';
+    return `<div class="diag-item ${lv}">
+      <span class="diag-level ${lv}">${DIAG_LABEL[d.level] ?? d.level}</span>
+      <div class="diag-body">
+        <div class="diag-name">${escapeHtml(d.name || '(unnamed)')}</div>
+        ${d.message ? `<div class="diag-msg">${escapeHtml(d.message)}</div>` : ''}
+        ${d.hardware_id ? `<div class="diag-hw">hardware: ${escapeHtml(d.hardware_id)}</div>` : ''}
+      </div></div>`;
+  }).join('');
+}
+
+document.getElementById('diag-filter').addEventListener('input', e => {
+  diagState.query = e.target.value;
+  if (state.last) renderDiagnostics(state.last);
+});
 
 // --- tabs ---
 function switchTab(name) {

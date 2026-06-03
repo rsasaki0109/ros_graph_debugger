@@ -19,6 +19,8 @@
     <div class="viewtabs">
       <button class="viewtab active" data-view="graph">Graph</button>
       <button class="viewtab" data-view="network">Network</button>
+      <button class="viewtab" data-view="tf">TF</button>
+      <button class="viewtab" data-view="diag">Diagnostics</button>
     </div>
     <div class="status">
       <span id="profile-chip" class="chip hidden"></span>
@@ -55,6 +57,23 @@
           <tbody id="net-body"></tbody>
         </table>
       </div>
+    </section>
+
+    <section id="tf-pane" class="hidden">
+      <div class="net-toolbar">
+        <input id="tf-filter" type="text" placeholder="filter frames…" />
+        <span id="tf-count" class="chip"></span>
+        <span class="tf-legend"><i class="dot ok"></i>fresh <i class="dot warning"></i>stale <i class="dot static"></i>static</span>
+      </div>
+      <div id="tf-tree" class="tf-tree-wrap"></div>
+    </section>
+
+    <section id="diag-pane" class="hidden">
+      <div class="net-toolbar">
+        <input id="diag-filter" type="text" placeholder="filter by name / message / hardware_id…" />
+        <span id="diag-count" class="chip"></span>
+      </div>
+      <div id="diag-list" class="diag-wrap"></div>
     </section>
 
     <aside id="side">
