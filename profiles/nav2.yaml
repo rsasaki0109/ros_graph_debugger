@@ -1,0 +1,44 @@
+name: nav2
+description: Navigation2 stack grouping and expectations.
+
+groups:
+  map:
+    topic_patterns:
+      - '^/map$'
+      - '^/map_metadata$'
+  localization:
+    topic_patterns:
+      - '^/amcl_pose$'
+      - '^/particle_cloud$'
+      - '^/tf$'
+      - '^/tf_static$'
+  sensors:
+    topic_patterns:
+      - '^/scan$'
+      - '^/odom$'
+  costmaps:
+    topic_patterns:
+      - '.*costmap.*'
+  planning:
+    topic_patterns:
+      - '^/plan$'
+      - '.*/global_costmap/.*'
+  control:
+    topic_patterns:
+      - '^/cmd_vel$'
+      - '.*/local_costmap/.*'
+  behavior:
+    topic_patterns:
+      - '^/behavior_tree_log$'
+      - '.*/bt_navigator/.*'
+
+expectations:
+  /scan:
+    min_rate_hz: 5
+    max_age_ms: 400
+  /odom:
+    min_rate_hz: 20
+    max_age_ms: 100
+  /cmd_vel:
+    min_rate_hz: 10
+    max_age_ms: 200

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ROS Graph Debugger</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="/vendor/cytoscape.min.js"></script>
+  <script src="/vendor/dagre.min.js"></script>
+  <script src="/vendor/cytoscape-dagre.min.js"></script>
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand">
+      <span class="logo">◇</span>
+      <span class="title">ROS Graph Debugger</span>
+      <span class="tagline">Runtime DevTools for ROS&nbsp;2</span>
+    </div>
+    <div class="status">
+      <span id="profile-chip" class="chip hidden"></span>
+      <span id="conn" class="chip conn-off">connecting…</span>
+      <span id="counts" class="chip"></span>
+      <button id="pause-btn" class="btn">⏸ Pause</button>
+      <button id="fit-btn" class="btn">⤢ Fit</button>
+      <a class="btn" href="/api/v1/snapshot.md" target="_blank">⧉ AI&nbsp;Markdown</a>
+    </div>
+  </header>
+
+  <main>
+    <section id="graph-pane">
+      <div id="cy"></div>
+      <div id="legend">
+        <span><i class="dot ok"></i>ok</span>
+        <span><i class="dot warning"></i>warning</span>
+        <span><i class="dot critical"></i>critical</span>
+        <span><i class="dot unknown"></i>unknown</span>
+      </div>
+    </section>
+
+    <aside id="side">
+      <nav id="tabs">
+        <button class="tab active" data-tab="issues">Issues <span id="issue-badge" class="badge">0</span></button>
+        <button class="tab" data-tab="detail">Inspector</button>
+      </nav>
+      <div id="tab-issues" class="tab-body active"></div>
+      <div id="tab-detail" class="tab-body">
+        <p class="hint">Click a node or topic in the graph to inspect it.</p>
+      </div>
+    </aside>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

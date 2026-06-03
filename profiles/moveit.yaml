@@ -1,0 +1,31 @@
+name: moveit
+description: MoveIt 2 grouping and expectations.
+
+groups:
+  planning_scene:
+    topic_patterns:
+      - '^/planning_scene$'
+      - '^/planning_scene_world$'
+      - '.*/monitored_planning_scene$'
+  robot_state:
+    topic_patterns:
+      - '^/joint_states$'
+      - '^/tf$'
+      - '^/tf_static$'
+  trajectory:
+    topic_patterns:
+      - '.*/display_planned_path$'
+      - '.*/trajectory_execution.*'
+  controllers:
+    topic_patterns:
+      - '.*/follow_joint_trajectory/.*'
+      - '.*controller.*'
+  perception:
+    topic_patterns:
+      - '.*/depth/.*'
+      - '.*/points$'
+
+expectations:
+  /joint_states:
+    min_rate_hz: 20
+    max_age_ms: 100

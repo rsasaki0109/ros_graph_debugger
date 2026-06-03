@@ -1,0 +1,42 @@
+name: autoware
+description: Autoware Universe pipeline grouping and expectations.
+
+# Groups drive how the UI clusters the graph into pipeline stages.
+groups:
+  sensing:
+    topic_patterns:
+      - '^/sensing/.*'
+      - '^/vehicle/status/.*'
+  localization:
+    topic_patterns:
+      - '^/localization/.*'
+      - '^/tf$'
+      - '^/tf_static$'
+  perception:
+    topic_patterns:
+      - '^/perception/.*'
+  planning:
+    topic_patterns:
+      - '^/planning/.*'
+  control:
+    topic_patterns:
+      - '^/control/.*'
+      - '^/vehicle/command/.*'
+  diagnostics:
+    topic_patterns:
+      - '^/diagnostics.*'
+
+# Per-topic expectations feed the issue engine (exact topic names).
+expectations:
+  /localization/kinematic_state:
+    min_rate_hz: 30
+    max_age_ms: 100
+  /perception/object_recognition/objects:
+    min_rate_hz: 10
+    max_age_ms: 200
+  /planning/scenario_planning/trajectory:
+    min_rate_hz: 10
+    max_age_ms: 300
+  /control/command/control_cmd:
+    min_rate_hz: 30
+    max_age_ms: 100
