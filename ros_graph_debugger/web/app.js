@@ -697,6 +697,30 @@ document.getElementById('pause-btn').addEventListener('click', e => {
   e.target.textContent = state.paused ? '▶ Resume' : '⏸ Pause';
 });
 
+// --- export the current snapshot / briefing to a file ---
+function downloadFile(name, text, mime) {
+  const url = URL.createObjectURL(new Blob([text], { type: mime }));
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function flash(btn, msg) {
+  const t = btn.textContent; btn.textContent = msg;
+  setTimeout(() => { btn.textContent = t; }, 1200);
+}
+document.getElementById('export-json').addEventListener('click', e => {
+  if (!state.last) return flash(e.target, 'no data');
+  downloadFile('ros-graph-snapshot.json', JSON.stringify(state.last, null, 2),
+               'application/json');
+});
+document.getElementById('export-md').addEventListener('click', e => {
+  const btn = e.target;
+  fetch('/api/v1/snapshot.md').then(r => r.text())
+    .then(md => downloadFile('ros-graph-briefing.md', md, 'text/markdown'))
+    .catch(() => flash(btn, 'failed'));
+});
+
 // --- websocket stream ---
 function connect() {
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';

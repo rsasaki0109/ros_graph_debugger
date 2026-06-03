@@ -157,6 +157,10 @@ The whole runtime state is available in three machine-friendly ways:
 | **Focused briefing** | `GET /api/v1/snapshot.md?focus=TARGET` | just one node/topic + neighbours (also a "Copy AI briefing" button on every node Inspector **and issue card**) |
 | **MCP server** | `python -m ros_graph_debugger.mcp_server` | let Claude query the live graph |
 
+The web header also has one-click **⤓ JSON** / **⤓ MD** buttons to download the
+current snapshot or briefing to a file (handy for attaching to a bug report or
+handing to an AI offline).
+
 ```bash
 # grab an AI-ready briefing from anywhere
 curl http://localhost:3939/api/v1/snapshot.md
