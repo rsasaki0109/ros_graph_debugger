@@ -112,6 +112,23 @@ class DiagnosticStatus:
 
 
 @dataclass
+class CallbackStat:
+    """Per-callback execution-time statistics (latency Tier C, from tracing).
+
+    A callback is identified by the node it runs in and the topic it serves
+    (subscription callbacks) or an empty topic for timers. Durations are wall
+    time spent inside the callback, summarized over a window."""
+
+    node: str
+    callback: str  # human label, e.g. 'sub /perception/.../objects'
+    topic: str = ''
+    count: int = 0
+    mean_ms: Optional[float] = None
+    p95_ms: Optional[float] = None
+    max_ms: Optional[float] = None
+
+
+@dataclass
 class Issue:
     id: str
     severity: str
@@ -134,6 +151,7 @@ class GraphSnapshot:
     edges: list[dict] = field(default_factory=list)
     tf_edges: list[dict] = field(default_factory=list)
     diagnostics: list[dict] = field(default_factory=list)
+    callbacks: list[dict] = field(default_factory=list)
     issues: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -154,6 +172,7 @@ class RuntimeGraphStore:
         self._topics: dict[str, TopicInfo] = {}
         self._tf: dict[tuple[str, str], TfEdge] = {}
         self._diagnostics: dict[str, DiagnosticStatus] = {}
+        self._callbacks: list[CallbackStat] = []
         self._issues: list[Issue] = []
         self._profile: Optional[str] = None
 
@@ -210,6 +229,10 @@ class RuntimeGraphStore:
         with self._lock:
             self._diagnostics = diags
 
+    def set_callbacks(self, callbacks: list[CallbackStat]) -> None:
+        with self._lock:
+            self._callbacks = list(callbacks)
+
     def set_issues(self, issues: list[Issue]) -> None:
         with self._lock:
             self._issues = issues
@@ -221,11 +244,13 @@ class RuntimeGraphStore:
     # -- readers (called from collectors and the web server) ---------------- #
     def working_copy(self) -> tuple[dict[str, NodeInfo], dict[str, TopicInfo],
                                     dict[tuple[str, str], TfEdge],
-                                    dict[str, DiagnosticStatus]]:
+                                    dict[str, DiagnosticStatus],
+                                    list[CallbackStat]]:
         """Return references for read-only analysis within the spin thread."""
         with self._lock:
             return (dict(self._nodes), dict(self._topics),
-                    dict(self._tf), dict(self._diagnostics))
+                    dict(self._tf), dict(self._diagnostics),
+                    list(self._callbacks))
 
     def probe_candidates(self) -> list[tuple[str, str]]:
         with self._lock:
@@ -242,6 +267,7 @@ class RuntimeGraphStore:
                 edges=[asdict(e) for e in edges],
                 tf_edges=[asdict(e) for e in self._tf.values()],
                 diagnostics=[asdict(d) for d in self._diagnostics.values()],
+                callbacks=[asdict(c) for c in self._callbacks],
                 issues=[asdict(i) for i in self._issues],
             )
 

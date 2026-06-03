@@ -268,7 +268,7 @@ class DebuggerNode(Node):
             mapping = _map_nodes_to_processes()
         except Exception:
             return
-        nodes, _, _, _ = self.store.working_copy()
+        nodes, _, _, _, _ = self.store.working_copy()
         # Count how many nodes share each pid (component containers).
         share: dict[int, int] = {}
         for pid in mapping.values():

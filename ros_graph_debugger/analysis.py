@@ -21,7 +21,7 @@ _SEVERITY_ORDER = {CRITICAL: 0, WARNING: 1, INFO: 2}
 
 
 def analyze(store: RuntimeGraphStore, thresholds) -> list[Issue]:
-    nodes, topics, tf, diagnostics = store.working_copy()
+    nodes, topics, tf, diagnostics, callbacks = store.working_copy()
     issues: list[Issue] = []
     now = time.time()
     counter = _Counter()
@@ -205,11 +205,45 @@ def analyze(store: RuntimeGraphStore, thresholds) -> list[Issue]:
                                    'Check executor / thread configuration'],
                 related_nodes=[node_id]))
 
+    # 12: slow callbacks (latency Tier C, from tracing).
+    issues.extend(_slow_callbacks(callbacks, thresholds, counter))
+
     # 14: bottleneck inference — healthy input, hot node, dropping output.
     issues.extend(_infer_bottlenecks(nodes, topics, thresholds))
 
     issues.sort(key=lambda i: _SEVERITY_ORDER.get(i.severity, 9))
     return issues
+
+
+def _slow_callbacks(callbacks, thresholds, counter) -> list[Issue]:
+    """Flag callbacks whose p95 execution time exceeds the threshold — the
+    measured (Tier C) counterpart to the inferred bottleneck rule."""
+    limit = thresholds.slow_callback_ms
+    out: list[Issue] = []
+    for c in callbacks:
+        p95 = c.p95_ms
+        if not limit or p95 is None or p95 <= limit:
+            continue
+        severity = CRITICAL if p95 > 2 * limit else WARNING
+        evidence = [f'p95: {p95:.0f} ms (limit {limit:.0f} ms)']
+        if c.mean_ms is not None:
+            evidence.append(f'mean: {c.mean_ms:.0f} ms')
+        if c.count:
+            evidence.append(f'samples: {c.count}')
+        out.append(Issue(
+            id=counter.next('slow_callback'), severity=severity,
+            kind='slow_callback',
+            title=f'Slow callback in {c.node}',
+            explanation=f'Callback "{c.callback}" runs {p95:.0f} ms at p95, above '
+                        f'the {limit:.0f} ms budget; it can throttle everything '
+                        'downstream of this node.',
+            evidence=evidence,
+            suggested_actions=['Profile the callback body',
+                               'Move heavy work off the executor thread',
+                               'Check for blocking I/O or lock contention'],
+            related_nodes=[c.node],
+            related_topics=[c.topic] if c.topic else []))
+    return out
 
 
 def _infer_bottlenecks(nodes, topics, thresholds) -> list[Issue]:

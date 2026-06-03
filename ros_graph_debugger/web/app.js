@@ -317,11 +317,24 @@ function nodeDetail(n) {
     ${n.publishers.map(p => `<span class="pill" onclick="window._sel('T:${p}')">${p}</span>`).join('') || '<span class="hint">none</span>'}
     <div class="section-title">Subscribers (${n.subscribers.length})</div>
     ${n.subscribers.map(s => `<span class="pill" onclick="window._sel('T:${s}')">${s}</span>`).join('') || '<span class="hint">none</span>'}
+    ${nodeCallbacks(n.id)}
     <div class="section-title">Pipeline path <span class="hint">— lit up on the graph</span></div>
     <div id="node-path" class="node-path hint">tracing…</div>
     <div class="section-title">AI</div>
     <button class="brief-btn" onclick="window._copyBriefing('${escapeHtml(n.id)}', this)">Copy AI briefing</button>
     <span class="hint">a focused Markdown briefing for this node — paste into an LLM</span>`;
+}
+
+// Per-callback execution-time stats (Tier C tracing) for a node, slowest first.
+function nodeCallbacks(nodeId) {
+  const cbs = (state.last?.callbacks || []).filter(c => c.node === nodeId);
+  if (!cbs.length) return '';
+  const rows = cbs.slice().sort((a, b) => (b.p95_ms || 0) - (a.p95_ms || 0)).map(c => {
+    const p95 = typeof c.p95_ms === 'number' ? c.p95_ms.toFixed(0) + ' ms' : '—';
+    const slow = typeof c.p95_ms === 'number' && c.p95_ms > 100;
+    return `<div class="cb-row${slow ? ' slow' : ''}"><span class="cb-name">${escapeHtml(c.callback)}</span><span class="cb-p95">${p95}</span></div>`;
+  }).join('');
+  return `<div class="section-title">Callbacks <span class="hint">p95</span></div>${rows}`;
 }
 
 // Fetch and render the constraining source->sink path through a node. Logic

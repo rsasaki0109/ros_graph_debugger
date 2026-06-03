@@ -32,6 +32,7 @@ class Thresholds:
     tf_stale_ms: float = 1000.0
     high_cpu_percent: float = 90.0
     high_rss_bytes: float = 2_000_000_000
+    slow_callback_ms: float = 100.0  # callback p95 above this is flagged (Tier C)
 
     # Exact-topic expectations (highest priority).
     expected_min_rate: dict[str, float] = field(default_factory=dict)
@@ -88,7 +89,7 @@ class Thresholds:
 # Scalar threshold fields that POST /api/v1/config may set.
 _SCALAR_FIELDS = (
     'high_bandwidth_bps', 'large_msg_bytes', 'stale_topic_ms', 'tf_stale_ms',
-    'high_cpu_percent', 'high_rss_bytes')
+    'high_cpu_percent', 'high_rss_bytes', 'slow_callback_ms')
 
 
 def apply_config(thresholds: Thresholds, payload: dict) -> dict:
@@ -148,6 +149,7 @@ def config_to_dict(thresholds: Thresholds) -> dict:
         'tf_stale_ms': thresholds.tf_stale_ms,
         'high_cpu_percent': thresholds.high_cpu_percent,
         'high_rss_bytes': thresholds.high_rss_bytes,
+        'slow_callback_ms': thresholds.slow_callback_ms,
         'expected_min_rate': thresholds.expected_min_rate,
         'expected_max_age_ms': thresholds.expected_max_age_ms,
         'min_rate_patterns': thresholds.min_rate_patterns,

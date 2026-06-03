@@ -84,6 +84,20 @@ def test_demo_recording_has_tf_tree_and_diagnostics():
     assert worst[0] == 0 and max(worst) >= 2  # clean start, ERROR mid-run
 
 
+def test_demo_recording_has_callback_traces():
+    _, snaps = build_demo_recording()
+    # Every frame carries callback stats (one per subscription callback).
+    assert all(s['callbacks'] for s in snaps)
+    # The detector's callback p95 spikes during the stall and recovers.
+    def det_p95(s):
+        return max(c['p95_ms'] for c in s['callbacks'] if c['node'] == '/detector')
+    assert det_p95(snaps[0]) < 50
+    assert max(det_p95(s) for s in snaps) > 150
+    # The spike surfaces as a slow_callback issue mid-run.
+    assert any(i['kind'] == 'slow_callback'
+               for s in snaps for i in s['issues'])
+
+
 @pytest.fixture(scope='module')
 def replay_url():
     header, snaps = build_demo_recording()

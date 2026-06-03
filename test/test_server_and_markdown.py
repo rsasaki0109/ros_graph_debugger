@@ -163,6 +163,17 @@ def test_snapshot_md_endpoint_focus(base_url):
     assert 'Likely bottleneck: detector' in text
 
 
+def test_markdown_renders_callbacks_section():
+    from ros_graph_debugger.model import CallbackStat
+    store = _store()
+    store.set_callbacks([CallbackStat(node='/detector', callback='sub /image',
+                                      topic='/image', count=100, mean_ms=120.0,
+                                      p95_ms=210.0, max_ms=260.0)])
+    md = snapshot_to_markdown(store.snapshot())
+    assert '## Callbacks' in md
+    assert '210 ms' in md and 'sub /image' in md
+
+
 def test_focused_briefing_includes_pipeline_path():
     md = snapshot_to_markdown(_store_with_unrelated().snapshot(), focus='/detector')
     assert '## Pipeline path' in md

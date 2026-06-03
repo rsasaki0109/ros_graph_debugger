@@ -15,8 +15,10 @@ capture) without DDS.
 from __future__ import annotations
 
 import threading
+from dataclasses import asdict
 
 from .recording import make_header
+from .tracing import synthesize_callbacks
 
 
 class _Frame:
@@ -175,6 +177,10 @@ def build_demo_recording(frames: int = 40):
              'message': 'output rate below target (4.1 < 10 Hz)' if stalled else 'OK',
              'hardware_id': 'gpu0'},
         ]
+        # Tier C: detector's subscription callback spikes during the stall.
+        callbacks = [asdict(c) for c in synthesize_callbacks(
+            nodes, slow_node='/detector' if stalled else None)]
+
         issues = []
         if stalled:
             issues = [{
@@ -196,12 +202,23 @@ def build_demo_recording(frames: int = 40):
                 'explanation': 'The transform has not been updated recently.',
                 'evidence': ['age: 420 ms'],
                 'suggested_actions': ['Inspect the broadcaster for this transform'],
-                'related_nodes': [], 'related_topics': [], 'related_frames': ['map', 'base_link']}]
+                'related_nodes': [], 'related_topics': [], 'related_frames': ['map', 'base_link']},
+                {
+                'id': f'demo_cb_{i}', 'severity': 'critical', 'kind': 'slow_callback',
+                'title': 'Slow callback in /detector',
+                'explanation': 'Callback "sub /sensing/camera/image_raw" runs 210 ms at '
+                               'p95, above the 100 ms budget; it can throttle everything '
+                               'downstream of this node.',
+                'evidence': ['p95: 210 ms (limit 100 ms)', 'mean: 116 ms', 'samples: 100'],
+                'suggested_actions': ['Profile the callback body',
+                                      'Move heavy work off the executor thread'],
+                'related_nodes': ['/detector'],
+                'related_topics': ['/sensing/camera/image_raw'], 'related_frames': []}]
 
         snapshots.append({
             'timestamp': float(i), 'profile': 'autoware', 'nodes': nodes,
             'topics': topics, 'edges': _edges(topics), 'tf_edges': tf_edges,
-            'diagnostics': diagnostics, 'issues': issues})
+            'diagnostics': diagnostics, 'callbacks': callbacks, 'issues': issues})
 
     header = make_header(started=0.0, interval=0.5, profile=_DEMO_PROFILE)
     return header, snapshots

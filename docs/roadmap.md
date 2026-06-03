@@ -26,8 +26,12 @@ briefing + MCP server, and a demo pipeline.
   Inspector and briefing.
 
 ## v0.3 — explain it
-- **Tier C tracing**: `ros2_tracing` adapter → callback-duration timeline
-  (measured per-callback latency along the pipeline path).
+- **Tier C tracing** *(in progress)*: per-callback execution-time stats
+  (`/api/v1/callbacks`, `get_callbacks`, node Inspector + briefing) and a
+  `slow_callback` issue when a callback blows its budget. The data shape and a
+  synthetic source ship now (`tracing.synthesize_callbacks`, demonstrated by
+  `--demo`); the live `ros2_tracing`/LTTng adapter that emits the same shape,
+  plus a callback-duration timeline along the pipeline path, are next.
 - Tier B latency via `/statistics` and pipeline-latency topics.
 - In-UI recording replay scrubbing improvements; snapshot export from the UI.
 - Multi-host / federated agents.

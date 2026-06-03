@@ -107,6 +107,11 @@ body {
 .pp-edge.slow { color: var(--critical); font-weight: 600; }
 .pp-arrow { color: var(--muted); }
 
+.cb-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; padding: 1px 0; }
+.cb-name { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cb-p95 { font-variant-numeric: tabular-nums; }
+.cb-row.slow .cb-p95 { color: var(--critical); font-weight: 600; }
+
 #readiness {
   display: flex; align-items: stretch; gap: 1px; flex: 0 0 auto;
   background: var(--border); border-bottom: 1px solid var(--border);

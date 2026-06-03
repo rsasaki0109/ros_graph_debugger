@@ -2,7 +2,13 @@
 
 from ros_graph_debugger.analysis import analyze
 from ros_graph_debugger.config import Thresholds as Thr
-from ros_graph_debugger.model import NodeInfo, QoSInfo, RuntimeGraphStore, TopicInfo
+from ros_graph_debugger.model import (
+    CallbackStat,
+    NodeInfo,
+    QoSInfo,
+    RuntimeGraphStore,
+    TopicInfo,
+)
 
 
 def _kinds(issues):
@@ -72,6 +78,31 @@ def test_bottleneck_inference():
     assert '/detector' in bn.related_nodes
     # Severity ordering puts critical first.
     assert issues[0].severity == 'critical'
+
+
+def test_slow_callback_issue():
+    store = RuntimeGraphStore()
+    store.set_graph({'/detector': NodeInfo(id='/detector', name='detector')}, {})
+    store.set_callbacks([
+        CallbackStat(node='/detector', callback='sub /image', topic='/image',
+                     count=100, mean_ms=120.0, p95_ms=210.0, max_ms=260.0),
+        CallbackStat(node='/detector', callback='sub /fast', topic='/fast',
+                     count=100, mean_ms=8.0, p95_ms=18.0, max_ms=25.0),
+    ])
+    issues = analyze(store, Thr())  # default slow_callback_ms = 100
+    slow = [i for i in issues if i.kind == 'slow_callback']
+    assert len(slow) == 1  # only the 210 ms callback trips it
+    assert slow[0].severity == 'critical'  # > 2x the limit
+    assert '/detector' in slow[0].related_nodes
+    assert '/image' in slow[0].related_topics
+
+
+def test_callbacks_under_budget_are_silent():
+    store = RuntimeGraphStore()
+    store.set_graph({'/n': NodeInfo(id='/n', name='n')}, {})
+    store.set_callbacks([CallbackStat(node='/n', callback='sub /t', topic='/t',
+                                      p95_ms=40.0)])
+    assert 'slow_callback' not in _kinds(analyze(store, Thr()))
 
 
 def test_clean_system_has_no_issues():

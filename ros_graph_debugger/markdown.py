@@ -69,6 +69,7 @@ def focus_subgraph(d: dict, focus: str):
         'tf_edges': [e for e in d.get('tf_edges', [])
                      if e.get('parent') in frames or e.get('child') in frames],
         'diagnostics': [],
+        'callbacks': [c for c in d.get('callbacks', []) if c.get('node') in neighbours],
         'issues': issues,
     }
     return label, sliced
@@ -179,6 +180,24 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
             rss_s = f'{rss/1e6:.0f} MB' if rss else '—'
             lines.append(f'| {n["id"]} | {n["cpu_percent"]:.0f}% | {rss_s} | '
                          f'{n["process_mapping_confidence"]} |')
+        lines.append('')
+
+    # --- Callbacks (Tier C tracing), slowest first. ---
+    callbacks = [c for c in d.get('callbacks', [])
+                 if isinstance(c.get('p95_ms'), (int, float))]
+    if callbacks:
+        callbacks.sort(key=lambda c: -c['p95_ms'])
+        lines.append('## Callbacks (execution time, slowest first)')
+        lines.append('| node | callback | p95 | mean | samples |')
+        lines.append('|---|---|---|---|---|')
+        for c in callbacks[:8]:
+            mean = c.get('mean_ms')
+            lines.append(f'| {c["node"]} | {c.get("callback", "—")} | '
+                         f'{c["p95_ms"]:.0f} ms | '
+                         f'{mean:.0f} ms | {c.get("count", "—")} |'
+                         if isinstance(mean, (int, float)) else
+                         f'| {c["node"]} | {c.get("callback", "—")} | '
+                         f'{c["p95_ms"]:.0f} ms | — | {c.get("count", "—")} |')
         lines.append('')
 
     # --- TF staleness, if any. ---

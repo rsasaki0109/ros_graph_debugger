@@ -92,7 +92,12 @@ detection into one live view — and one Markdown briefing you can hand to an AI
 - **QoS mismatch detection** — the classic "connected but no data flows" trap.
 - **Message latency (Tier A)** — `header.stamp` age (p50/p95) on probed topics,
   with a freshness issue when it exceeds a profile's `max_age_ms` (e.g. stale
-  localization). Cheap approximation now; tracing-based tiers are on the roadmap.
+  localization). Cheap approximation now; tracing-based tiers below.
+- **Callback execution time (Tier C)** — per-callback p95/mean/max duration, a
+  `slow_callback` issue when a callback blows its budget, and the stat surfaced
+  in the node Inspector and AI briefing. The synthetic source ships now (the
+  `--demo` shows the detector's callback spiking); a live `ros2_tracing`/LTTng
+  adapter emitting the same shape is the remaining v0.3 work.
 - **Node CPU / memory**, with honest node→process mapping confidence.
 - **TF freshness** — stale transform detection, plus a **TF tree view** that
   renders the live `/tf` forest (parent → child) with per-edge age and
@@ -144,7 +149,8 @@ Now an AI assistant can read the live robot — `get_runtime_briefing`,
 neighbours — the right size for a large Autoware/Nav2 graph),
 `get_pipeline_path(target)` (the constraining source→sink route, to reason about
 *where* a pipeline is slow), `get_issues`, `get_graph`,
-`get_topics`, `get_nodes`, `get_tf`, `get_diagnostics`, `get_config` — and
+`get_topics`, `get_nodes`, `get_tf`, `get_diagnostics`, `get_callbacks`,
+`get_config` — and
 **act** on it: `set_expected_rate(topic, min_hz)` encodes what "healthy" looks
 like for a topic at runtime, so the issue engine starts flagging it immediately.
 No restart, no file editing.
@@ -233,7 +239,7 @@ node is modified.
 | `ros2 topic hz/bw` | accurate, per-topic | unified across the whole graph |
 | Foxglove | rich data visualization | causality graph + bottleneck diagnosis |
 | PlotJuggler | timeseries analysis | shows *which* series to look at |
-| `ros2_tracing` | low-level traces | (roadmap) traces in a DevTools timeline |
+| `ros2_tracing` | low-level traces | callback p95 as issues + on the path (live adapter on roadmap) |
 
 ## Roadmap
 
@@ -248,7 +254,9 @@ node is modified.
   briefings** (REST + MCP + Copy buttons on nodes and issue cards), and a
   **pipeline-path tracer** (the constraining source→sink route through a node).
   *Next:* richer process mapping.
-- **v0.3** — `ros2_tracing` adapter, callback-duration timeline, multi-host.
+- **v0.3** *(in progress)* — Tier C **callback execution-time** stats +
+  `slow_callback` issues (synthetic source shipped; live `ros2_tracing`/LTTng
+  adapter next), callback-duration timeline, multi-host.
 
 ## License
 

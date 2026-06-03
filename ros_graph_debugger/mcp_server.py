@@ -43,6 +43,9 @@ READ_TOOLS = [
      'Get the TF transform edges with freshness (age) as JSON.'),
     ('get_diagnostics', '/api/v1/diagnostics',
      'Get the latest /diagnostics statuses (level, name, message) as JSON.'),
+    ('get_callbacks', '/api/v1/callbacks',
+     'Get per-callback execution-time stats (node, callback, p95/mean/max ms) '
+     'from tracing, as JSON — to see which callback is slow, not just which node.'),
     ('get_config', '/api/v1/config',
      'Get the current analysis thresholds and expected-rate config as JSON.'),
 ]

@@ -47,6 +47,7 @@ UI and to AI tools. Nothing in the target system is modified.
 | `msgutil.py` | `header.stamp` age helper (latency Tier A) |
 | `analysis.py` | rule-based issue engine + bottleneck inference |
 | `pipeline.py` | focus resolution + constraining source→sink path tracer (rclpy-free) |
+| `tracing.py` | Tier C callback-duration shape + synthetic source (live LTTng adapter is future) |
 | `config.py` | `ProbeConfig` / `Thresholds` (rclpy-free), pattern expectations, live apply |
 | `profile.py` / `paths.py` | profile loading + asset discovery |
 | `server.py` | FastAPI REST/WS, Markdown, config, replay |
