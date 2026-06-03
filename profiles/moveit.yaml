@@ -7,25 +7,48 @@ groups:
       - '^/planning_scene$'
       - '^/planning_scene_world$'
       - '.*/monitored_planning_scene$'
+      - '^/collision_object$'
+      - '^/attached_collision_object$'
   robot_state:
     topic_patterns:
       - '^/joint_states$'
+      - '^/robot_description.*'
       - '^/tf$'
       - '^/tf_static$'
-  trajectory:
+  planning:
     topic_patterns:
+      - '.*/move_group/.*'
+      - '.*/motion_plan_request$'
       - '.*/display_planned_path$'
+  execution:
+    topic_patterns:
       - '.*/trajectory_execution.*'
+      - '.*/execute_trajectory/.*'
   controllers:
     topic_patterns:
       - '.*/follow_joint_trajectory/.*'
+      - '.*_controller/.*'
       - '.*controller.*'
   perception:
     topic_patterns:
       - '.*/depth/.*'
       - '.*/points$'
+      - '.*/camera/.*'
 
 expectations:
   /joint_states:
     min_rate_hz: 20
     max_age_ms: 100
+    max_callback_ms: 10
+
+# Controller callbacks must keep up with the trajectory; planning may take much
+# longer (a single plan request can run for hundreds of ms).
+expectation_patterns:
+  - pattern: '.*/follow_joint_trajectory/.*'
+    max_callback_ms: 20
+  - pattern: '.*controller.*'
+    max_callback_ms: 25
+  - pattern: '^/planning_scene.*'
+    max_callback_ms: 150
+  - pattern: '.*/move_group/.*'
+    max_callback_ms: 250

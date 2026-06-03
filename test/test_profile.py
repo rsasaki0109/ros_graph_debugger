@@ -47,3 +47,35 @@ def test_nav2_profile_loads():
     assert name == 'nav2'
     assert 'control' in data['groups']
     assert data['_expected_min_rate']['/cmd_vel'] == 10
+    # Stage-aware callback budgets: cmd_vel/odom tight, costmaps looser.
+    assert data['_expected_callback_ms']['/cmd_vel'] == 20
+    assert data['_expected_callback_ms']['/odom'] == 15
+    cb = dict(data['_callback_ms_patterns'])
+    assert cb['.*costmap.*'] == 120
+
+
+def test_moveit_profile_loads():
+    data, name = load_profile(find_profile('moveit'))
+    assert name == 'moveit'
+    groups = data['groups']
+    assert {'planning_scene', 'robot_state', 'planning', 'controllers'} <= set(groups)
+    for g in groups.values():
+        for pat in g.get('topic_patterns', []):
+            re.compile(pat)  # valid regex
+
+    def stage_of(name):
+        for k, g in groups.items():
+            for pat in g.get('topic_patterns', []):
+                if re.search(pat, name):
+                    return k
+        return None
+
+    assert stage_of('/joint_states') == 'robot_state'
+    assert stage_of('/planning_scene') == 'planning_scene'
+    assert stage_of('/move_group/display_planned_path') == 'planning'
+    assert stage_of('/arm_controller/follow_joint_trajectory/feedback') == 'controllers'
+
+    # Controller callbacks are far tighter than a move_group planning callback.
+    assert data['_expected_callback_ms']['/joint_states'] == 10
+    cb = dict(data['_callback_ms_patterns'])
+    assert cb['.*/follow_joint_trajectory/.*'] < cb['.*/move_group/.*']

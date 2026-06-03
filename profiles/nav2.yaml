@@ -36,9 +36,11 @@ expectations:
   /scan:
     min_rate_hz: 5
     max_age_ms: 400
+    max_callback_ms: 50
   /odom:
     min_rate_hz: 20
     max_age_ms: 100
+    max_callback_ms: 15
   /cmd_vel:
     min_rate_hz: 10
     max_age_ms: 200
