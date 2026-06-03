@@ -17,7 +17,25 @@ and an MCP server so AI assistants can debug your robot with you.
 
 > 🎬 **See it live without a robot:** `ros2 run ros_graph_debugger rgd serve --demo`
 > — a scripted pipeline with a transient bottleneck, in the real web UI.
-> _(An animated GIF of this is coming.)_
+
+The `--demo` pipeline at the moment it stalls — the detector's **210 ms
+callback** throttles `/objects` to **4.1 Hz**, and the tool flags it as one
+issue with evidence:
+
+```mermaid
+flowchart LR
+  camera -->|"image_raw · 30 Hz"| detector["detector<br/>CPU 96% · callback p95 210 ms"]
+  detector -->|"objects · 4.1 Hz · expected ≥ 10"| tracker
+  tracker -->|"tracked_objects · 10 Hz"| planner
+  planner -->|"trajectory · 10 Hz"| controller
+  classDef hot fill:#3a0d12,stroke:#f85149,color:#e6edf3,stroke-width:2px;
+  class detector hot
+  linkStyle 1 stroke:#f85149,stroke-width:3px
+```
+
+> The whole-system view, the focused pipeline path, and the issue evidence are
+> in [docs/example_briefing.md](docs/example_briefing.md) — exactly what an AI
+> sees. _(An animated GIF of the web UI is coming.)_
 
 ---
 
