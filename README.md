@@ -122,6 +122,10 @@ detection into one live view — and one Markdown briefing you can hand to an AI
 
 ## AI-friendly by design
 
+> 📄 **See exactly what an AI sees:** [docs/example_briefing.md](docs/example_briefing.md)
+> — the real briefing from `--demo` at the moment the detector stalls (bottleneck,
+> stale TF, slow callback, and the focused pipeline path).
+
 The whole runtime state is available in three machine-friendly ways:
 
 | What | Endpoint | Use |
