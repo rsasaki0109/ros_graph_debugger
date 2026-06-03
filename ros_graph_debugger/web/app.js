@@ -11,6 +11,92 @@ const state = {
   selected: null,
 };
 
+// --- profile (pipeline stage) grouping ---
+const STAGE_PALETTE = ['#1f6feb', '#2ea043', '#bb8009', '#a371f7', '#db61a2', '#1f9c9c', '#d2691e'];
+const profileState = { groups: null, order: [], colors: {}, compiled: {} };
+const STATUS_RANK = { critical: 3, warning: 2, ok: 1, unknown: 0 };
+
+async function loadProfile() {
+  try {
+    const r = await fetch('/api/v1/profile');
+    const p = await r.json();
+    if (!p || !p.groups || !Object.keys(p.groups).length) return;
+    profileState.groups = p.groups;
+    profileState.order = Object.keys(p.groups);
+    profileState.order.forEach((k, i) => {
+      profileState.colors[k] = STAGE_PALETTE[i % STAGE_PALETTE.length];
+      profileState.compiled[k] = (p.groups[k].topic_patterns || []).map(pat => {
+        try { return new RegExp(pat); } catch (e) { return null; }
+      }).filter(Boolean);
+    });
+    renderStageLegend();
+  } catch (e) { /* no profile: feature stays hidden */ }
+}
+
+function stageOfTopic(name) {
+  if (!profileState.groups) return null;
+  for (const k of profileState.order) {
+    for (const re of profileState.compiled[k]) if (re.test(name)) return k;
+  }
+  return null;
+}
+
+function stageOfNode(n) {
+  // A node belongs to the stage of its outputs first, then its inputs.
+  for (const t of n.publishers) { const s = stageOfTopic(t); if (s) return s; }
+  for (const t of n.subscribers) { const s = stageOfTopic(t); if (s) return s; }
+  return null;
+}
+
+function renderStageLegend() {
+  const el = document.getElementById('stage-legend');
+  if (!profileState.groups) { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  el.innerHTML = profileState.order.map(k =>
+    `<span><i style="background:${profileState.colors[k]}"></i>${k}</span>`).join('');
+}
+
+function renderReadiness(snap) {
+  const bar = document.getElementById('readiness');
+  if (!profileState.groups) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  const worst = {};
+  profileState.order.forEach(k => { worst[k] = 'unknown'; });
+  const bump = (k, st) => { if (k && STATUS_RANK[st] > STATUS_RANK[worst[k]]) worst[k] = st; };
+
+  snap.topics.forEach(t => bump(stageOfTopic(t.name), t.status || 'unknown'));
+  snap.issues.forEach(i => {
+    const st = i.severity === 'info' ? 'ok' : i.severity;  // info shouldn't alarm a stage
+    (i.related_topics || []).forEach(tn => bump(stageOfTopic(tn), st));
+  });
+
+  const label = { ok: 'OK', warning: 'WARN', critical: 'ERROR', unknown: '—' };
+  bar.innerHTML = profileState.order.map(k => `
+    <div class="stage ${worst[k]}" data-stage="${k}">
+      <span class="name">${k}</span>
+      <span class="verdict">${label[worst[k]]}</span>
+    </div>`).join('');
+  bar.querySelectorAll('.stage').forEach(el => {
+    el.addEventListener('click', () => fitStage(el.dataset.stage));
+  });
+}
+
+function fitStage(stage) {
+  const ids = cy.nodes().filter(n => n.data('stage') === stage);
+  if (ids.length) cy.animate({ fit: { eles: ids, padding: 60 } }, { duration: 300 });
+}
+
+function applyStageTints() {
+  if (!profileState.groups) return;
+  cy.nodes().forEach(n => {
+    const s = n.data('stage');
+    if (s && profileState.colors[s]) {
+      n.style('background-color', profileState.colors[s]);
+      n.style('background-opacity', n.hasClass('topic') ? 0.18 : 0.3);
+    }
+  });
+}
+
 cytoscape.use(window.cytoscapeDagre);
 
 const cy = cytoscape({
@@ -77,7 +163,7 @@ function buildElements(snap) {
       label += `\nCPU ${n.cpu_percent.toFixed(0)}%`;
       if (typeof n.rss_bytes === 'number') label += `  ${fmtBytes(n.rss_bytes)}`;
     }
-    els.push({ data: { id: 'N:' + n.id, label, kind: 'node', ref: n.id },
+    els.push({ data: { id: 'N:' + n.id, label, kind: 'node', ref: n.id, stage: stageOfNode(n) },
                classes: 'rosnode ' + (n.status || 'ok') });
   });
 
@@ -89,7 +175,7 @@ function buildElements(snap) {
     if (metr) label += '\n' + metr;
     if (t.qos_status === 'mismatch') label += '\n⚠ QoS mismatch';
     const cls = 'topic ' + (t.status || 'unknown');
-    els.push({ data: { id: tid, label, kind: 'topic', ref: t.name }, classes: cls });
+    els.push({ data: { id: tid, label, kind: 'topic', ref: t.name, stage: stageOfTopic(t.name) }, classes: cls });
 
     const estatus = t.status || 'unknown';
     t.publishers.forEach(p => {
@@ -114,6 +200,7 @@ function render(snap) {
     cy.elements().remove();
     cy.add(els);
     layout();
+    applyStageTints();
     state.topoSig = sig;
   } else {
     // Same topology: update labels and status classes in place.
@@ -127,6 +214,7 @@ function render(snap) {
   }
   updateIssues(snap.issues);
   updateChrome(snap);
+  renderReadiness(snap);
   if (state.selected) refreshInspector();
 }
 
@@ -256,4 +344,5 @@ function connect() {
   ws.onclose = () => { conn.textContent = 'reconnecting…'; conn.className = 'chip conn-off'; setTimeout(connect, 1500); };
   ws.onmessage = ev => { if (!state.paused) { try { render(JSON.parse(ev.data)); } catch (e) { console.error(e); } } };
 }
-connect();
+
+loadProfile().finally(connect);
