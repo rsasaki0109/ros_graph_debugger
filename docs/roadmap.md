@@ -22,7 +22,8 @@ briefing + MCP server, and a demo pipeline.
   `get_node_briefing`, and "Copy AI briefing" buttons on the node Inspector and
   every issue card).
 - Pipeline-path tracer (`/api/v1/path?target=TARGET`) — the constraining
-  source→sink route through a node/topic, shown in the Inspector and briefing.
+  source→sink route through a node/topic, lit up on the graph and shown in the
+  Inspector and briefing.
 
 ## v0.3 — explain it
 - **Tier C tracing**: `ros2_tracing` adapter → callback-duration timeline

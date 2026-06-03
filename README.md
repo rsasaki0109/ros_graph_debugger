@@ -105,7 +105,9 @@ detection into one live view — and one Markdown briefing you can hand to an AI
 - **Pipeline path** — trace the constraining source→sink route through any node
   or topic (it follows the lowest-rate link at each branch), so a bottleneck
   reads as `camera → … → detector → /objects (4.1 Hz ⟵ slowest) → tracker → …`.
-  Shown in the node Inspector, the focused AI briefing, and `GET /api/v1/path`.
+  Selecting a node **lights the path up on the graph** (constraining hop in
+  red); also in the node Inspector, the focused AI briefing, and
+  `GET /api/v1/path`.
 - **Profiles**: `autoware`, `nav2`, `moveit` (grouping + expected rates, incl.
   regex patterns like `^/control/command/.*` that set a floor for a whole stage).
 - **Live tuning**: a Settings tab (and `POST /api/v1/config`) to adjust expected

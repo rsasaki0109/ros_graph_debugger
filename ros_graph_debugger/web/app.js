@@ -130,6 +130,12 @@ const cy = cytoscape({
     { selector: 'edge.critical', style: { 'line-color': '#f85149', 'target-arrow-color': '#f85149', 'width': 2.5 }},
     { selector: 'edge.warning', style: { 'line-color': '#d29922', 'target-arrow-color': '#d29922', 'width': 2 }},
     { selector: 'edge.ok', style: { 'line-color': '#3fb950', 'target-arrow-color': '#3fb950' }},
+    // Pipeline-path highlight (applied when a node is selected). Listed last so
+    // it wins over status colours; the constraining hop gets pathslow (red).
+    { selector: 'node.onpath', style: { 'border-color': '#58a6ff', 'border-width': 3 }},
+    { selector: 'edge.onpath', style: { 'line-color': '#58a6ff', 'target-arrow-color': '#58a6ff', 'width': 3.5, 'z-index': 20 }},
+    { selector: 'node.pathslow', style: { 'border-color': '#f85149', 'border-width': 4 }},
+    { selector: 'edge.pathslow', style: { 'line-color': '#f85149', 'target-arrow-color': '#f85149', 'width': 4, 'z-index': 21 }},
   ],
 });
 
@@ -293,6 +299,7 @@ function refreshInspector() {
     const t = state.last.topics.find(x => x.name === name);
     if (!t) return;
     box.innerHTML = topicDetail(t);
+    clearPathHighlight();  // the path overlay is node-driven
   }
 }
 
@@ -310,7 +317,7 @@ function nodeDetail(n) {
     ${n.publishers.map(p => `<span class="pill" onclick="window._sel('T:${p}')">${p}</span>`).join('') || '<span class="hint">none</span>'}
     <div class="section-title">Subscribers (${n.subscribers.length})</div>
     ${n.subscribers.map(s => `<span class="pill" onclick="window._sel('T:${s}')">${s}</span>`).join('') || '<span class="hint">none</span>'}
-    <div class="section-title">Pipeline path</div>
+    <div class="section-title">Pipeline path <span class="hint">— lit up on the graph</span></div>
     <div id="node-path" class="node-path hint">tracing…</div>
     <div class="section-title">AI</div>
     <button class="brief-btn" onclick="window._copyBriefing('${escapeHtml(n.id)}', this)">Copy AI briefing</button>
@@ -337,13 +344,36 @@ function loadNodePath(nodeId) {
       });
       box.className = 'node-path';
       box.innerHTML = segs.join('<span class="pp-arrow">→</span>');
+      if (state.selected === 'N:' + nodeId) highlightPath(p);  // still the active selection
     })
     .catch(() => {
+      clearPathHighlight();
       if (box && document.getElementById('node-path') === box) {
         box.className = 'node-path hint';
         box.textContent = 'no connected pipeline path';
       }
     });
+}
+
+function clearPathHighlight() {
+  cy.elements().removeClass('onpath pathslow');
+}
+
+// Light up the constraining path on the graph: path nodes/topics/edges glow
+// blue, the throttling (slowest) hop glows red.
+function highlightPath(p) {
+  cy.batch(() => {
+    clearPathHighlight();
+    const mark = (id, cls) => { const e = cy.getElementById(id); if (e.length) e.addClass(cls); };
+    mark('N:' + p.nodes[0], 'onpath');
+    p.hops.forEach(h => {
+      const slow = h.topic === p.bottleneck_topic;
+      mark('N:' + h.to, 'onpath');
+      mark('T:' + h.topic, slow ? 'pathslow' : 'onpath');
+      mark('E:' + h.from + '->' + h.topic, slow ? 'pathslow' : 'onpath');
+      mark('E:' + h.topic + '->' + h.to, slow ? 'pathslow' : 'onpath');
+    });
+  });
 }
 
 function copyBriefing(nodeId, btn) {
