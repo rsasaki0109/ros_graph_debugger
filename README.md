@@ -115,7 +115,9 @@ detection into one live view — and one Markdown briefing you can hand to an AI
 
 ## Features (v0.1)
 
-- **Live ROS graph** with auto layout (pub → topic → sub), plus a **Network
+- **Live ROS graph** with auto layout (pub → topic → sub) and **animated data
+  flow** — dashes march along each edge at a speed set by the topic's rate, and
+  bottleneck nodes pulse a red halo (toggle with **✨ Flow**). Plus a **Network
   view** — a sortable/filterable table of every topic (rate, bandwidth, p95
   size, QoS, status), like a Chrome DevTools Network tab for ROS — and
   dedicated **TF tree** and **Diagnostics** views.

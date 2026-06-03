@@ -91,6 +91,7 @@ body {
   text-decoration: none;
 }
 .btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.active { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.12); }
 
 .brief-btn {
   display: inline-block; margin: 2px 8px 4px 0;

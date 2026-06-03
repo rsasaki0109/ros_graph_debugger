@@ -7,6 +7,9 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 ## [Unreleased]
 
 ### Added
+- **Animated data flow** on the graph — dashes march pub→sub at a rate-scaled
+  speed, bottleneck nodes pulse a red halo, with a **✨ Flow** toggle and a
+  perf guard for large graphs.
 - **Regression diff** (`diff.diff_reports`, `rgd diff before after`) — compares
   two recordings and reports what got worse: topic-rate drops, slower callbacks,
   new issues, and a health-verdict change, as a Markdown / JSON briefing.

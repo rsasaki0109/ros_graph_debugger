@@ -127,6 +127,7 @@ const cy = cytoscape({
     { selector: 'edge', style: {
         'width': 1.5, 'line-color': '#3b4252', 'target-arrow-color': '#3b4252',
         'target-arrow-shape': 'triangle', 'curve-style': 'bezier', 'arrow-scale': 0.8,
+        'line-style': 'dashed', 'line-dash-pattern': [7, 6],
     }},
     { selector: 'edge.critical', style: { 'line-color': '#f85149', 'target-arrow-color': '#f85149', 'width': 2.5 }},
     { selector: 'edge.warning', style: { 'line-color': '#d29922', 'target-arrow-color': '#d29922', 'width': 2 }},
@@ -185,13 +186,14 @@ function buildElements(snap) {
     els.push({ data: { id: tid, label, kind: 'topic', ref: t.name, stage: stageOfTopic(t.name) }, classes: cls });
 
     const estatus = t.status || 'unknown';
+    const rate = (typeof t.rate_hz === 'number') ? t.rate_hz : null;
     t.publishers.forEach(p => {
       if (nodeStatus[p] === undefined) return;
-      els.push({ data: { id: `E:${p}->${t.name}`, source: 'N:' + p, target: tid }, classes: estatus });
+      els.push({ data: { id: `E:${p}->${t.name}`, source: 'N:' + p, target: tid, rate }, classes: estatus });
     });
     t.subscribers.forEach(s => {
       if (nodeStatus[s] === undefined) return;
-      els.push({ data: { id: `E:${t.name}->${s}`, source: tid, target: 'N:' + s }, classes: estatus });
+      els.push({ data: { id: `E:${t.name}->${s}`, source: tid, target: 'N:' + s, rate }, classes: estatus });
     });
   });
   return els;
@@ -500,6 +502,45 @@ function highlightPath(p) {
     });
   });
 }
+
+// --- animated data flow on the graph: dashes march pub -> sub at a speed set
+// by the topic rate, and bottleneck nodes pulse a red halo. Disabled for very
+// large graphs (and via the ✨ Flow toggle) to stay smooth.
+const flowState = { on: true };
+const DASH_PERIOD = 13;  // 7 + 6, so the offset wraps seamlessly
+
+function flowTick() {
+  requestAnimationFrame(flowTick);
+  if (!flowState.on || netState.view !== 'graph') return;
+  const edges = cy.edges();
+  if (edges.length === 0 || edges.length > 300) return;  // perf guard
+  const now = performance.now() / 1000;
+  cy.batch(() => {
+    edges.forEach(e => {
+      const r = e.data('rate');
+      const speed = (typeof r === 'number') ? Math.max(6, Math.min(42, 6 + r * 0.9)) : 10;
+      e.style('line-dash-offset', -((now * speed) % DASH_PERIOD));  // negative = source→target
+    });
+    cy.nodes().forEach(n => {
+      if (n.hasClass('critical')) {
+        n.style({ 'overlay-color': '#f85149', 'overlay-padding': 7,
+                  'overlay-opacity': 0.14 + 0.12 * (0.5 + 0.5 * Math.sin(now * 4.2)) });
+        n._rgdHalo = true;
+      } else if (n._rgdHalo) {
+        n.style('overlay-opacity', 0); n._rgdHalo = false;
+      }
+    });
+  });
+}
+requestAnimationFrame(flowTick);
+
+window._toggleFlow = (btn) => {
+  flowState.on = !flowState.on;
+  if (btn) btn.classList.toggle('active', flowState.on);
+  if (!flowState.on) cy.batch(() => cy.nodes().forEach(n => {
+    if (n._rgdHalo) { n.style('overlay-opacity', 0); n._rgdHalo = false; }
+  }));
+};
 
 function copyBriefing(nodeId, btn) {
   const label = btn ? btn.textContent : '';
