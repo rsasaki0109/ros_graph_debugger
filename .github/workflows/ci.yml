@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    name: build & test (ROS 2 ${{ matrix.ros_distro }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ros_distro: [humble, jazzy]
+    container:
+      image: ros:${{ matrix.ros_distro }}-ros-base
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build & runtime dependencies
+        shell: bash
+        run: |
+          set -e
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            python3-pip python3-colcon-common-extensions \
+            ros-${{ matrix.ros_distro }}-std-msgs \
+            ros-${{ matrix.ros_distro }}-tf2-msgs \
+            ros-${{ matrix.ros_distro }}-diagnostic-msgs \
+            ros-${{ matrix.ros_distro }}-statistics-msgs
+          # Web/API stack is pip-only. --break-system-packages is unknown to the
+          # older pip on 22.04 (humble), so fall back when it isn't supported.
+          pip3 install --break-system-packages \
+            "fastapi" "uvicorn" "websockets" "pydantic" "psutil" "pyyaml" "pytest" \
+            || pip3 install "fastapi" "uvicorn" "websockets" "pydantic" "psutil" "pyyaml" "pytest"
+
+      - name: colcon build
+        shell: bash
+        run: |
+          source /opt/ros/${{ matrix.ros_distro }}/setup.bash
+          colcon build --packages-select ros_graph_debugger
+
+      - name: pytest
+        shell: bash
+        run: |
+          source /opt/ros/${{ matrix.ros_distro }}/setup.bash
+          source install/setup.bash
+          pytest test/ -v
+
+  web-check:
+    name: web assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: JS syntax check
+        run: node --check ros_graph_debugger/web/app.js
+      - name: Verify vendored libraries are real JS (not error pages)
+        shell: bash
+        run: |
+          for f in ros_graph_debugger/web/vendor/*.js; do
+            head -c 200 "$f" | grep -qiE 'cytoscape|dagre|module|function' \
+              && echo "ok: $f" || { echo "suspect: $f"; exit 1; }
+          done

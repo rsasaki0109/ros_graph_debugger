@@ -1,5 +1,9 @@
 # ROS Graph Debugger
 
+[![CI](https://github.com/rsasaki0109/ros_graph_debugger/actions/workflows/ci.yml/badge.svg)](https://github.com/rsasaki0109/ros_graph_debugger/actions/workflows/ci.yml)
+[![ROS 2](https://img.shields.io/badge/ROS%202-Humble%20%7C%20Jazzy-blue)](https://docs.ros.org)
+[![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
+
 **Runtime DevTools for ROS 2.** A live, AI-friendly view of your running ROS 2
 system: the graph, topic rate / bandwidth / message size, QoS, TF freshness,
 diagnostics — and an issue panel that tells you *where to look next*.
