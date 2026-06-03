@@ -116,6 +116,11 @@ def create_app(store, web_dir: str,
     def issues():
         return store.snapshot().to_dict()['issues']
 
+    @app.get('/api/v1/summary')
+    def summary():
+        from .health import summarize_health
+        return summarize_health(store.snapshot().to_dict())
+
     @app.get('/api/v1/path')
     def path(target: str):
         from .pipeline import trace_pipeline_path

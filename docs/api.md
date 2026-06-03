@@ -22,6 +22,7 @@ unless noted. The same surface is served in replay mode (`rgd serve`), except
 | GET | `/api/v1/diagnostics` | latest `/diagnostics` statuses |
 | GET | `/api/v1/callbacks` | per-callback execution-time stats (Tier C tracing; `[]` when no trace source) |
 | GET | `/api/v1/issues` | detected issues (sorted by severity) |
+| GET | `/api/v1/summary` | one-line health rollup (`{verdict: ok\|degraded\|critical, counts, headline, issue_count}`) |
 | GET | `/api/v1/path?target=TARGET` | the constraining source→sink pipeline path through a node/topic (`{target, pivot, nodes, hops, bottleneck_topic, cb_bottleneck_node}`; each hop carries `rate_hz` + the consumer's `cb_p95_ms`; 404 if no connected path) |
 | GET | `/api/v1/profile` | active profile name + stage groups (UI grouping) |
 | GET | `/api/v1/config` | current thresholds + expectations (live mode only; `{}` in replay) |

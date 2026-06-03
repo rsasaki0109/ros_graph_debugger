@@ -86,6 +86,20 @@ def test_rest_endpoints(base_url):
     assert issues[0]['kind'] == 'bottleneck'
 
 
+def test_markdown_leads_with_health_verdict():
+    md = snapshot_to_markdown(_store().snapshot())
+    # The bottom line comes first: one critical bottleneck issue.
+    assert '**System: CRITICAL**' in md
+    assert 'top: Likely bottleneck: detector' in md
+
+
+def test_summary_endpoint(base_url):
+    s = _get_json(base_url + '/api/v1/summary')
+    assert s['verdict'] == 'critical'
+    assert s['counts']['critical'] >= 1
+    assert s['headline'] == 'Likely bottleneck: detector'
+
+
 def test_markdown_briefing():
     md = snapshot_to_markdown(_store().snapshot())
     assert '# ROS Graph Debugger' in md

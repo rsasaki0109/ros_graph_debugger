@@ -233,6 +233,20 @@ function updateChrome(snap) {
   const chip = document.getElementById('profile-chip');
   if (snap.profile) { chip.textContent = 'profile: ' + snap.profile; chip.classList.remove('hidden'); }
   else chip.classList.add('hidden');
+  updateHealthChip(snap.issues || []);
+}
+
+// One-line system verdict in the header: ok / degraded / critical, mirroring
+// the briefing's health line (same rule, computed client-side).
+function updateHealthChip(issues) {
+  const chip = document.getElementById('health-chip');
+  let crit = 0, warn = 0;
+  issues.forEach(i => { if (i.severity === 'critical') crit++; else if (i.severity === 'warning') warn++; });
+  const verdict = crit ? 'critical' : (warn ? 'degraded' : 'ok');
+  const label = { ok: 'OK', degraded: 'DEGRADED', critical: 'CRITICAL' }[verdict];
+  const tally = crit || warn ? ` ${crit + warn}` : '';
+  chip.textContent = `● ${label}${tally}`;
+  chip.className = 'chip health-' + verdict;
 }
 
 function updateIssues(issues) {

@@ -123,6 +123,9 @@ detection into one live view — and one Markdown briefing you can hand to an AI
 - **/diagnostics** ingestion (WARN / ERROR become issues), plus a
   **Diagnostics view** — every status grouped worst-first with level, message,
   and hardware id.
+- **System health verdict**: a one-line rollup — `OK` / `DEGRADED` / `CRITICAL`
+  with the top issue — in the web header chip, at the top of the AI briefing,
+  and at `GET /api/v1/summary`. The bottom line, first.
 - **Issue panel**: each issue has a plain-English explanation, evidence, and
   suggested actions, ranked by severity.
 - **Pipeline path** — trace the constraining source→sink route through any node

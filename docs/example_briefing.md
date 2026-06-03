@@ -11,6 +11,8 @@ The exact Markdown an AI assistant pulls from a running agent (via `GET /api/v1/
 Profile: **autoware**
 Nodes: 5  ·  Topics: 5  ·  Issues: 3
 
+**System: CRITICAL** — 3 critical · top: Likely bottleneck: detector
+
 ## Issues (what to look at next)
 ### [CRITICAL] Likely bottleneck: detector
 detector output /perception/object_recognition/objects dropped below expectation while its inputs look healthy and it is CPU-bound.
@@ -67,6 +69,8 @@ Focused on **/detector** and its direct neighbours.
 Neighbours: /camera, /tracker
 Profile: **autoware**
 Nodes: 3  ·  Topics: 2  ·  Issues: 2
+
+**System: CRITICAL** — 2 critical · top: Likely bottleneck: detector
 
 ## Issues (what to look at next)
 ### [CRITICAL] Likely bottleneck: detector

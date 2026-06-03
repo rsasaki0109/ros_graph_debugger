@@ -115,6 +115,10 @@ body {
 .pp-cb { font-size: 10px; color: var(--muted); border: 1px solid var(--border); border-radius: 4px; padding: 0 3px; font-variant-numeric: tabular-nums; }
 .pp-cb.slow { color: var(--critical); border-color: var(--critical); font-weight: 600; }
 
+.health-ok { color: var(--ok); border-color: var(--ok); }
+.health-degraded { color: var(--warning); border-color: var(--warning); }
+.health-critical { color: var(--critical); border-color: var(--critical); font-weight: 600; }
+
 #readiness {
   display: flex; align-items: stretch; gap: 1px; flex: 0 0 auto;
   background: var(--border); border-bottom: 1px solid var(--border);

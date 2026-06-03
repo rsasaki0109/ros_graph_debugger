@@ -48,6 +48,7 @@ UI and to AI tools. Nothing in the target system is modified.
 | `analysis.py` | rule-based issue engine + bottleneck inference |
 | `pipeline.py` | focus resolution + constraining source→sink path tracer (rclpy-free) |
 | `tracing.py` | Tier C callback-duration shape + synthetic source (live LTTng adapter is future) |
+| `health.py` | one-line system verdict (ok/degraded/critical) from the issue list |
 | `config.py` | `ProbeConfig` / `Thresholds` (rclpy-free), pattern expectations, live apply |
 | `profile.py` / `paths.py` | profile loading + asset discovery |
 | `server.py` | FastAPI REST/WS, Markdown, config, replay |

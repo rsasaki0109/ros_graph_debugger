@@ -6,6 +6,7 @@ terse graph/metrics table. Kept small on purpose so it fits a prompt."""
 
 from __future__ import annotations
 
+from .health import health_line
 from .pipeline import resolve_focus, trace_pipeline_path
 
 
@@ -125,6 +126,8 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
         lines.append(f'Profile: **{d["profile"]}**')
     lines.append(f'Nodes: {len(d["nodes"])}  ·  Topics: {len(d["topics"])}  ·  '
                  f'Issues: {len(d["issues"])}')
+    lines.append('')
+    lines.append(health_line(d))
     lines.append('')
 
     # --- Issues first: this is what an AI should act on. ---
