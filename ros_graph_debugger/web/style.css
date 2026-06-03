@@ -119,6 +119,16 @@ body {
 .health-degraded { color: var(--warning); border-color: var(--warning); }
 .health-critical { color: var(--critical); border-color: var(--critical); font-weight: 600; }
 
+.mini-issue { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 3px 6px; margin: 2px 0; border-radius: 5px; background: var(--panel-2); border-left: 3px solid var(--border); cursor: pointer; }
+.mini-issue:hover { background: var(--panel); }
+.mini-issue.critical { border-left-color: var(--critical); }
+.mini-issue.warning { border-left-color: var(--warning); }
+.mini-issue.info { border-left-color: var(--accent); }
+.mini-issue .sev { font-size: 9px; text-transform: uppercase; padding: 0 4px; border-radius: 3px; background: var(--border); color: var(--text); }
+.mini-issue.critical .sev { background: var(--critical); color: #000; }
+.mini-issue.warning .sev { background: var(--warning); color: #000; }
+.mini-issue.info .sev { background: var(--accent); color: #000; }
+
 #readiness {
   display: flex; align-items: stretch; gap: 1px; flex: 0 0 auto;
   background: var(--border); border-bottom: 1px solid var(--border);

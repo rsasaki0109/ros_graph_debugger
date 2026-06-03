@@ -127,7 +127,8 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   with the top issue — in the web header chip, at the top of the AI briefing,
   and at `GET /api/v1/summary`. The bottom line, first.
 - **Issue panel**: each issue has a plain-English explanation, evidence, and
-  suggested actions, ranked by severity.
+  suggested actions, ranked by severity — and selecting a node or topic lists
+  the issues touching it right in the Inspector, one click from the full panel.
 - **Pipeline path** — trace the constraining source→sink route through any node
   or topic (it follows the lowest-rate link at each branch), so a bottleneck
   reads as `camera → … → detector → /objects (4.1 Hz ⟵ slowest) → tracker → …`.

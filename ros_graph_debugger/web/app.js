@@ -317,6 +317,20 @@ function refreshInspector() {
   }
 }
 
+const SEV_ORDER = { critical: 0, warning: 1, info: 2 };
+
+// Issues touching the selected element, shown inline in the Inspector with a
+// jump to the full Issues tab — so selecting a red node tells you *why* it's red.
+function relatedIssues(match) {
+  const issues = (state.last?.issues || []).filter(match)
+    .sort((a, b) => (SEV_ORDER[a.severity] ?? 9) - (SEV_ORDER[b.severity] ?? 9));
+  if (!issues.length) return '';
+  const rows = issues.map(i =>
+    `<div class="mini-issue ${i.severity}" onclick="window._issuesTab()" title="open the Issues tab">
+       <span class="sev">${i.severity}</span>${escapeHtml(i.title)}</div>`).join('');
+  return `<div class="section-title">Issues (${issues.length})</div>${rows}`;
+}
+
 function nodeDetail(n) {
   const cpu = typeof n.cpu_percent === 'number'
     ? `${n.cpu_percent.toFixed(0)}% (${n.process_mapping_confidence})` : 'unknown';
@@ -327,6 +341,7 @@ function nodeDetail(n) {
       <dt>cpu</dt><dd>${cpu}</dd>
       <dt>memory</dt><dd>${fmtBytes(n.rss_bytes)}</dd>
     </dl>
+    ${relatedIssues(i => (i.related_nodes || []).includes(n.id))}
     <div class="section-title">Publishers (${n.publishers.length})</div>
     ${n.publishers.map(p => `<span class="pill" onclick="window._sel('T:${p}')">${p}</span>`).join('') || '<span class="hint">none</span>'}
     <div class="section-title">Subscribers (${n.subscribers.length})</div>
@@ -452,6 +467,7 @@ function topicDetail(t) {
       <dt>age p95 (latency)</dt><dd>${typeof t.header_age_p95_ms === 'number' ? t.header_age_p95_ms.toFixed(0) + ' ms' : '—'}</dd>
       <dt>qos</dt><dd>${t.qos_status}</dd>
     </dl>
+    ${relatedIssues(i => (i.related_topics || []).includes(t.name))}
     <div class="section-title">Publishers (${t.publisher_count})</div>
     ${t.publishers.map(p => `<span class="pill" onclick="window._sel('N:${p}')">${p}</span>`).join('') || '<span class="hint">none</span>'}
     <div class="section-title">Subscribers (${t.subscriber_count})</div>
@@ -673,6 +689,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.tab-body').forEach(b => b.classList.toggle('active', b.id === 'tab-' + name));
 }
+window._issuesTab = () => switchTab('issues');
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
 document.getElementById('fit-btn').addEventListener('click', () => cy.fit(undefined, 40));
 document.getElementById('pause-btn').addEventListener('click', e => {
