@@ -215,6 +215,7 @@ function render(snap) {
   updateIssues(snap.issues);
   updateChrome(snap);
   renderReadiness(snap);
+  if (netState.view === 'network') renderNetwork(snap);
   if (state.selected) refreshInspector();
 }
 
@@ -321,6 +322,84 @@ function escapeHtml(s) {
 }
 
 cy.on('tap', 'node', evt => selectElement(evt.target.id()));
+
+// --- network table (DevTools-style topic view) ---
+const NET_COLS = [
+  { key: 'name', label: 'Topic', cls: '', fmt: t => escapeHtml(t.name) },
+  { key: 'type', label: 'Type', cls: '', fmt: t => escapeHtml(shortType(t.type)) },
+  { key: 'publisher_count', label: 'Pub', cls: 'num', fmt: t => t.publisher_count },
+  { key: 'subscriber_count', label: 'Sub', cls: 'num', fmt: t => t.subscriber_count },
+  { key: 'rate_hz', label: 'Rate', cls: 'num', fmt: t => fmtRate(t.rate_hz) || (t.probed ? '…' : '') },
+  { key: 'bandwidth_bps', label: 'Bandwidth', cls: 'num', fmt: t => fmtBw(t.bandwidth_bps) || '' },
+  { key: 'p95_msg_size_bytes', label: 'p95 size', cls: 'num', fmt: t => t.p95_msg_size_bytes ? fmtBytes(t.p95_msg_size_bytes) : '' },
+  { key: 'qos_status', label: 'QoS', cls: '', fmt: t => `<span class="net-badge ${t.qos_status === 'mismatch' ? 'mismatch' : t.qos_status}">${t.qos_status}</span>` },
+  { key: 'status', label: 'Status', cls: '', fmt: t => `<span class="net-badge ${t.status}">${t.status}</span>` },
+];
+const netState = { sortKey: 'name', sortDir: 1, query: '', view: 'graph' };
+
+function netNum(t, key) {
+  const v = t[key];
+  return (typeof v === 'number') ? v : (v == null ? -Infinity : v);
+}
+
+function sortFilterTopics(topics) {
+  const q = netState.query.trim().toLowerCase();
+  let rows = topics.filter(t => !HIDDEN_TOPICS.has(t.name));
+  if (q) rows = rows.filter(t => t.name.toLowerCase().includes(q) ||
+                                 (t.type || '').toLowerCase().includes(q));
+  const k = netState.sortKey, dir = netState.sortDir;
+  rows = rows.slice().sort((a, b) => {
+    if (typeof a[k] === 'number' || typeof b[k] === 'number')
+      return (netNum(a, k) - netNum(b, k)) * dir;
+    return String(a[k] ?? '').localeCompare(String(b[k] ?? '')) * dir;
+  });
+  return rows;
+}
+
+function renderNetHead() {
+  const head = document.getElementById('net-head');
+  head.innerHTML = NET_COLS.map(c => {
+    const sorted = c.key === netState.sortKey;
+    const arrow = sorted ? (netState.sortDir > 0 ? ' ▲' : ' ▼') : '';
+    return `<th data-key="${c.key}" class="${sorted ? 'sorted' : ''}">${c.label}${arrow}</th>`;
+  }).join('');
+  head.querySelectorAll('th').forEach(th => th.addEventListener('click', () => {
+    const k = th.dataset.key;
+    if (netState.sortKey === k) netState.sortDir *= -1;
+    else { netState.sortKey = k; netState.sortDir = 1; }
+    renderNetHead();
+    if (state.last) renderNetwork(state.last);
+  }));
+}
+
+function renderNetwork(snap) {
+  const rows = sortFilterTopics(snap.topics);
+  document.getElementById('net-count').textContent = `${rows.length} topics`;
+  const body = document.getElementById('net-body');
+  body.innerHTML = rows.map(t => {
+    const cells = NET_COLS.map(c => `<td class="${c.cls}">${c.fmt(t)}</td>`).join('');
+    return `<tr class="row-${t.status || 'unknown'}" data-topic="${escapeHtml(t.name)}">${cells}</tr>`;
+  }).join('');
+  body.querySelectorAll('tr').forEach(tr =>
+    tr.addEventListener('click', () => selectElement('T:' + tr.dataset.topic)));
+}
+
+function setView(view) {
+  netState.view = view;
+  document.querySelectorAll('.viewtab').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  document.getElementById('graph-pane').classList.toggle('hidden', view !== 'graph');
+  document.getElementById('network-pane').classList.toggle('hidden', view !== 'network');
+  if (view === 'network' && state.last) renderNetwork(state.last);
+  else if (view === 'graph') setTimeout(() => cy.resize(), 0);  // container was hidden
+}
+
+document.querySelectorAll('.viewtab').forEach(b =>
+  b.addEventListener('click', () => setView(b.dataset.view)));
+document.getElementById('net-filter').addEventListener('input', e => {
+  netState.query = e.target.value;
+  if (state.last) renderNetwork(state.last);
+});
+renderNetHead();
 
 // --- tabs ---
 function switchTab(name) {

@@ -16,6 +16,10 @@
       <span class="title">ROS Graph Debugger</span>
       <span class="tagline">Runtime DevTools for ROS&nbsp;2</span>
     </div>
+    <div class="viewtabs">
+      <button class="viewtab active" data-view="graph">Graph</button>
+      <button class="viewtab" data-view="network">Network</button>
+    </div>
     <div class="status">
       <span id="profile-chip" class="chip hidden"></span>
       <span id="conn" class="chip conn-off">connecting…</span>
@@ -32,11 +36,24 @@
     <section id="graph-pane">
       <div id="cy"></div>
       <div id="stage-legend" class="hidden"></div>
-      <div id="legend">
+      <div id="legend" class="status-legend">
         <span><i class="dot ok"></i>ok</span>
         <span><i class="dot warning"></i>warning</span>
         <span><i class="dot critical"></i>critical</span>
         <span><i class="dot unknown"></i>unknown</span>
+      </div>
+    </section>
+
+    <section id="network-pane" class="hidden">
+      <div class="net-toolbar">
+        <input id="net-filter" type="text" placeholder="filter topics by name or type…" />
+        <span id="net-count" class="chip"></span>
+      </div>
+      <div class="net-table-wrap">
+        <table id="net-table">
+          <thead><tr id="net-head"></tr></thead>
+          <tbody id="net-body"></tbody>
+        </table>
       </div>
     </section>
 

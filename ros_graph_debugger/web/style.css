@@ -33,6 +33,49 @@ body {
 .tagline { color: var(--muted); font-size: 12px; }
 .status { display: flex; align-items: center; gap: 8px; }
 
+.viewtabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.viewtab {
+  background: var(--panel-2); color: var(--muted); border: none; cursor: pointer;
+  padding: 4px 14px; font-size: 12px;
+}
+.viewtab.active { background: var(--accent); color: #06080d; font-weight: 600; }
+
+#graph-pane.hidden, #network-pane.hidden { display: none; }
+#network-pane { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
+.net-toolbar {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  border-bottom: 1px solid var(--border); flex: 0 0 auto;
+}
+#net-filter {
+  flex: 1; max-width: 360px; background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px; padding: 5px 9px; font: inherit;
+}
+.net-table-wrap { flex: 1 1 auto; overflow: auto; min-height: 0; }
+#net-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+#net-table th {
+  position: sticky; top: 0; background: var(--panel-2); color: var(--muted);
+  text-align: left; padding: 7px 10px; cursor: pointer; white-space: nowrap;
+  border-bottom: 1px solid var(--border); user-select: none;
+}
+#net-table th:hover { color: var(--text); }
+#net-table th.sorted { color: var(--accent); }
+#net-table td {
+  padding: 5px 10px; border-bottom: 1px solid var(--border-soft, #21262d);
+  white-space: nowrap; max-width: 320px; overflow: hidden; text-overflow: ellipsis;
+}
+#net-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+#net-table tr { cursor: pointer; }
+#net-table tbody tr:hover { background: var(--panel-2); }
+#net-table tr.row-warning td:first-child { border-left: 3px solid var(--warning); }
+#net-table tr.row-critical td:first-child { border-left: 3px solid var(--critical); }
+#net-table tr.row-ok td:first-child { border-left: 3px solid var(--ok); }
+.net-badge { padding: 1px 6px; border-radius: 8px; font-size: 11px; border: 1px solid var(--border); }
+.net-badge.mismatch { color: var(--critical); border-color: var(--critical); }
+.net-badge.critical { color: var(--critical); }
+.net-badge.warning { color: var(--warning); }
+.net-badge.ok { color: var(--ok); }
+.net-badge.unknown { color: var(--unknown); }
+
 .chip {
   padding: 2px 8px; border-radius: 10px; background: var(--panel-2);
   border: 1px solid var(--border); font-size: 12px; color: var(--muted);

@@ -82,7 +82,9 @@ detection into one live view — and one Markdown briefing you can hand to an AI
 
 ## Features (v0.1)
 
-- **Live ROS graph** with auto layout (pub → topic → sub).
+- **Live ROS graph** with auto layout (pub → topic → sub), plus a **Network
+  view** — a sortable/filterable table of every topic (rate, bandwidth, p95
+  size, QoS, status), like a Chrome DevTools Network tab for ROS.
 - **Topic metrics**: rate, bandwidth, avg / p95 message size (opt-in probing).
 - **QoS mismatch detection** — the classic "connected but no data flows" trap.
 - **Node CPU / memory**, with honest node→process mapping confidence.
