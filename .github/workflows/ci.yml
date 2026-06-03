@@ -32,9 +32,10 @@ jobs:
             ros-${{ matrix.ros_distro }}-statistics-msgs
           # Web/API stack is pip-only. --break-system-packages is unknown to the
           # older pip on 22.04 (humble), so fall back when it isn't supported.
-          pip3 install --break-system-packages \
-            "fastapi" "uvicorn" "websockets" "pydantic" "psutil" "pyyaml" "pytest" \
-            || pip3 install "fastapi" "uvicorn" "websockets" "pydantic" "psutil" "pyyaml" "pytest"
+          # -U "pytest>=7": fastapi pulls a modern anyio whose pytest plugin needs
+          # pytest>=7, but 22.04 ships 6.2.5 and pip would treat it as satisfied.
+          PKGS='-U pytest>=7 fastapi uvicorn websockets pydantic psutil pyyaml'
+          pip3 install --break-system-packages $PKGS || pip3 install $PKGS
 
       - name: colcon build
         shell: bash
