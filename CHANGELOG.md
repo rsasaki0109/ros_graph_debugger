@@ -10,8 +10,10 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 - **Tier C tracing (synthetic source)** — per-callback execution-time stats
   (`CallbackStat`, `/api/v1/callbacks`, `get_callbacks`), a `slow_callback`
   issue, and **stage-aware callback budgets** resolved from profile/pattern
-  expectations (`max_callback_ms`). A live `ros2_tracing`/LTTng adapter that
-  emits the same shape is the remaining work.
+  expectations (`max_callback_ms`). Real traces load via `agent --trace-file`
+  (`aggregate_callback_durations` turns per-invocation durations into
+  count/mean/p95/max); automating the `ros2_tracing`/LTTng → NDJSON export is
+  the remaining work.
 - **Pipeline-path tracer** — the constraining source→sink route through a
   node/topic, following the lowest-rate link, annotated with each hop's
   callback p95, so the rate bottleneck *and* the execution bottleneck read in

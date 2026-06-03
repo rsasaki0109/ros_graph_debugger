@@ -28,10 +28,12 @@ briefing + MCP server, and a demo pipeline.
 ## v0.3 — explain it
 - **Tier C tracing** *(in progress)*: per-callback execution-time stats
   (`/api/v1/callbacks`, `get_callbacks`, node Inspector + briefing) and a
-  `slow_callback` issue when a callback blows its budget. The data shape and a
-  synthetic source ship now (`tracing.synthesize_callbacks`, demonstrated by
-  `--demo`); the live `ros2_tracing`/LTTng adapter that emits the same shape,
-  plus a callback-duration timeline along the pipeline path, are next.
+  `slow_callback` issue when a callback blows its (stage-aware) budget. Real
+  traces load via `agent --trace-file run.ndjson` —
+  `tracing.aggregate_callback_durations` turns per-invocation durations into
+  count/mean/p95/max — and the synthetic source drives `--demo`. Remaining:
+  automating the `ros2_tracing`/LTTng → NDJSON export and a callback-duration
+  timeline along the pipeline path.
 - Tier B latency via `/statistics` and pipeline-latency topics.
 - In-UI recording replay scrubbing improvements; snapshot export from the UI.
 - Multi-host / federated agents.

@@ -116,9 +116,10 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   in the node Inspector and AI briefing. Budgets are **stage-aware** — the
   Autoware/Nav2 profiles give control callbacks a tight (~10–15 ms) budget and
   planning a looser one, so the same 60 ms is fine for a planner but a violation
-  for a controller. The synthetic source ships now (the `--demo` shows the
-  detector's callback spiking); a live `ros2_tracing`/LTTng adapter emitting the
-  same shape is the remaining v0.3 work.
+  for a controller. Feed **real** traces with `agent --trace-file run.ndjson`
+  (one `{node, callback, topic, duration_ms}` per callback invocation →
+  aggregated to count/mean/p95/max); the `--demo` shows it synthetically.
+  Automating the `ros2_tracing`/LTTng → NDJSON export is the remaining v0.3 work.
 - **Node CPU / memory**, with honest node→process mapping confidence: layered
   matching (`__node:=` remap → `high`, executable name → `medium`, bare token →
   `low`) and component containers capped at `low` since per-node CPU can't be

@@ -44,6 +44,9 @@ def _parse_args(argv=None):
                    help='expected minimum rate, e.g. /objects=10 (repeatable)')
     p.add_argument('--no-browser', action='store_true',
                    help='do not open a browser automatically')
+    p.add_argument('--trace-file', default=None, metavar='PATH',
+                   help='NDJSON callback-duration trace (Tier C) to load as '
+                        'callback stats; produce it from ros2_tracing')
     return p.parse_args(argv)
 
 
@@ -87,6 +90,13 @@ def main(argv=None) -> None:
                 print(f'[warn] bad --expect value: {item}')
 
     store = RuntimeGraphStore()
+
+    if args.trace_file:
+        from .tracing import callbacks_from_trace_file
+        try:
+            store.set_callbacks(callbacks_from_trace_file(args.trace_file))
+        except OSError as exc:
+            print(f'[warn] could not read --trace-file: {exc}')
 
     rclpy.init()
     node = DebuggerNode(store, probe, thresholds, profile_name)
