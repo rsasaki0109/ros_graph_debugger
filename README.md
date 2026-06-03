@@ -122,11 +122,30 @@ ros2 run ros_graph_debugger agent \
 
 ```bash
 ros2 run ros_graph_debugger agent [--profile autoware] [--port 3939] ...
-rgd snapshot --out snap.json   # save a JSON snapshot
-rgd markdown                   # AI briefing to stdout
-rgd issues                     # list current issues
-rgd doctor                     # is the agent up?
+
+# one-shot queries (rgd talks to a running agent over REST)
+ros2 run ros_graph_debugger rgd snapshot --out snap.json
+ros2 run ros_graph_debugger rgd markdown        # AI briefing to stdout
+ros2 run ros_graph_debugger rgd issues          # list current issues
+ros2 run ros_graph_debugger rgd doctor          # is the agent up?
 ```
+
+### Record & report
+
+Capture a window of runtime and turn it into a shareable report — ideal for bag
+replay analysis and CI bottleneck checks (no live ROS needed to read it back):
+
+```bash
+# record 30s of snapshots (streams NDJSON to disk)
+ros2 run ros_graph_debugger rgd record --out run.rgd.json --duration 30
+
+# self-contained HTML report + AI-friendly Markdown
+ros2 run ros_graph_debugger rgd report run.rgd.json --html report.html --md report.md
+```
+
+The report ranks bottlenecks by severity and frequency, summarizes per-topic
+rate/bandwidth, lists stale transforms, draws an issue timeline, and (with a
+profile) shows per-stage engage-readiness as a share of the recording.
 
 ## How it works
 
@@ -162,9 +181,10 @@ node is modified.
 
 - **v0.1** — live graph, topic metrics, QoS, TF, diagnostics, issues, profiles,
   AI Markdown + MCP.
-- **v0.2** *(current)* — pipeline-stage grouping (stage colours + legend) and an
-  engage-readiness bar (per-stage OK/WARN/ERROR) for Autoware / Nav2. *Next:*
-  snapshot save/replay, expected-rate config UI, richer process mapping.
+- **v0.2** *(current)* — pipeline-stage grouping (stage colours + legend), an
+  engage-readiness bar (per-stage OK/WARN/ERROR) for Autoware / Nav2, and
+  `rgd record` / `rgd report` (HTML + Markdown). *Next:* expected-rate config
+  UI, richer process mapping, in-UI recording replay.
 - **v0.3** — `ros2_tracing` adapter, callback/critical-path timeline, multi-host.
 
 ## License
