@@ -221,6 +221,9 @@ ros2 run ros_graph_debugger rgd snapshot --out snap.json
 ros2 run ros_graph_debugger rgd markdown        # AI briefing to stdout
 ros2 run ros_graph_debugger rgd issues          # list current issues
 ros2 run ros_graph_debugger rgd doctor          # is the agent up?
+
+# fleet: merge several robots' agents into one AI briefing
+ros2 run ros_graph_debugger rgd federate robot1=http://10.0.0.2:3939 robot2=http://10.0.0.3:3939
 ```
 
 ### Record & report
@@ -299,7 +302,9 @@ node is modified.
   live `ros2_tracing`/LTTng adapter next), a **pipeline-path tracer** (rate +
   callback bottleneck), a **system health verdict**, **focused per-node/-topic
   AI briefings**, report/Inspector polish, and **layered node→process
-  attribution** with honest confidence. *Next:* live tracing adapter, multi-host.
+  attribution** with honest confidence, and **fleet federation**
+  (`rgd federate` merges several robots' agents into one namespaced briefing).
+  *Next:* a turn-key live tracing converter, a combined fleet web view.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full per-release list.
 

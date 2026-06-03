@@ -31,6 +31,9 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 - **Layered node→process attribution** (`procmap.py`) — confidence from the
   matching evidence (`__node:=` remap → high, executable name → medium, bare
   token → low) with component containers capped at low.
+- **Fleet federation** (`federation.merge_snapshots`, `rgd federate`) — merge
+  several agents' snapshots into one host-namespaced view with per-host health
+  and a fleet-wide AI briefing.
 - **Showcase** — a regenerable [docs/example_briefing.md](docs/example_briefing.md)
   ("what an AI sees") and a Mermaid pipeline diagram in the README.
 

@@ -127,6 +127,38 @@ def _cmd_report(args) -> int:
     return 0
 
 
+def _cmd_federate(args) -> int:
+    """Fetch snapshots from several agents and merge them into one briefing."""
+    from .federation import merge_snapshots
+    from .markdown import snapshot_to_markdown
+
+    host_snaps = []
+    for spec in args.agents:
+        host, _, base = spec.partition('=')
+        if not base:  # bare URL -> derive a host label from it
+            base, host = spec, spec.split('//')[-1].split(':')[0]
+        try:
+            snap = json.loads(_get(base, '/api/v1/snapshot'))
+        except Exception as exc:
+            print(f'[warn] {host} ({base}) unreachable: {exc}', file=sys.stderr)
+            continue
+        host_snaps.append((host, snap))
+
+    if not host_snaps:
+        print('error: no agents reachable', file=sys.stderr)
+        return 1
+
+    merged = merge_snapshots(host_snaps)
+    if args.json:
+        sys.stdout.write(json.dumps(merged))
+    else:
+        for h in merged['hosts']:
+            print(f'# {h["host"]}: {h["verdict"].upper()} '
+                  f'({h["issue_count"]} issues)', file=sys.stderr)
+        sys.stdout.write(snapshot_to_markdown(merged))
+    return 0
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog='rgd', description='ros_graph_debugger CLI')
     p.add_argument('--base', default=DEFAULT_BASE, help='agent base URL')
@@ -160,6 +192,15 @@ def main(argv=None) -> int:
     sv.add_argument('--once', action='store_true', help='play once instead of looping')
     sv.add_argument('--no-browser', action='store_true')
 
+    fed = sub.add_parser('federate',
+                         help='merge snapshots from several agents (a fleet) '
+                              'into one briefing')
+    fed.add_argument('agents', nargs='+', metavar='[NAME=]URL',
+                     help='agent URLs, optionally labelled, e.g. '
+                          'robot1=http://10.0.0.2:3939')
+    fed.add_argument('--json', action='store_true',
+                     help='emit the merged snapshot JSON instead of Markdown')
+
     args = p.parse_args(argv)
 
     if args.cmd in (None, 'version'):
@@ -172,6 +213,8 @@ def main(argv=None) -> int:
         return _cmd_report(args)
     if args.cmd == 'serve':
         return _cmd_serve(args)
+    if args.cmd == 'federate':
+        return _cmd_federate(args)
 
     try:
         if args.cmd == 'snapshot':

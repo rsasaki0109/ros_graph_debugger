@@ -50,6 +50,7 @@ UI and to AI tools. Nothing in the target system is modified.
 | `tracing.py` | Tier C callback-duration shape + synthetic source (live LTTng adapter is future) |
 | `health.py` | one-line system verdict (ok/degraded/critical) from the issue list |
 | `procmap.py` | node→process attribution with layered confidence (rclpy-free, unit-tested) |
+| `federation.py` | merge snapshots from several agents into one host-namespaced fleet view |
 | `config.py` | `ProbeConfig` / `Thresholds` (rclpy-free), pattern expectations, live apply |
 | `profile.py` / `paths.py` | profile loading + asset discovery |
 | `server.py` | FastAPI REST/WS, Markdown, config, replay |
