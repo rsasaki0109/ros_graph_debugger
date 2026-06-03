@@ -15,7 +15,9 @@ and an MCP server so AI assistants can debug your robot with you.
 > Works with **Autoware** and **Nav2** via profile packs. Built for **ROS 2
 > Jazzy / Humble** on Ubuntu 24.04 / 22.04.
 
-![demo placeholder](docs/demo.gif)
+> 🎬 **See it live without a robot:** `ros2 run ros_graph_debugger rgd serve --demo`
+> — a scripted pipeline with a transient bottleneck, in the real web UI.
+> _(An animated GIF of this is coming.)_
 
 ---
 
@@ -196,6 +198,13 @@ profile) shows per-stage engage-readiness as a share of the recording.
 A single rclpy node spins all collectors on a background thread and writes into
 a thread-safe store; FastAPI serves the UI and streams snapshots. No target
 node is modified.
+
+## Documentation
+
+- [Architecture](docs/architecture.md) — modules, threading model, data flow
+- [HTTP API](docs/api.md) — REST / WebSocket / config schema (kept in sync by a test)
+- [Performance & safety](docs/performance_safety.md) — probing policy, latency tiers
+- [Roadmap](docs/roadmap.md) · [Contributing](CONTRIBUTING.md)
 
 ## Comparison
 
