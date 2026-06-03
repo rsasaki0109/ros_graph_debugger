@@ -60,6 +60,48 @@ def aggregate_callback_durations(rows) -> list[CallbackStat]:
     return out
 
 
+def pair_callback_events(events) -> list[dict]:
+    """Pair ``ros2:callback_start`` / ``callback_end`` events into durations.
+
+    This is the core of a CTF/LTTng adapter, kept pure so it is unit-tested
+    without babeltrace2. ``events`` is an iterable of
+    ``{kind: 'start'|'end', handle, t_ns}`` in time order; returns one
+    ``{handle, duration_ms, t_ns}`` per matched pair. A per-handle stack handles
+    reentrancy; unmatched ends are ignored, unmatched starts are dropped."""
+    pending: dict[object, list] = {}
+    rows: list[dict] = []
+    for e in events:
+        handle = e.get('handle')
+        t = e.get('t_ns')
+        if handle is None or not isinstance(t, (int, float)):
+            continue
+        if e.get('kind') == 'start':
+            pending.setdefault(handle, []).append(t)
+        elif e.get('kind') == 'end':
+            stack = pending.get(handle)
+            if stack:
+                t0 = stack.pop()
+                rows.append({'handle': handle, 't_ns': t0,
+                             'duration_ms': round((t - t0) / 1e6, 3)})
+    return rows
+
+
+def rows_with_owners(duration_rows, owners) -> list[dict]:
+    """Attach ``{node, callback, topic}`` to paired durations by callback handle.
+
+    ``owners`` maps a callback handle to its owner dict (resolved from the
+    registration events a trace also carries). Rows whose handle has no known
+    owner are dropped — we don't invent attribution."""
+    out: list[dict] = []
+    for r in duration_rows:
+        o = owners.get(r['handle'])
+        if not o or not o.get('node'):
+            continue
+        out.append({'node': o['node'], 'callback': o.get('callback', ''),
+                    'topic': o.get('topic', ''), 'duration_ms': r['duration_ms']})
+    return out
+
+
 def load_duration_rows(path: str) -> list[dict]:
     """Read NDJSON callback-duration rows, tolerating truncated/garbage lines
     (as a Ctrl-C'd export leaves). Each row is one callback invocation."""

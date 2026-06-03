@@ -31,9 +31,11 @@ briefing + MCP server, and a demo pipeline.
   `slow_callback` issue when a callback blows its (stage-aware) budget. Real
   traces load via `agent --trace-file run.ndjson` —
   `tracing.aggregate_callback_durations` turns per-invocation durations into
-  count/mean/p95/max — and the synthetic source drives `--demo`. Remaining:
-  automating the `ros2_tracing`/LTTng → NDJSON export and a callback-duration
-  timeline along the pipeline path.
+  count/mean/p95/max — and the synthetic source drives `--demo`. The capture →
+  NDJSON workflow (with the unit-tested `pair_callback_events` /
+  `rows_with_owners` building blocks) is documented in
+  [tracing.md](tracing.md). Remaining: a turn-key `ros2_tracing` → NDJSON
+  converter and a callback-duration timeline along the pipeline path.
 - Tier B latency via `/statistics` and pipeline-latency topics.
 - In-UI recording replay scrubbing improvements; snapshot export from the UI.
 - Multi-host / federated agents.
