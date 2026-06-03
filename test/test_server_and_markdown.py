@@ -182,6 +182,15 @@ def test_focused_briefing_includes_pipeline_path():
     assert '/objects' in md and '⟵ slowest' in md
 
 
+def test_pipeline_path_line_shows_callback_time():
+    from ros_graph_debugger.model import CallbackStat
+    store = _store_with_unrelated()
+    store.set_callbacks([CallbackStat(node='/tracker', callback='sub /objects',
+                                      topic='/objects', p95_ms=210.0)])
+    md = snapshot_to_markdown(store.snapshot(), focus='/detector')
+    assert '[cb 210 ms ⟵ slowest cb]' in md  # tracker's callback annotated on the path
+
+
 def test_path_endpoint(base_url):
     p = _get_json(base_url + '/api/v1/path?target=' + urllib.parse.quote('/detector'))
     assert p['pivot'] == '/detector'

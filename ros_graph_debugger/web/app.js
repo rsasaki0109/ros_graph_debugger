@@ -348,12 +348,17 @@ function loadNodePath(nodeId) {
       if (!box || document.getElementById('node-path') !== box) return;  // selection changed
       const names = {};
       (state.last?.nodes || []).forEach(n => { names[n.id] = n.name || n.id; });
+      const cbBadge = (nid, cb) => {
+        if (typeof cb !== 'number') return '';
+        const cbslow = nid === p.cb_bottleneck_node;
+        return `<span class="pp-cb${cbslow ? ' slow' : ''}" title="callback p95">${cb.toFixed(0)}ms</span>`;
+      };
       const segs = [];
       segs.push(`<span class="pp-node${p.nodes[0] === p.pivot ? ' pivot' : ''}">${escapeHtml(names[p.nodes[0]] || p.nodes[0])}</span>`);
       p.hops.forEach(h => {
         const slow = h.topic === p.bottleneck_topic;
         segs.push(`<span class="pp-edge${slow ? ' slow' : ''}" title="${escapeHtml(h.topic)}">${fmtRate(h.rate_hz) || '—'}${slow ? ' ⟵' : ''}</span>`);
-        segs.push(`<span class="pp-node${h.to === p.pivot ? ' pivot' : ''}">${escapeHtml(names[h.to] || h.to)}</span>`);
+        segs.push(`<span class="pp-node${h.to === p.pivot ? ' pivot' : ''}">${escapeHtml(names[h.to] || h.to)}</span>${cbBadge(h.to, h.cb_p95_ms)}`);
       });
       box.className = 'node-path';
       box.innerHTML = segs.join('<span class="pp-arrow">→</span>');

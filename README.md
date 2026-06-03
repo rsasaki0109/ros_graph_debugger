@@ -112,7 +112,9 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   reads as `camera → … → detector → /objects (4.1 Hz ⟵ slowest) → tracker → …`.
   Selecting a node **lights the path up on the graph** (constraining hop in
   red); also in the node Inspector, the focused AI briefing, and
-  `GET /api/v1/path`.
+  `GET /api/v1/path`. Each hop also carries the consuming node's **callback
+  p95**, so the path shows the rate bottleneck *and* the execution bottleneck
+  together (`detector [cb 210 ms ⟵ slowest cb] → /objects (4.1 Hz ⟵ slowest)`).
 - **Profiles**: `autoware`, `nav2`, `moveit` (grouping + expected rates, incl.
   regex patterns like `^/control/command/.*` that set a floor for a whole stage).
 - **Live tuning**: a Settings tab (and `POST /api/v1/config`) to adjust expected

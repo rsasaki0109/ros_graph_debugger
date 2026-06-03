@@ -110,8 +110,18 @@ def trace_pipeline_path(d: dict, focus: str):
     if not hops:
         return None
 
+    # Annotate each hop with the consuming node's callback p95 for that topic —
+    # the measured execution-time counterpart to the rate-based bottleneck.
+    cb_p95 = {(c['node'], c.get('topic')): c.get('p95_ms')
+              for c in d.get('callbacks', [])
+              if isinstance(c.get('p95_ms'), (int, float))}
+    for h in hops:
+        h['cb_p95_ms'] = cb_p95.get((h['to'], h['topic']))
+
     nodes_seq = [hops[0]['from']] + [h['to'] for h in hops]
     rated = [h for h in hops if isinstance(h['rate_hz'], (int, float))]
     bottleneck = min(rated, key=lambda h: h['rate_hz'])['topic'] if rated else None
+    cb_hops = [h for h in hops if isinstance(h['cb_p95_ms'], (int, float))]
+    cb_bottleneck = max(cb_hops, key=lambda h: h['cb_p95_ms'])['to'] if cb_hops else None
     return {'target': label, 'pivot': pivot, 'nodes': nodes_seq, 'hops': hops,
-            'bottleneck_topic': bottleneck}
+            'bottleneck_topic': bottleneck, 'cb_bottleneck_node': cb_bottleneck}

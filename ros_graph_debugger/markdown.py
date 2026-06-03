@@ -84,16 +84,20 @@ def _path_line(full: dict, focus: str) -> str | None:
         return None
     names = {n['id']: (n.get('name') or n['id']) for n in full['nodes']}
 
-    def node_disp(nid):
+    def node_disp(nid, cb=None):
         label = names.get(nid, nid)
-        return f'**{label}**' if nid == path['pivot'] else label
+        s = f'**{label}**' if nid == path['pivot'] else label
+        if isinstance(cb, (int, float)):
+            slow = nid == path.get('cb_bottleneck_node')
+            s += f' [cb {cb:.0f} ms{" ⟵ slowest cb" if slow else ""}]'
+        return s
 
     parts = [node_disp(path['nodes'][0])]
     for h in path['hops']:
         rate = _fmt_rate(h['rate_hz'])
         mark = ' ⟵ slowest' if h['topic'] == path['bottleneck_topic'] else ''
         parts.append(f'{h["topic"]} ({rate}{mark})')
-        parts.append(node_disp(h['to']))
+        parts.append(node_disp(h['to'], h.get('cb_p95_ms')))
     return ' → '.join(parts)
 
 

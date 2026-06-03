@@ -67,6 +67,24 @@ def test_cycle_terminates():
     assert p is not None and len(p['hops']) < 50  # bounded, no infinite loop
 
 
+def test_hops_carry_consumer_callback_p95():
+    d = _linear()
+    d['callbacks'] = [
+        {'node': '/tracker', 'topic': '/obj', 'p95_ms': 210.0},  # consumes /obj
+        {'node': '/detector', 'topic': '/cam', 'p95_ms': 12.0},
+    ]
+    p = trace_pipeline_path(d, '/detector')
+    obj_hop = next(h for h in p['hops'] if h['topic'] == '/obj')
+    assert obj_hop['cb_p95_ms'] == 210.0  # tracker's callback on /obj
+    assert p['cb_bottleneck_node'] == '/tracker'  # slowest callback on the path
+
+
+def test_hops_have_none_callback_without_traces():
+    p = trace_pipeline_path(_linear(), '/detector')  # no callbacks key
+    assert all(h['cb_p95_ms'] is None for h in p['hops'])
+    assert p['cb_bottleneck_node'] is None
+
+
 def test_unknown_focus_returns_none():
     assert trace_pipeline_path(_linear(), '/nope') is None
 
