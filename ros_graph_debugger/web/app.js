@@ -16,21 +16,22 @@ const STAGE_PALETTE = ['#1f6feb', '#2ea043', '#bb8009', '#a371f7', '#db61a2', '#
 const profileState = { groups: null, order: [], colors: {}, compiled: {} };
 const STATUS_RANK = { critical: 3, warning: 2, ok: 1, unknown: 0 };
 
+function applyProfile(p) {
+  if (!p || !p.groups || !Object.keys(p.groups).length) return;
+  profileState.groups = p.groups;
+  profileState.order = Object.keys(p.groups);
+  profileState.order.forEach((k, i) => {
+    profileState.colors[k] = STAGE_PALETTE[i % STAGE_PALETTE.length];
+    profileState.compiled[k] = (p.groups[k].topic_patterns || []).map(pat => {
+      try { return new RegExp(pat); } catch (e) { return null; }
+    }).filter(Boolean);
+  });
+  renderStageLegend();
+}
+
 async function loadProfile() {
-  try {
-    const r = await fetch('/api/v1/profile');
-    const p = await r.json();
-    if (!p || !p.groups || !Object.keys(p.groups).length) return;
-    profileState.groups = p.groups;
-    profileState.order = Object.keys(p.groups);
-    profileState.order.forEach((k, i) => {
-      profileState.colors[k] = STAGE_PALETTE[i % STAGE_PALETTE.length];
-      profileState.compiled[k] = (p.groups[k].topic_patterns || []).map(pat => {
-        try { return new RegExp(pat); } catch (e) { return null; }
-      }).filter(Boolean);
-    });
-    renderStageLegend();
-  } catch (e) { /* no profile: feature stays hidden */ }
+  try { applyProfile(await (await fetch('/api/v1/profile')).json()); }
+  catch (e) { /* no profile: feature stays hidden */ }
 }
 
 function stageOfTopic(name) {
@@ -831,6 +832,39 @@ async function initSettings() {
   });
 }
 
-loadProfile().finally(connect);
-initReplay();
-initSettings();
+// --- static demo mode (no backend; plays a bundled recording in-browser) ---
+// Activated on GitHub Pages by setting window.RGD_DEMO_URL before app.js loads.
+// The graph, metrics, issues, health, and the Network/TF/Diagnostics views all
+// work from the snapshot; server-only extras (path overlay, live config, export)
+// degrade gracefully.
+async function bootStatic(url) {
+  const conn = document.getElementById('conn');
+  let rec;
+  try { rec = await (await fetch(url)).json(); }
+  catch (e) { conn.textContent = 'demo unavailable'; return; }
+  const snaps = rec.snapshots || rec;
+  if (!Array.isArray(snaps) || !snaps.length) { conn.textContent = 'demo empty'; return; }
+  applyProfile((rec.header && rec.header.profile) || null);
+  conn.textContent = 'demo'; conn.className = 'chip conn-on';
+
+  const total = snaps.length;
+  let idx = 0, playing = true;
+  const seek = document.getElementById('rp-seek');
+  const frame = document.getElementById('rp-frame');
+  document.getElementById('replaybar').classList.remove('hidden');
+  seek.max = Math.max(0, total - 1);
+  const show = () => { render(snaps[idx]); seek.value = idx; frame.textContent = `${idx + 1} / ${total}`; };
+  seek.addEventListener('input', () => { playing = false; rpSyncPlay(false); idx = +seek.value; show(); });
+  document.getElementById('rp-play').addEventListener('click', () => { playing = !playing; rpSyncPlay(playing); });
+  rpSyncPlay(playing);
+  show();
+  setInterval(() => { if (playing && !state.paused) { idx = (idx + 1) % total; show(); } }, 600);
+}
+
+if (window.RGD_DEMO_URL) {
+  bootStatic(window.RGD_DEMO_URL);
+} else {
+  loadProfile().finally(connect);
+  initReplay();
+  initSettings();
+}

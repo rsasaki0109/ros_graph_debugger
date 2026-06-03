@@ -3,6 +3,7 @@
 [![CI](https://github.com/rsasaki0109/ros_graph_debugger/actions/workflows/ci.yml/badge.svg)](https://github.com/rsasaki0109/ros_graph_debugger/actions/workflows/ci.yml)
 [![ROS 2](https://img.shields.io/badge/ROS%202-Humble%20%7C%20Jazzy-blue)](https://docs.ros.org)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
+[![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://rsasaki0109.github.io/ros_graph_debugger/)
 
 **Runtime DevTools for ROS 2.** A live, AI-friendly view of your running ROS 2
 system: the graph, topic rate / bandwidth / message size, QoS, TF freshness,
@@ -15,8 +16,12 @@ and an MCP server so AI assistants can debug your robot with you.
 > Works with **Autoware** and **Nav2** via profile packs. Built for **ROS 2
 > Jazzy / Humble** on Ubuntu 24.04 / 22.04.
 
-> 🎬 **See it live without a robot:** `ros2 run ros_graph_debugger rgd serve --demo`
-> — a scripted pipeline with a transient bottleneck, in the real web UI.
+> 🌐 **Try it in your browser — no install:**
+> **[rsasaki0109.github.io/ros_graph_debugger](https://rsasaki0109.github.io/ros_graph_debugger/)**
+> — the real web UI playing the scripted bottleneck demo, fully client-side.
+>
+> 🎬 **Or run it locally:** `ros2 run ros_graph_debugger rgd serve --demo`
+> — the same scripted pipeline with a transient bottleneck, in the real web UI.
 
 The `--demo` pipeline at the moment it stalls — the detector's **210 ms
 callback** throttles `/objects` to **4.1 Hz**, and the tool flags it as one

@@ -1,0 +1,57 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Assemble static demo site
+        run: |
+          mkdir -p _site
+          cp -r ros_graph_debugger/web/. _site/
+          python3 - <<'PY'
+          import json, pathlib
+          from ros_graph_debugger.replay import build_demo_recording
+          site = pathlib.Path('_site')
+          h, s = build_demo_recording()
+          (site / 'demo.recording.json').write_text(
+              json.dumps({'header': h, 'snapshots': s}))
+          html = pathlib.Path('ros_graph_debugger/web/index.html').read_text()
+          html = html.replace('="/', '="')  # relativize absolute asset paths for the Pages subpath
+          html = html.replace(
+              '<script src="app.js"></script>',
+              '<script>window.RGD_DEMO_URL="demo.recording.json";</script>\n'
+              '  <script src="app.js"></script>')
+          (site / 'index.html').write_text(html)
+          print('assembled', len(s), 'demo frames')
+          PY
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
