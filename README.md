@@ -87,6 +87,9 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   size, QoS, status), like a Chrome DevTools Network tab for ROS.
 - **Topic metrics**: rate, bandwidth, avg / p95 message size (opt-in probing).
 - **QoS mismatch detection** — the classic "connected but no data flows" trap.
+- **Message latency (Tier A)** — `header.stamp` age (p50/p95) on probed topics,
+  with a freshness issue when it exceeds a profile's `max_age_ms` (e.g. stale
+  localization). Cheap approximation now; tracing-based tiers are on the roadmap.
 - **Node CPU / memory**, with honest node→process mapping confidence.
 - **TF freshness** — stale transform detection.
 - **/diagnostics** ingestion (WARN / ERROR become issues).

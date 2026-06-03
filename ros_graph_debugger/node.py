@@ -29,6 +29,7 @@ from tf2_msgs.msg import TFMessage
 from .analysis import analyze
 from .config import ProbeConfig, Thresholds
 from .graph_build import build_graph, fq_node
+from .msgutil import header_stamp_age_ms
 from .model import (
     DiagnosticStatus,
     RuntimeGraphStore,
@@ -60,31 +61,41 @@ class _TopicProbe:
     def __init__(self, window: int) -> None:
         self.stamps: deque[float] = deque(maxlen=window)
         self.sizes: deque[int] = deque(maxlen=window)
+        self.ages: deque[float] = deque(maxlen=window)  # header.stamp ages (ms)
+        # None=unknown, True=has header, False=headerless (stop deserializing).
+        self.has_header = None
 
-    def add(self, size: int) -> None:
+    def add(self, size: int, age_ms: float | None = None) -> None:
         self.stamps.append(time.monotonic())
         self.sizes.append(size)
+        if age_ms is not None:
+            self.ages.append(age_ms)
 
     def metrics(self) -> dict:
-        now = time.monotonic()
         rate = None
         if len(self.stamps) >= 2:
             span = self.stamps[-1] - self.stamps[0]
             if span > 0:
                 rate = (len(self.stamps) - 1) / span
         avg = sum(self.sizes) / len(self.sizes) if self.sizes else None
-        p95 = None
-        if self.sizes:
-            ordered = sorted(self.sizes)
-            p95 = ordered[min(len(ordered) - 1, int(0.95 * len(ordered)))]
         bw = (avg * rate) if (avg is not None and rate is not None) else None
         return {
             'rate_hz': round(rate, 2) if rate is not None else None,
             'avg_msg_size_bytes': round(avg, 1) if avg is not None else None,
-            'p95_msg_size_bytes': float(p95) if p95 is not None else None,
+            'p95_msg_size_bytes': _percentile(self.sizes, 95),
             'bandwidth_bps': round(bw, 1) if bw is not None else None,
             'last_seen_time': time.time() if self.stamps else None,
+            'header_age_ms': _percentile(self.ages, 50),
+            'header_age_p95_ms': _percentile(self.ages, 95),
         }
+
+
+def _percentile(values, pct: float):
+    if not values:
+        return None
+    ordered = sorted(values)
+    idx = min(len(ordered) - 1, int((pct / 100.0) * len(ordered)))
+    return round(float(ordered[idx]), 1)
 
 
 class DebuggerNode(Node):
@@ -181,12 +192,24 @@ class DebuggerNode(Node):
         probe = _TopicProbe(self.probe_cfg.window)
         self._probes[name] = probe
 
-        def _cb(raw: bytes, _name=name, _probe=probe) -> None:
+        def _cb(raw: bytes, _name=name, _probe=probe, _mt=msg_type) -> None:
             try:
-                _probe.add(len(raw) if isinstance(raw, (bytes, bytearray))
-                           else len(bytes(raw)))
+                size = len(raw) if isinstance(raw, (bytes, bytearray)) \
+                    else len(bytes(raw))
             except Exception:
-                _probe.add(0)
+                size = 0
+            age = None
+            # Best-effort latency Tier A: read header.stamp if the type has one.
+            # Once we learn a type is headerless we stop paying for deserialize.
+            if _probe.has_header is not False:
+                try:
+                    from rclpy.serialization import deserialize_message
+                    msg = deserialize_message(bytes(raw), _mt)
+                    age = header_stamp_age_ms(msg, time.time())
+                    _probe.has_header = hasattr(msg, 'header')
+                except Exception:
+                    _probe.has_header = False
+            _probe.add(size, age)
 
         try:
             sub = self.create_subscription(

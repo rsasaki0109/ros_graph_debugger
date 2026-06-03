@@ -305,6 +305,7 @@ function topicDetail(t) {
       <dt>bandwidth</dt><dd>${fmtBw(t.bandwidth_bps) || '—'}</dd>
       <dt>avg size</dt><dd>${fmtBytes(t.avg_msg_size_bytes)}</dd>
       <dt>p95 size</dt><dd>${fmtBytes(t.p95_msg_size_bytes)}</dd>
+      <dt>age p95 (latency)</dt><dd>${typeof t.header_age_p95_ms === 'number' ? t.header_age_p95_ms.toFixed(0) + ' ms' : '—'}</dd>
       <dt>qos</dt><dd>${t.qos_status}</dd>
     </dl>
     <div class="section-title">Publishers (${t.publisher_count})</div>
@@ -330,6 +331,7 @@ const NET_COLS = [
   { key: 'publisher_count', label: 'Pub', cls: 'num', fmt: t => t.publisher_count },
   { key: 'subscriber_count', label: 'Sub', cls: 'num', fmt: t => t.subscriber_count },
   { key: 'rate_hz', label: 'Rate', cls: 'num', fmt: t => fmtRate(t.rate_hz) || (t.probed ? '…' : '') },
+  { key: 'header_age_p95_ms', label: 'Age p95', cls: 'num', fmt: t => (typeof t.header_age_p95_ms === 'number') ? `${t.header_age_p95_ms.toFixed(0)} ms` : '' },
   { key: 'bandwidth_bps', label: 'Bandwidth', cls: 'num', fmt: t => fmtBw(t.bandwidth_bps) || '' },
   { key: 'p95_msg_size_bytes', label: 'p95 size', cls: 'num', fmt: t => t.p95_msg_size_bytes ? fmtBytes(t.p95_msg_size_bytes) : '' },
   { key: 'qos_status', label: 'QoS', cls: '', fmt: t => `<span class="net-badge ${t.qos_status === 'mismatch' ? 'mismatch' : t.qos_status}">${t.qos_status}</span>` },

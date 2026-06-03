@@ -107,6 +107,25 @@ def analyze(store: RuntimeGraphStore, thresholds) -> list[Issue]:
                                    'Check upstream topic freshness'],
                 related_topics=[name], related_nodes=list(t.publishers)))
 
+        # 5b: data older than the profile's max-age expectation (latency Tier A).
+        max_age = thresholds.max_age_for(name)
+        if max_age and t.probed and t.header_age_p95_ms is not None \
+                and t.header_age_p95_ms > max_age:
+            if status != CRITICAL:
+                status = WARNING
+            issues.append(Issue(
+                id=counter.next('stale_data'), severity=WARNING,
+                kind='stale_data',
+                title=f'{name} data is older than expected',
+                explanation=f'p95 message age {t.header_age_p95_ms:.0f} ms exceeds '
+                            f'the expected {max_age:.0f} ms; consumers may act on '
+                            'stale data.',
+                evidence=[f'p95 header age: {t.header_age_p95_ms:.0f} ms',
+                          f'expected within: {max_age:.0f} ms'],
+                suggested_actions=['Inspect the publishing pipeline latency',
+                                   'Check upstream input freshness and CPU load'],
+                related_topics=[name], related_nodes=list(t.publishers)))
+
         # 6: high bandwidth.
         if t.bandwidth_bps and t.bandwidth_bps > thresholds.high_bandwidth_bps:
             issues.append(Issue(

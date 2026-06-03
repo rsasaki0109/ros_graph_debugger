@@ -55,6 +55,9 @@ class TopicInfo:
     p95_msg_size_bytes: Optional[float] = None
     last_seen_time: Optional[float] = None
     age_ms: Optional[float] = None
+    # header.stamp based message age (latency Tier A), when the type has a header.
+    header_age_ms: Optional[float] = None
+    header_age_p95_ms: Optional[float] = None
 
     qos_status: str = UNKNOWN  # ok | mismatch | risk | unknown
     status: str = UNKNOWN  # ok | warning | critical | unknown
@@ -169,6 +172,8 @@ class RuntimeGraphStore:
                     new.p95_msg_size_bytes = old.p95_msg_size_bytes
                     new.last_seen_time = old.last_seen_time
                     new.age_ms = old.age_ms
+                    new.header_age_ms = old.header_age_ms
+                    new.header_age_p95_ms = old.header_age_p95_ms
             for nid, new in nodes.items():
                 old = self._nodes.get(nid)
                 if old is not None:

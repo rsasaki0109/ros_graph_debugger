@@ -54,15 +54,17 @@ def snapshot_to_markdown(snap) -> str:
 
     # --- Topic table. ---
     lines.append('## Topics')
-    lines.append('| topic | type | pub | sub | rate | bandwidth | qos | status |')
-    lines.append('|---|---|---|---|---|---|---|---|')
+    lines.append('| topic | type | pub | sub | rate | age p95 | bandwidth | qos | status |')
+    lines.append('|---|---|---|---|---|---|---|---|---|')
     for t in sorted(d['topics'], key=lambda x: x['name']):
-        lines.append('| {name} | {type} | {p} | {s} | {rate} | {bw} | {qos} | '
+        age = t.get('header_age_p95_ms')
+        lines.append('| {name} | {type} | {p} | {s} | {rate} | {age} | {bw} | {qos} | '
                      '{status} |'.format(
                          name=t['name'],
                          type=t['type'].split('/')[-1] if t['type'] else '—',
                          p=t['publisher_count'], s=t['subscriber_count'],
                          rate=_fmt_rate(t.get('rate_hz')),
+                         age=f'{age:.0f} ms' if isinstance(age, (int, float)) else '—',
                          bw=_fmt_bw(t.get('bandwidth_bps')),
                          qos=t.get('qos_status', 'unknown'),
                          status=t.get('status', 'unknown')))
