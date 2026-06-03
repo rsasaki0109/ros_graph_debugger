@@ -161,9 +161,10 @@ node is modified.
 ## Roadmap
 
 - **v0.1** — live graph, topic metrics, QoS, TF, diagnostics, issues, profiles,
-  AI Markdown + MCP. *(this release)*
-- **v0.2** — snapshot save/replay, expected-rate config UI, richer process
-  mapping, Nav2 / Autoware engage-readiness view.
+  AI Markdown + MCP.
+- **v0.2** *(current)* — pipeline-stage grouping (stage colours + legend) and an
+  engage-readiness bar (per-stage OK/WARN/ERROR) for Autoware / Nav2. *Next:*
+  snapshot save/replay, expected-rate config UI, richer process mapping.
 - **v0.3** — `ros2_tracing` adapter, callback/critical-path timeline, multi-host.
 
 ## License
