@@ -15,6 +15,8 @@ briefing + MCP server, and a demo pipeline.
 - Live tuning — Settings tab + `POST /api/v1/config`, with regex-pattern
   expectations that cover whole stages.
 - Topic Network view — a sortable/filterable DevTools-style table.
+- `rgd diff` — regression diff between two recordings (rate/callback/issue/health),
+  with `--fail-on-regression` for CI gating.
 - Message latency Tier A — `header.stamp` age + freshness issues.
 - Dedicated TF tree view (live `/tf` forest) and Diagnostics view.
 - MCP server with full endpoint coverage + a `set_expected_rate` write tool.

@@ -56,6 +56,7 @@ UI and to AI tools. Nothing in the target system is modified.
 | `server.py` | FastAPI REST/WS, Markdown, config, replay |
 | `markdown.py` | AI-friendly snapshot briefing |
 | `recording.py` / `report.py` | NDJSON capture + HTML/Markdown reports |
+| `diff.py` | regression diff between two recordings' reports (rate/callback/issue/health) |
 | `replay.py` | `ReplayStore` + scripted demo (drop-in for the store) |
 | `agent.py` / `cli.py` | entry points (`agent`, `rgd`) |
 

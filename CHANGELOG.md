@@ -4,6 +4,14 @@ All notable changes to **ros_graph_debugger**. This project follows a
 roadmap-driven 0.x line where each minor version is a coherent feature set
 (see [docs/roadmap.md](docs/roadmap.md)).
 
+## [Unreleased]
+
+### Added
+- **Regression diff** (`diff.diff_reports`, `rgd diff before after`) — compares
+  two recordings and reports what got worse: topic-rate drops, slower callbacks,
+  new issues, and a health-verdict change, as a Markdown / JSON briefing.
+  `--fail-on-regression` exits non-zero to gate CI.
+
 ## [0.3.0] — explain it (in progress)
 
 ### Added

@@ -256,7 +256,15 @@ ros2 run ros_graph_debugger rgd report run.rgd.json --html report.html --md repo
 
 # or replay the captured session in the web UI with a time-scrubber
 ros2 run ros_graph_debugger rgd serve run.rgd.json
+
+# did my change regress the pipeline? compare two recordings (exit 1 = regressed)
+ros2 run ros_graph_debugger rgd diff before.rgd.json after.rgd.json --fail-on-regression
 ```
+
+`rgd diff` compares two recordings and reports what got **worse** — topic-rate
+drops, slower callbacks, new issues, and a health-verdict change — as a Markdown
+(or `--json`) regression briefing. With `--fail-on-regression` it exits non-zero,
+so you can gate a CI job on "this change didn't slow the pipeline down."
 
 The report leads with a **system-health rollup** (what share of the recording
 was critical / degraded / ok, and how it ended — a one-line CI gate), ranks

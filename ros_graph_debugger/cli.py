@@ -138,6 +138,32 @@ def _parse_agents(specs):
     return agents
 
 
+def _cmd_diff(args) -> int:
+    """Compare two recordings and report what regressed."""
+    from .diff import diff_reports, render_diff_markdown
+    from .recording import read_recording
+    from .report import build_report
+
+    summaries = []
+    for path in (args.baseline, args.current):
+        header, snaps = read_recording(path)
+        if not snaps:
+            print(f'error: no snapshots in {path}', file=sys.stderr)
+            return 2
+        summaries.append(build_report(header, snaps))
+
+    d = diff_reports(*summaries)
+    if args.json:
+        sys.stdout.write(json.dumps(d))
+    else:
+        sys.stdout.write(render_diff_markdown(d))
+        sys.stdout.write('\n')
+    # Exit non-zero on regression so it can gate CI.
+    if args.fail_on_regression and d['verdict'] == 'regressed':
+        return 1
+    return 0
+
+
 def _cmd_federate(args) -> int:
     """Merge snapshots from several agents — print a briefing or serve the UI."""
     from .federation import FederatedStore, merge_snapshots
@@ -213,6 +239,13 @@ def main(argv=None) -> int:
     rep.add_argument('--html', default=None, help='write a self-contained HTML report')
     rep.add_argument('--md', default=None, help='write a Markdown report')
 
+    df = sub.add_parser('diff', help='compare two recordings and report regressions')
+    df.add_argument('baseline', help='baseline recording (the "before")')
+    df.add_argument('current', help='current recording (the "after")')
+    df.add_argument('--json', action='store_true', help='emit the diff as JSON')
+    df.add_argument('--fail-on-regression', action='store_true',
+                    help='exit 1 if the verdict is "regressed" (for CI gating)')
+
     sv = sub.add_parser('serve', help='replay a recording in the web UI (no ROS needed)')
     sv.add_argument('file', nargs='?', default=None, help='recording file')
     sv.add_argument('--demo', action='store_true', help='serve the built-in demo scenario')
@@ -249,6 +282,8 @@ def main(argv=None) -> int:
         return _cmd_record(args)
     if args.cmd == 'report':
         return _cmd_report(args)
+    if args.cmd == 'diff':
+        return _cmd_diff(args)
     if args.cmd == 'serve':
         return _cmd_serve(args)
     if args.cmd == 'federate':
