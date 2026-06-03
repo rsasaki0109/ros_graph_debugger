@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest an improvement or new capability
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: The debugging pain or missing insight, not just the feature.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed solution
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Issue engine / analysis
+        - Web UI
+        - AI / MCP / briefing
+        - Profiles (Autoware / Nav2 / MoveIt)
+        - Tracing / latency
+        - Reports / recording
+        - Federation / multi-host
+        - Other
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else?
+      description: Links, prior art, or how it fits the roadmap (docs/roadmap.md).

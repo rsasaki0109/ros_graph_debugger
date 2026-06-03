@@ -3,6 +3,9 @@
 Thanks for your interest in ROS Graph Debugger! Bug reports, feature ideas, and
 PRs are all welcome.
 
+> 🌐 New here? Click through the [live demo](https://rsasaki0109.github.io/ros_graph_debugger/)
+> first — it's the real UI playing the bundled bottleneck scenario, no install.
+
 ## Development setup
 
 Requires ROS 2 (Humble or Jazzy) on Linux and Node (for the web syntax check).

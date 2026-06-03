@@ -1,0 +1,44 @@
+name: Bug report
+description: Something in ros_graph_debugger behaves incorrectly
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! A briefing makes bugs much easier to reproduce —
+        attach the output of `rgd markdown` (or the **⤓ MD** button in the UI) if
+        you can.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ros2 run ros_graph_debugger agent --profile autoware
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: ros
+    attributes:
+      label: ROS 2 distro
+      placeholder: Humble / Jazzy
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: ros_graph_debugger version
+      placeholder: "output of: rgd version"
+  - type: textarea
+    id: briefing
+    attributes:
+      label: Briefing / logs (optional)
+      description: Paste `rgd markdown` output or relevant agent logs.
+      render: shell
