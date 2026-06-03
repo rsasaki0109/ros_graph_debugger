@@ -127,22 +127,53 @@ def _cmd_report(args) -> int:
     return 0
 
 
-def _cmd_federate(args) -> int:
-    """Fetch snapshots from several agents and merge them into one briefing."""
-    from .federation import merge_snapshots
-    from .markdown import snapshot_to_markdown
-
-    host_snaps = []
-    for spec in args.agents:
+def _parse_agents(specs):
+    """Turn ``[NAME=]URL`` specs into ``[(host, base_url)]``."""
+    agents = []
+    for spec in specs:
         host, _, base = spec.partition('=')
         if not base:  # bare URL -> derive a host label from it
             base, host = spec, spec.split('//')[-1].split(':')[0]
+        agents.append((host, base))
+    return agents
+
+
+def _cmd_federate(args) -> int:
+    """Merge snapshots from several agents — print a briefing or serve the UI."""
+    from .federation import FederatedStore, merge_snapshots
+    from .markdown import snapshot_to_markdown
+
+    agents = _parse_agents(args.agents)
+
+    if args.serve:
+        import os
+        import threading
+        import webbrowser
+
+        import uvicorn
+
+        from .paths import find_web_dir
+        from .server import create_app
+
+        store = FederatedStore(agents, poll_interval=args.poll)
+        store.start_polling()
+        app = create_app(store, find_web_dir(),
+                         profile_data={'name': 'federated', 'groups': {}},
+                         stream_period=1.0)
+        url = f'http://{args.host}:{args.port}'
+        print(f'\n  federating {len(agents)} agents at {url} '
+              f'(poll {args.poll}s)\n')
+        if not args.no_browser and os.environ.get('DISPLAY'):
+            threading.Timer(1.0, lambda: webbrowser.open(url)).start()
+        uvicorn.run(app, host=args.host, port=args.port, log_level='warning')
+        return 0
+
+    host_snaps = []
+    for host, base in agents:
         try:
-            snap = json.loads(_get(base, '/api/v1/snapshot'))
+            host_snaps.append((host, json.loads(_get(base, '/api/v1/snapshot'))))
         except Exception as exc:
             print(f'[warn] {host} ({base}) unreachable: {exc}', file=sys.stderr)
-            continue
-        host_snaps.append((host, snap))
 
     if not host_snaps:
         print('error: no agents reachable', file=sys.stderr)
@@ -200,6 +231,13 @@ def main(argv=None) -> int:
                           'robot1=http://10.0.0.2:3939')
     fed.add_argument('--json', action='store_true',
                      help='emit the merged snapshot JSON instead of Markdown')
+    fed.add_argument('--serve', action='store_true',
+                     help='serve the merged fleet view in the web UI')
+    fed.add_argument('--host', default='127.0.0.1')
+    fed.add_argument('--port', type=int, default=3939)
+    fed.add_argument('--poll', type=float, default=2.0,
+                     help='seconds between agent polls when serving')
+    fed.add_argument('--no-browser', action='store_true')
 
     args = p.parse_args(argv)
 

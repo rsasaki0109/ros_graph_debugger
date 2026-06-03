@@ -224,6 +224,9 @@ ros2 run ros_graph_debugger rgd doctor          # is the agent up?
 
 # fleet: merge several robots' agents into one AI briefing
 ros2 run ros_graph_debugger rgd federate robot1=http://10.0.0.2:3939 robot2=http://10.0.0.3:3939
+
+# ...or serve the merged fleet live in the web UI
+ros2 run ros_graph_debugger rgd federate --serve robot1=http://10.0.0.2:3939 robot2=http://10.0.0.3:3939
 ```
 
 ### Record & report
@@ -303,8 +306,9 @@ node is modified.
   callback bottleneck), a **system health verdict**, **focused per-node/-topic
   AI briefings**, report/Inspector polish, and **layered node→process
   attribution** with honest confidence, and **fleet federation**
-  (`rgd federate` merges several robots' agents into one namespaced briefing).
-  *Next:* a turn-key live tracing converter, a combined fleet web view.
+  (`rgd federate` merges several robots' agents into one namespaced briefing, or
+  `--serve` shows the whole fleet live in the web UI). *Next:* a turn-key live
+  tracing converter.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full per-release list.
 

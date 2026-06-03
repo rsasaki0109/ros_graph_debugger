@@ -33,7 +33,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
   token → low) with component containers capped at low.
 - **Fleet federation** (`federation.merge_snapshots`, `rgd federate`) — merge
   several agents' snapshots into one host-namespaced view with per-host health
-  and a fleet-wide AI briefing.
+  and a fleet-wide AI briefing; `rgd federate --serve` (a `FederatedStore`
+  background poller) shows the whole fleet live in the web UI.
 - **Showcase** — a regenerable [docs/example_briefing.md](docs/example_briefing.md)
   ("what an AI sees") and a Mermaid pipeline diagram in the README.
 

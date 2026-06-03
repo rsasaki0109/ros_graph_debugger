@@ -12,6 +12,11 @@ identical node/topic names on different robots stay distinct.
 
 from __future__ import annotations
 
+import json
+import threading
+import time
+import urllib.request
+
 from .health import summarize_health
 
 
@@ -128,3 +133,62 @@ def merge_snapshots(host_snapshots) -> dict:
     order = {'critical': 0, 'warning': 1, 'info': 2}
     combined['issues'].sort(key=lambda i: order.get(i.get('severity'), 9))
     return combined
+
+
+def http_fetch_snapshot(base: str) -> dict:
+    """GET ``/api/v1/snapshot`` from one agent as a dict."""
+    with urllib.request.urlopen(base.rstrip('/') + '/api/v1/snapshot',
+                                timeout=5) as r:
+        return json.loads(r.read())
+
+
+class _Frame:
+    """Minimal wrapper so create_app can call ``.to_dict()`` uniformly."""
+
+    __slots__ = ('_d',)
+
+    def __init__(self, d: dict):
+        self._d = d
+
+    def to_dict(self) -> dict:
+        return self._d
+
+
+class FederatedStore:
+    """A drop-in store (like RuntimeGraphStore/ReplayStore) that serves the
+    merged snapshot of several agents, refreshed by a background poller.
+
+    ``fetch`` is injectable so the store is testable without a network."""
+
+    def __init__(self, agents, fetch=None, poll_interval: float = 2.0):
+        self._agents = list(agents)  # [(host, base_url)]
+        self._fetch = fetch or http_fetch_snapshot
+        self.poll_interval = poll_interval
+        self._lock = threading.Lock()
+        self._merged = merge_snapshots([])
+        self.refresh()
+
+    def refresh(self) -> None:
+        snaps = []
+        for host, base in self._agents:
+            try:
+                snaps.append((host, self._fetch(base)))
+            except Exception:
+                continue  # unreachable agent is skipped this cycle
+        merged = merge_snapshots(snaps)
+        with self._lock:
+            self._merged = merged
+
+    def snapshot(self) -> _Frame:
+        with self._lock:
+            return _Frame(self._merged)
+
+    def start_polling(self) -> None:
+        def _loop():
+            while True:
+                time.sleep(self.poll_interval)
+                try:
+                    self.refresh()
+                except Exception:
+                    pass
+        threading.Thread(target=_loop, daemon=True).start()

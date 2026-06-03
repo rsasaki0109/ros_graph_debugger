@@ -38,9 +38,10 @@ briefing + MCP server, and a demo pipeline.
   converter and a callback-duration timeline along the pipeline path.
 - Tier B latency via `/statistics` and pipeline-latency topics.
 - In-UI recording replay scrubbing improvements; snapshot export from the UI.
-- Multi-host / federated agents — *first slice done*: `federation.merge_snapshots`
-  stitches several agents' snapshots into one host-namespaced view, exposed as
-  `rgd federate robot1=URL robot2=URL`. A combined web/serve mode is next.
+- Multi-host / federated agents — *done*: `federation.merge_snapshots` stitches
+  several agents' snapshots into one host-namespaced view, served by
+  `FederatedStore` (background poller). `rgd federate robot1=URL robot2=URL`
+  prints a fleet briefing; `--serve` shows the whole fleet live in the web UI.
 - Richer node→process attribution — *done*: layered confidence (remap / exe
   name / token) with component-container capping (`procmap.py`). Live `/proc`
   coverage for anonymous and lifecycle nodes remains.

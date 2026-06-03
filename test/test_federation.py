@@ -1,6 +1,9 @@
 """Fleet-wide snapshot merge — pure, no agents needed."""
 
-from ros_graph_debugger.federation import merge_snapshots
+from ros_graph_debugger.federation import (
+    FederatedStore,
+    merge_snapshots,
+)
 from ros_graph_debugger.health import summarize_health
 from ros_graph_debugger.markdown import snapshot_to_markdown
 
@@ -66,3 +69,30 @@ def test_merge_tolerates_empty_and_missing_sections():
     merged = merge_snapshots({'r1': {}, 'r2': _snap(5.0, False)})
     assert len(merged['nodes']) == 1  # r1 contributed nothing, no crash
     assert {h['host'] for h in merged['hosts']} == {'r1', 'r2'}
+
+
+def test_federated_store_merges_via_injected_fetch():
+    data = {'http://a': _snap(10.0, False), 'http://b': _snap(2.0, True)}
+    store = FederatedStore([('alpha', 'http://a'), ('beta', 'http://b')],
+                           fetch=lambda base: data[base])
+    snap = store.snapshot().to_dict()
+    assert {n['id'] for n in snap['nodes']} == {'/alpha/detector', '/beta/detector'}
+    assert summarize_health(snap)['verdict'] == 'critical'  # beta is critical
+    assert {h['host'] for h in snap['hosts']} == {'alpha', 'beta'}
+
+
+def test_federated_store_skips_unreachable_agent():
+    def fetch(base):
+        if base == 'http://down':
+            raise OSError('connection refused')
+        return _snap(10.0, False)
+    store = FederatedStore([('up', 'http://up'), ('down', 'http://down')],
+                           fetch=fetch)
+    snap = store.snapshot().to_dict()
+    # The reachable agent still contributes; the dead one is just absent.
+    assert {n['id'] for n in snap['nodes']} == {'/up/detector'}
+    # refresh() picks up the agent once it recovers.
+    store._fetch = lambda base: _snap(5.0, False)
+    store.refresh()
+    assert {n['id'] for n in store.snapshot().to_dict()['nodes']} == \
+        {'/up/detector', '/down/detector'}
