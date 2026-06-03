@@ -13,7 +13,8 @@ import re
 
 _SEV_RANK = {'critical': 3, 'warning': 2, 'info': 1}
 _STATUS_RANK = {'critical': 3, 'warning': 2, 'ok': 1, 'unknown': 0}
-_BOTTLENECK_KINDS = {'bottleneck', 'rate_drop', 'topic_stale', 'qos_mismatch'}
+_BOTTLENECK_KINDS = {'bottleneck', 'rate_drop', 'topic_stale', 'qos_mismatch',
+                     'slow_callback'}
 
 
 # --------------------------------------------------------------------------- #
@@ -30,6 +31,7 @@ def build_report(header: dict, snapshots: list[dict]) -> dict:
     topics: dict[str, dict] = {}
     issue_catalog: dict[tuple, dict] = {}
     tf_stale: dict[tuple, dict] = {}
+    callbacks: dict[tuple, dict] = {}
     timeline: list[dict] = []
 
     # Per-stage readiness tallies.
@@ -88,6 +90,21 @@ def build_report(header: dict, snapshots: list[dict]) -> dict:
                 if st:
                     _bump(stage_worst, st, stsev)
 
+        for c in snap.get('callbacks', []):
+            p95 = c.get('p95_ms')
+            if not isinstance(p95, (int, float)):
+                continue
+            key = (c.get('node', ''), c.get('callback', ''))
+            rec = callbacks.setdefault(key, {
+                'node': c.get('node', ''), 'callback': c.get('callback', ''),
+                'topic': c.get('topic', ''), 'max_p95': 0.0, 'max_mean': 0.0,
+                'seen': 0})
+            rec['seen'] += 1
+            rec['max_p95'] = max(rec['max_p95'], p95)
+            mean = c.get('mean_ms')
+            if isinstance(mean, (int, float)):
+                rec['max_mean'] = max(rec['max_mean'], mean)
+
         for e in snap.get('tf_edges', []):
             if e.get('status') == 'critical':
                 k = (e.get('parent', ''), e.get('child', ''))
@@ -134,6 +151,24 @@ def build_report(header: dict, snapshots: list[dict]) -> dict:
         ({'parent': k[0], 'child': k[1], **v} for k, v in tf_stale.items()),
         key=lambda x: -x['max_age_ms'])
 
+    callback_list = sorted(callbacks.values(), key=lambda x: -x['max_p95'])[:10]
+
+    # Recording-level health rollup: a verdict per sample (critical / degraded /
+    # ok), aggregated so CI can gate on "the stack was degraded N% of the run".
+    verdicts = ['critical' if t['worst'] == 'critical' else
+                'degraded' if t['worst'] == 'warning' else 'ok'
+                for t in timeline]
+    crit_n = verdicts.count('critical')
+    degr_n = verdicts.count('degraded')
+    ok_n = verdicts.count('ok')
+    health = {
+        'worst': ('critical' if crit_n else 'degraded' if degr_n else 'ok'),
+        'final': verdicts[-1] if verdicts else 'ok',
+        'critical_pct': round(100.0 * crit_n / n, 1) if n else 0.0,
+        'degraded_pct': round(100.0 * degr_n / n, 1) if n else 0.0,
+        'ok_pct': round(100.0 * ok_n / n, 1) if n else 0.0,
+    }
+
     readiness = None
     if compiled:
         readiness = []
@@ -153,10 +188,12 @@ def build_report(header: dict, snapshots: list[dict]) -> dict:
             'samples': n, 'duration_s': round(duration, 1),
             'profile': (profile or {}).get('name') if profile else None},
         'topics': sorted(topic_list, key=lambda x: x['name']),
+        'health': health,
         'bottlenecks': bottlenecks,
         'issue_catalog': issue_catalog_list,
         'timeline': timeline,
         'tf_stale': tf_list,
+        'callbacks': callback_list,
         'bandwidth_top': bandwidth_top,
         'readiness': readiness,
     }
@@ -215,6 +252,13 @@ def render_markdown(summary: dict) -> str:
         line += f'  ·  profile: {m["profile"]}'
     out += [line, '']
 
+    h = summary.get('health')
+    if h:
+        out.append(f'**System: {h["worst"].upper()}** over the recording — '
+                   f'critical {h["critical_pct"]}% · degraded {h["degraded_pct"]}% · '
+                   f'ok {h["ok_pct"]}% (ended {h["final"].upper()})')
+        out.append('')
+
     if summary['readiness']:
         out.append('## Engage readiness (share of samples)')
         out.append('| stage | worst | ok% | warn% | error% |')
@@ -242,6 +286,16 @@ def render_markdown(summary: dict) -> str:
         for t in summary['bandwidth_top']:
             p95 = f'{t["max_p95_bytes"] / 1e6:.2f} MB' if t['max_p95_bytes'] else '—'
             out.append(f'| {t["name"]} | {_fmt_bw(t["max_bandwidth_bps"])} | {p95} |')
+        out.append('')
+
+    if summary.get('callbacks'):
+        out.append('## Slowest callbacks (max p95 over the recording)')
+        out.append('| node | callback | max p95 | max mean |')
+        out.append('|---|---|---|---|')
+        for c in summary['callbacks']:
+            mean = f'{c["max_mean"]:.0f} ms' if c['max_mean'] else '—'
+            out.append(f'| {c["node"]} | {c["callback"]} | '
+                       f'{c["max_p95"]:.0f} ms | {mean} |')
         out.append('')
 
     if summary['tf_stale']:
@@ -325,6 +379,29 @@ def render_html(summary: dict) -> str:
                         f'<td>{p95}</td></tr>')
         return ''.join(rows) or '<tr><td colspan="3" class="muted">no probed bandwidth</td></tr>'
 
+    def health_banner():
+        h = summary.get('health')
+        if not h:
+            return ''
+        c = {'critical': '#f85149', 'degraded': '#d29922', 'ok': '#3fb950'}.get(
+            h['worst'], '#6e7681')
+        return (f'<div class="health" style="border-left:4px solid {c}">'
+                f'<b style="color:{c}">System: {h["worst"].upper()}</b> '
+                f'<span class="muted">over the recording — critical {h["critical_pct"]}% '
+                f'· degraded {h["degraded_pct"]}% · ok {h["ok_pct"]}% '
+                f'(ended {e(h["final"].upper())})</span></div>')
+
+    def callback_section():
+        if not summary.get('callbacks'):
+            return ''
+        rows = ''.join(
+            f'<tr><td>{e(c["node"])}</td><td>{e(c["callback"])}</td>'
+            f'<td>{c["max_p95"]:.0f} ms</td>'
+            f'<td>{(str(round(c["max_mean"])) + " ms") if c["max_mean"] else "—"}</td></tr>'
+            for c in summary['callbacks'])
+        return ('<h2>Slowest callbacks</h2><table><tr><th>node</th><th>callback</th>'
+                f'<th>max p95</th><th>max mean</th></tr>{rows}</table>')
+
     def tf_rows():
         if not summary['tf_stale']:
             return ''
@@ -353,6 +430,7 @@ def render_html(summary: dict) -> str:
 body{{background:#0d1117;color:#c9d1d9;font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;margin:0;padding:24px;max-width:1000px;margin:0 auto}}
 h1{{font-size:20px}}h2{{font-size:15px;border-bottom:1px solid #2d333b;padding-bottom:4px;margin-top:28px}}
 .muted{{color:#8b949e}}
+.health{{background:#161b22;border:1px solid #2d333b;border-radius:6px;padding:8px 12px;margin:12px 0;font-size:14px}}
 .readiness{{display:flex;gap:1px;background:#2d333b;border-radius:6px;overflow:hidden;margin:12px 0}}
 .stage{{flex:1;background:#161b22;padding:8px;text-align:center}}
 .sname{{text-transform:capitalize}}.sverdict{{font-weight:700;font-size:13px}}.spct{{color:#8b949e;font-size:11px}}
@@ -365,6 +443,7 @@ th{{color:#8b949e;font-weight:600}}
 </style></head><body>
 <h1>◇ ROS Graph Debugger — Recording Report</h1>
 <p class="muted">{m['samples']} samples over {m['duration_s']} s{profile_line}</p>
+{health_banner()}
 {readiness_html()}
 <h2>Issue timeline</h2>
 <div class="tl">{_timeline_svg(summary['timeline'])}</div>
@@ -372,6 +451,7 @@ th{{color:#8b949e;font-weight:600}}
 {bottleneck_rows()}
 <h2>Highest bandwidth topics</h2>
 <table><tr><th>topic</th><th>max bandwidth</th><th>max p95 size</th></tr>{bandwidth_rows()}</table>
+{callback_section()}
 {tf_rows()}
 <h2>Topic rate summary</h2>
 <table><tr><th>topic</th><th>min</th><th>avg</th><th>max</th><th>stale%</th></tr>{topic_rows()}</table>

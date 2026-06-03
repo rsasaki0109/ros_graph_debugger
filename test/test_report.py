@@ -37,8 +37,19 @@ def _snapshot(ts, objects_rate, bottleneck=False):
             'related_topics': ['/perception/object_recognition/objects']})
     tf = [{'parent': 'map', 'child': 'base_link', 'status': 'critical', 'age_ms': 450.0}] \
         if bottleneck else []
+    callbacks = []
+    if bottleneck:
+        callbacks = [{'node': '/detector', 'callback': 'sub /image',
+                      'topic': '/image', 'p95_ms': 210.0, 'mean_ms': 116.0}]
+        issues.append({
+            'severity': 'critical', 'kind': 'slow_callback',
+            'title': 'Slow callback in /detector',
+            'evidence': ['p95: 210 ms (limit 100 ms)'],
+            'suggested_actions': ['Profile the callback body'],
+            'related_nodes': ['/detector'], 'related_topics': ['/image']})
     return {'timestamp': ts, 'profile': 'autoware', 'nodes': [], 'topics': topics,
-            'edges': [], 'tf_edges': tf, 'diagnostics': [], 'issues': issues}
+            'edges': [], 'tf_edges': tf, 'diagnostics': [], 'callbacks': callbacks,
+            'issues': issues}
 
 
 def test_recording_roundtrip_tolerates_garbage(tmp_path=None):
@@ -109,6 +120,32 @@ def test_render_html_and_markdown():
     assert 'Engage readiness' in md
     assert 'Likely bottleneck: detector' in md
     assert 'map → base_link' in md
+
+
+def test_report_health_rollup_and_callbacks():
+    header = make_header(100.0, 1.0, PROFILE)
+    snaps = [_snapshot(100.0 + i, 10.0) for i in range(8)]          # 8 clean
+    snaps += [_snapshot(108.0 + i, 4.0, bottleneck=True) for i in range(2)]  # 2 critical
+    summary = build_report(header, snaps)
+
+    h = summary['health']
+    assert h['worst'] == 'critical'
+    assert h['critical_pct'] == 20.0  # 2 / 10
+    assert h['ok_pct'] == 80.0
+    assert h['final'] == 'critical'  # recording ends in the stalled window
+
+    # Slowest-callback aggregation surfaces the detector's 210 ms callback.
+    assert summary['callbacks']
+    top = summary['callbacks'][0]
+    assert top['node'] == '/detector' and top['max_p95'] == 210.0
+    # slow_callback now ranks among bottlenecks.
+    assert any(b['kind'] == 'slow_callback' for b in summary['bottlenecks'])
+
+    md = render_markdown(summary)
+    assert '**System: CRITICAL**' in md
+    assert 'Slowest callbacks' in md and '210 ms' in md
+    html = render_html(summary)
+    assert 'System: CRITICAL' in html and 'Slowest callbacks' in html
 
 
 def test_empty_profile_no_readiness():

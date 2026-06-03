@@ -228,9 +228,12 @@ ros2 run ros_graph_debugger rgd report run.rgd.json --html report.html --md repo
 ros2 run ros_graph_debugger rgd serve run.rgd.json
 ```
 
-The report ranks bottlenecks by severity and frequency, summarizes per-topic
-rate/bandwidth, lists stale transforms, draws an issue timeline, and (with a
-profile) shows per-stage engage-readiness as a share of the recording.
+The report leads with a **system-health rollup** (what share of the recording
+was critical / degraded / ok, and how it ended — a one-line CI gate), ranks
+bottlenecks by severity and frequency (now including slow callbacks), lists the
+**slowest callbacks** by max p95, summarizes per-topic rate/bandwidth, lists
+stale transforms, draws an issue timeline, and (with a profile) shows per-stage
+engage-readiness as a share of the recording.
 
 ## How it works
 
