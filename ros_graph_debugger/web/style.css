@@ -119,6 +119,15 @@ body {
 .health-degraded { color: var(--warning); border-color: var(--warning); }
 .health-critical { color: var(--critical); border-color: var(--critical); font-weight: 600; }
 
+#demo-banner {
+  background: linear-gradient(90deg, #132030, #0d1117);
+  border-bottom: 1px solid var(--accent);
+  color: var(--text); font-size: 12.5px; padding: 6px 14px; text-align: center;
+}
+#demo-banner b { color: var(--accent); }
+#demo-banner a { color: var(--accent); text-decoration: none; }
+#demo-banner a:hover { text-decoration: underline; }
+
 .mini-issue { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 3px 6px; margin: 2px 0; border-radius: 5px; background: var(--panel-2); border-left: 3px solid var(--border); cursor: pointer; }
 .mini-issue:hover { background: var(--panel); }
 .mini-issue.critical { border-left-color: var(--critical); }

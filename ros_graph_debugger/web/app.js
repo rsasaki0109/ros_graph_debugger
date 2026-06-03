@@ -264,7 +264,7 @@ function updateIssues(issues) {
       ${i.evidence && i.evidence.length ? `<ul>${i.evidence.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul>` : ''}
       ${i.suggested_actions && i.suggested_actions.length ?
         `<p class="actions">→ ${i.suggested_actions.map(escapeHtml).join(' · ')}</p>` : ''}
-      ${briefingFocusOf(i) ?
+      ${briefingFocusOf(i) && !window.RGD_STATIC ?
         `<button class="brief-btn" data-focus='${escapeHtml(briefingFocusOf(i))}'>Copy AI briefing</button>` : ''}
     </div>`).join('');
   box.querySelectorAll('.issue').forEach(el => {
@@ -350,9 +350,9 @@ function nodeDetail(n) {
     ${nodeCallbacks(n.id)}
     <div class="section-title">Pipeline path <span class="hint">— lit up on the graph</span></div>
     <div id="node-path" class="node-path hint">tracing…</div>
-    <div class="section-title">AI</div>
+    ${window.RGD_STATIC ? '' : `<div class="section-title">AI</div>
     <button class="brief-btn" onclick="window._copyBriefing('${escapeHtml(n.id)}', this)">Copy AI briefing</button>
-    <span class="hint">a focused Markdown briefing for this node — paste into an LLM</span>`;
+    <span class="hint">a focused Markdown briefing for this node — paste into an LLM</span>`}`;
 }
 
 // Per-callback execution-time stats (Tier C tracing) for a node, slowest first.
@@ -924,6 +924,20 @@ async function bootStatic(url) {
   applyProfile((rec.header && rec.header.profile) || null);
   window.RGD_STATIC = true;  // pipeline path is traced client-side (no backend)
   conn.textContent = 'demo'; conn.className = 'chip conn-on';
+
+  // A banner so visitors know this is a recording, and hide the affordances
+  // that genuinely need a running agent (rather than fail silently).
+  const banner = document.createElement('div');
+  banner.id = 'demo-banner';
+  banner.innerHTML =
+    '▶ <b>Recorded demo</b> — scrub the timeline below; select a node to light up ' +
+    'its pipeline path. Live-only features (Copy AI briefing, MD export, Settings) ' +
+    'need a running agent. <a href="https://github.com/rsasaki0109/ros_graph_debugger" target="_blank">Get it →</a>';
+  document.body.insertBefore(banner, document.body.firstChild);
+  ['export-md', 'ai-md-link'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
 
   const total = snaps.length;
   let idx = 0, playing = true;
