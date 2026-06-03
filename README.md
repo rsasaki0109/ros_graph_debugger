@@ -7,8 +7,10 @@
 
 <p align="center">
   <a href="https://rsasaki0109.github.io/ros_graph_debugger/">
-    <img src="ros_graph_debugger/web/social-card.svg" alt="ROS Graph Debugger — see where and why your pipeline is slow" width="820">
+    <img src="docs/img/screenshot-graph.png" alt="ROS Graph Debugger — the detector node lit up on its pipeline path, with the Inspector showing its bottleneck, slow callback, and callback p95" width="900">
   </a>
+  <br/>
+  <em>The detector stalls: its pipeline path lights up (rate <b>and</b> callback bottleneck), and the Inspector explains why. <a href="https://rsasaki0109.github.io/ros_graph_debugger/">Try it live →</a></em>
 </p>
 
 **Runtime DevTools for ROS 2.** A live, AI-friendly view of your running ROS 2
