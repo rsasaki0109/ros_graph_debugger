@@ -31,11 +31,16 @@ jobs:
             ros-${{ matrix.ros_distro }}-diagnostic-msgs \
             ros-${{ matrix.ros_distro }}-statistics-msgs
           # Web/API stack is pip-only. --break-system-packages is unknown to the
-          # older pip on 22.04 (humble), so fall back when it isn't supported.
-          # -U "pytest>=7": fastapi pulls a modern anyio whose pytest plugin needs
-          # pytest>=7, but 22.04 ships 6.2.5 and pip would treat it as satisfied.
-          PKGS='-U pytest>=7 fastapi uvicorn websockets pydantic psutil pyyaml'
-          pip3 install --break-system-packages $PKGS || pip3 install $PKGS
+          # older pip on 22.04 (humble) and required on 24.04 (jazzy), so try it
+          # then fall back. No -U: it would try to uninstall debian-managed
+          # packages (e.g. PyYAML) which have no RECORD file.
+          pip_install() { pip3 install --break-system-packages "$@" || pip3 install "$@"; }
+          pip_install fastapi uvicorn websockets pydantic psutil pyyaml
+          # fastapi pulls a modern anyio whose pytest plugin needs pytest>=7;
+          # 22.04 ships 6.2.5. Install a newer one alongside (--ignore-installed
+          # avoids touching the debian-managed copy) only when too old.
+          python3 -c "import pytest,sys;sys.exit(0 if int(pytest.__version__.split('.')[0])>=7 else 1)" \
+            || pip_install --ignore-installed "pytest>=7,<9"
 
       - name: colcon build
         shell: bash
