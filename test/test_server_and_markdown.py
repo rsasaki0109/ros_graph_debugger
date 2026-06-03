@@ -7,6 +7,7 @@ The HTTP endpoints are exercised against a real uvicorn server in a thread
 import json
 import threading
 import time
+import urllib.parse
 import urllib.request
 
 import pytest
@@ -98,4 +99,55 @@ def test_snapshot_md_endpoint(base_url):
     with urllib.request.urlopen(base_url + '/api/v1/snapshot.md', timeout=5) as r:
         text = r.read().decode()
     assert 'Runtime Snapshot' in text
+    assert 'Likely bottleneck: detector' in text
+
+
+def _store_with_unrelated():
+    """detector -> /objects -> tracker, plus an unrelated planner -> /traj."""
+    store = _store()
+    d = store.snapshot().to_dict()
+    nodes = {n['id']: NodeInfo(id=n['id'], name=n['name'],
+                               publishers=n['publishers'], subscribers=n['subscribers'])
+             for n in d['nodes']}
+    nodes['/planner'] = NodeInfo(id='/planner', name='planner', publishers=['/traj'])
+    topics = {t['name']: TopicInfo(name=t['name'], type=t['type'],
+                                   publisher_count=t['publisher_count'],
+                                   subscriber_count=t['subscriber_count'],
+                                   publishers=t['publishers'], subscribers=t['subscribers'])
+              for t in d['topics']}
+    topics['/traj'] = TopicInfo(name='/traj', type='std_msgs/msg/String',
+                                publisher_count=1, subscriber_count=0,
+                                publishers=['/planner'], subscribers=[])
+    store.set_graph(nodes, topics)
+    return store
+
+
+def test_focused_briefing_keeps_neighbourhood_drops_the_rest():
+    md = snapshot_to_markdown(_store_with_unrelated().snapshot(), focus='/detector')
+    assert 'Focused on **/detector**' in md
+    # The detector's neighbourhood is present...
+    assert '/objects' in md
+    assert '/tracker' in md
+    assert 'Likely bottleneck: detector' in md  # issue touches the focus
+    # ...the unrelated planner/traj are sliced away.
+    assert '/planner' not in md
+    assert '/traj' not in md
+
+
+def test_focused_briefing_resolves_by_name_and_suffix():
+    snap = _store_with_unrelated().snapshot()
+    assert 'Focused on **/detector**' in snapshot_to_markdown(snap, focus='detector')
+    assert 'Focused on **/planner**' in snapshot_to_markdown(snap, focus='planner')
+
+
+def test_focused_briefing_unknown_node_is_explicit():
+    md = snapshot_to_markdown(_store().snapshot(), focus='/nope')
+    assert 'No node matching `/nope`' in md
+
+
+def test_snapshot_md_endpoint_focus(base_url):
+    url = base_url + '/api/v1/snapshot.md?focus=' + urllib.parse.quote('/detector')
+    with urllib.request.urlopen(url, timeout=5) as r:
+        text = r.read().decode()
+    assert 'Focused on **/detector**' in text
     assert 'Likely bottleneck: detector' in text

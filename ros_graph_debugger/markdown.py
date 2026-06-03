@@ -21,11 +21,84 @@ def _fmt_bw(v):
     return f'{v:.0f} B/s'
 
 
-def snapshot_to_markdown(snap) -> str:
+def _resolve_node(nodes, focus: str):
+    """Map a user-supplied focus string to a node id (exact id, exact name,
+    then suffix match). Returns the node id, or None if nothing matches."""
+    for n in nodes:
+        if n['id'] == focus:
+            return n['id']
+    for n in nodes:
+        if n.get('name') == focus:
+            return n['id']
+    for n in nodes:
+        if n['id'].endswith(focus) or (n.get('name') or '').endswith(focus):
+            return n['id']
+    return None
+
+
+def focus_subgraph(d: dict, focus: str):
+    """Slice a snapshot down to one node and its 1-hop neighbourhood.
+
+    Keeps the focus node, every node sharing a topic with it, those topics,
+    their edges, and any issues touching that neighbourhood. Returns
+    ``(node_id, sliced_dict)`` or ``(None, None)`` when the focus is unknown.
+    Big Autoware/Nav2 graphs are too large to hand an AI whole; this is the
+    "just the part I'm asking about" briefing."""
+    node_id = _resolve_node(d['nodes'], focus)
+    if node_id is None:
+        return None, None
+
+    topic_names = {t['name'] for t in d['topics']
+                   if node_id in t.get('publishers', [])
+                   or node_id in t.get('subscribers', [])}
+    neighbours = {node_id}
+    for t in d['topics']:
+        if t['name'] in topic_names:
+            neighbours.update(t.get('publishers', []))
+            neighbours.update(t.get('subscribers', []))
+
+    def issue_in_scope(i):
+        return (set(i.get('related_nodes', [])) & neighbours
+                or set(i.get('related_topics', [])) & topic_names)
+
+    issues = [i for i in d['issues'] if issue_in_scope(i)]
+    frames = set()
+    for i in issues:
+        frames.update(i.get('related_frames', []))
+
+    sliced = {
+        'timestamp': d.get('timestamp'),
+        'profile': d.get('profile'),
+        'nodes': [n for n in d['nodes'] if n['id'] in neighbours],
+        'topics': [t for t in d['topics'] if t['name'] in topic_names],
+        'edges': [e for e in d.get('edges', []) if e.get('topic') in topic_names],
+        'tf_edges': [e for e in d.get('tf_edges', [])
+                     if e.get('parent') in frames or e.get('child') in frames],
+        'diagnostics': [],
+        'issues': issues,
+    }
+    return node_id, sliced
+
+
+def snapshot_to_markdown(snap, focus: str | None = None) -> str:
     # Accept a GraphSnapshot, a replay _Frame, or a plain dict.
     d = snap.to_dict() if hasattr(snap, 'to_dict') else snap
+
+    focused_on = None
+    if focus:
+        node_id, sliced = focus_subgraph(d, focus)
+        if sliced is None:
+            return (f'# ROS Graph Debugger — Runtime Snapshot\n'
+                    f'No node matching `{focus}` is in the graph.')
+        d, focused_on = sliced, node_id
+
     lines: list[str] = []
     lines.append('# ROS Graph Debugger — Runtime Snapshot')
+    if focused_on:
+        lines.append(f'Focused on **{focused_on}** and its direct neighbours.')
+        others = [n['id'] for n in d['nodes'] if n['id'] != focused_on]
+        if others:
+            lines.append('Neighbours: ' + ', '.join(sorted(others)))
     if d.get('profile'):
         lines.append(f'Profile: **{d["profile"]}**')
     lines.append(f'Nodes: {len(d["nodes"])}  ·  Topics: {len(d["topics"])}  ·  '

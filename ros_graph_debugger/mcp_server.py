@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import os
 import urllib.request
+from urllib.parse import quote
 
 BASE = os.environ.get('RGD_BASE', 'http://127.0.0.1:3939')
 
@@ -79,6 +80,18 @@ def main() -> None:
                 return fetch(p)
             return tool
         mcp.tool(name=name, description=doc)(make(path))
+
+    @mcp.tool()
+    def get_node_briefing(node: str) -> str:
+        """Get an AI-ready Markdown briefing focused on a single node.
+
+        Slices the live graph down to ``node`` and its direct neighbours
+        (the topics it pub/subs and the nodes on the other end), plus any
+        issues touching that neighbourhood. Use this instead of
+        get_runtime_briefing when you care about one part of a large
+        Autoware/Nav2 graph. ``node`` may be a full node id, a name, or a
+        suffix."""
+        return fetch('/api/v1/snapshot.md?focus=' + quote(node, safe=''))
 
     @mcp.tool()
     def set_expected_rate(topic: str, min_hz: float) -> str:

@@ -83,6 +83,17 @@ def test_read_tool_paths_are_documented():
         assert path in doc, f'{name} proxies undocumented {path}'
 
 
+def test_get_node_briefing_focuses_the_graph(agent):
+    base, _ = agent
+    # The focused briefing path the get_node_briefing tool builds is live and
+    # scopes the Markdown to the requested node.
+    from urllib.parse import quote
+    md = mcp_server.fetch('/api/v1/snapshot.md?focus=' + quote('/detector'),
+                          base=base)
+    assert 'Focused on **/detector**' in md
+    assert '/objects' in md
+
+
 def test_set_expected_rate_round_trips_into_config(agent):
     base, thresholds = agent
     mcp_server.post('/api/v1/config',

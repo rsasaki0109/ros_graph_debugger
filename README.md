@@ -115,6 +115,7 @@ The whole runtime state is available in three machine-friendly ways:
 |---|---|---|
 | Structured JSON | `GET /api/v1/snapshot` | programmatic access |
 | **Markdown briefing** | `GET /api/v1/snapshot.md` | paste into an LLM / agent |
+| **Focused briefing** | `GET /api/v1/snapshot.md?focus=NODE` | just one node + neighbours (also a "Copy AI briefing" button in the node Inspector) |
 | **MCP server** | `python -m ros_graph_debugger.mcp_server` | let Claude query the live graph |
 
 ```bash
@@ -133,10 +134,12 @@ claude mcp add ros-graph -- python -m ros_graph_debugger.mcp_server
 ```
 
 Now an AI assistant can read the live robot — `get_runtime_briefing`,
-`get_issues`, `get_graph`, `get_topics`, `get_nodes`, `get_tf`,
-`get_diagnostics`, `get_config` — and **act** on it: `set_expected_rate(topic,
-min_hz)` encodes what "healthy" looks like for a topic at runtime, so the issue
-engine starts flagging it immediately. No restart, no file editing.
+`get_node_briefing(node)` (a focused briefing for one node and its neighbours —
+the right size for a large Autoware/Nav2 graph), `get_issues`, `get_graph`,
+`get_topics`, `get_nodes`, `get_tf`, `get_diagnostics`, `get_config` — and
+**act** on it: `set_expected_rate(topic, min_hz)` encodes what "healthy" looks
+like for a topic at runtime, so the issue engine starts flagging it immediately.
+No restart, no file editing.
 
 ## Safety: probing is opt-in and bounded
 
@@ -232,8 +235,9 @@ node is modified.
   engage-readiness bar (per-stage OK/WARN/ERROR) for Autoware / Nav2,
   `rgd record` / `rgd report` (HTML + Markdown), `rgd serve` time-scrub replay
   (incl. a no-ROS `--demo`), live tuning (Settings tab + pattern-based expected
-  rates), a topic Network table, **TF tree + Diagnostics views**, and an **MCP
-  server** with full endpoint coverage. *Next:* richer process mapping.
+  rates), a topic Network table, **TF tree + Diagnostics views**, an **MCP
+  server** with full endpoint coverage, and **focused per-node AI briefings**
+  (REST + MCP + a Copy button). *Next:* richer process mapping.
 - **v0.3** — `ros2_tracing` adapter, callback/critical-path timeline, multi-host.
 
 ## License

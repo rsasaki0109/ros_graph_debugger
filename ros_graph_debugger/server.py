@@ -83,8 +83,8 @@ def create_app(store, web_dir: str,
         return JSONResponse(store.snapshot().to_dict())
 
     @app.get('/api/v1/snapshot.md', response_class=PlainTextResponse)
-    def snapshot_md():
-        return snapshot_to_markdown(store.snapshot())
+    def snapshot_md(focus: str | None = None):
+        return snapshot_to_markdown(store.snapshot(), focus=focus)
 
     @app.get('/api/v1/graph')
     def graph():

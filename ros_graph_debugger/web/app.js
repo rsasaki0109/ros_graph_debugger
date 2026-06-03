@@ -293,8 +293,41 @@ function nodeDetail(n) {
     <div class="section-title">Publishers (${n.publishers.length})</div>
     ${n.publishers.map(p => `<span class="pill" onclick="window._sel('T:${p}')">${p}</span>`).join('') || '<span class="hint">none</span>'}
     <div class="section-title">Subscribers (${n.subscribers.length})</div>
-    ${n.subscribers.map(s => `<span class="pill" onclick="window._sel('T:${s}')">${s}</span>`).join('') || '<span class="hint">none</span>'}`;
+    ${n.subscribers.map(s => `<span class="pill" onclick="window._sel('T:${s}')">${s}</span>`).join('') || '<span class="hint">none</span>'}
+    <div class="section-title">AI</div>
+    <button class="brief-btn" onclick="window._copyBriefing('${escapeHtml(n.id)}', this)">Copy AI briefing</button>
+    <span class="hint">a focused Markdown briefing for this node — paste into an LLM</span>`;
 }
+
+function copyBriefing(nodeId, btn) {
+  const label = btn ? btn.textContent : '';
+  fetch('/api/v1/snapshot.md?focus=' + encodeURIComponent(nodeId))
+    .then(r => r.text())
+    .then(async md => {
+      let ok = false;
+      try {
+        await navigator.clipboard.writeText(md);
+        ok = true;
+      } catch (e) {
+        // Clipboard API needs a secure context; fall back to a textarea copy.
+        const ta = document.createElement('textarea');
+        ta.value = md;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
+        document.body.removeChild(ta);
+      }
+      if (btn) {
+        btn.textContent = ok ? 'Copied ✓' : 'Copy failed';
+        setTimeout(() => { btn.textContent = label; }, 1500);
+      }
+    })
+    .catch(() => { if (btn) { btn.textContent = 'Copy failed'; setTimeout(() => { btn.textContent = label; }, 1500); } });
+}
+
+window._copyBriefing = copyBriefing;
 
 function topicDetail(t) {
   const qos = t.qos_endpoints.map(e =>
