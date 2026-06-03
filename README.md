@@ -5,6 +5,12 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
 [![Live demo](https://img.shields.io/badge/demo-live-brightgreen)](https://rsasaki0109.github.io/ros_graph_debugger/)
 
+<p align="center">
+  <a href="https://rsasaki0109.github.io/ros_graph_debugger/">
+    <img src="ros_graph_debugger/web/social-card.svg" alt="ROS Graph Debugger — see where and why your pipeline is slow" width="820">
+  </a>
+</p>
+
 **Runtime DevTools for ROS 2.** A live, AI-friendly view of your running ROS 2
 system: the graph, topic rate / bandwidth / message size, QoS, TF freshness,
 diagnostics — and an issue panel that tells you *where to look next*.

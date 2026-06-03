@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#6e7681"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#f85149"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="630" fill="#0d1117"/>
+  <rect width="1200" height="6" fill="#58a6ff"/>
+
+  <!-- header -->
+  <text x="64" y="96" font-size="52" font-weight="700"><tspan fill="#58a6ff">◇ </tspan><tspan fill="#e6edf3">ROS Graph Debugger</tspan></text>
+  <text x="66" y="138" font-size="26" fill="#8b949e">Runtime DevTools for ROS 2</text>
+
+  <!-- critical chip -->
+  <rect x="836" y="62" width="300" height="46" rx="10" fill="#2a0d12" stroke="#f85149"/>
+  <text x="986" y="91" font-size="20" font-weight="600" fill="#f85149" text-anchor="middle">● CRITICAL  bottleneck: detector</text>
+
+  <!-- pipeline -->
+  <g font-size="22" text-anchor="middle">
+    <!-- edge labels -->
+    <text x="290" y="248" fill="#8b949e">/image · 30 Hz</text>
+    <text x="615" y="248" fill="#f85149" font-weight="600">/objects · 4.1 Hz · slow</text>
+    <text x="915" y="248" fill="#8b949e">/trajectory · 10 Hz</text>
+
+    <!-- arrows -->
+    <line x1="222" y1="300" x2="354" y2="300" stroke="#6e7681" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <line x1="542" y1="300" x2="684" y2="300" stroke="#f85149" stroke-width="3.5" marker-end="url(#arrowRed)"/>
+    <line x1="842" y1="300" x2="984" y2="300" stroke="#6e7681" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+    <!-- nodes -->
+    <rect x="70" y="270" width="150" height="60" rx="12" fill="#161b22" stroke="#2d333b"/>
+    <text x="145" y="307" fill="#c9d1d9">camera</text>
+
+    <rect x="360" y="270" width="180" height="60" rx="12" fill="#2a0d12" stroke="#f85149" stroke-width="2.5"/>
+    <text x="450" y="307" fill="#f0f6fc" font-weight="600">detector</text>
+    <text x="450" y="356" font-size="19" fill="#f85149">callback p95 210 ms</text>
+
+    <rect x="690" y="270" width="150" height="60" rx="12" fill="#161b22" stroke="#2d333b"/>
+    <text x="765" y="307" fill="#c9d1d9">tracker</text>
+
+    <rect x="990" y="270" width="150" height="60" rx="12" fill="#161b22" stroke="#2d333b"/>
+    <text x="1065" y="307" fill="#c9d1d9">controller</text>
+  </g>
+
+  <!-- tagline -->
+  <text x="600" y="462" font-size="34" font-weight="600" fill="#e6edf3" text-anchor="middle">See where — and why — your pipeline is slow</text>
+  <text x="600" y="506" font-size="22" fill="#8b949e" text-anchor="middle">graph · metrics · QoS · TF · diagnostics · callback tracing · AI briefings · fleet view</text>
+
+  <!-- footer -->
+  <text x="600" y="582" font-size="20" fill="#6e7681" text-anchor="middle">rsasaki0109.github.io/ros_graph_debugger   ·   ROS 2 Humble / Jazzy   ·   Apache-2.0</text>
+</svg>

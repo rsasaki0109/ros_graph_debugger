@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
+      - name: Install rasterizer
+        run: pip install cairosvg
       - name: Assemble static demo site
         run: |
           mkdir -p _site
@@ -30,11 +32,35 @@ jobs:
           import json, pathlib
           from ros_graph_debugger.replay import build_demo_recording
           site = pathlib.Path('_site')
+          base = 'https://rsasaki0109.github.io/ros_graph_debugger'
+
           h, s = build_demo_recording()
           (site / 'demo.recording.json').write_text(
               json.dumps({'header': h, 'snapshots': s}))
+
+          # Rasterize the social card to PNG for the og:image (SVG isn't accepted
+          # by most social/link unfurlers). Non-fatal if the lib is unavailable.
+          try:
+              import cairosvg
+              cairosvg.svg2png(url='ros_graph_debugger/web/social-card.svg',
+                               write_to=str(site / 'social-card.png'),
+                               output_width=1200, output_height=630)
+              print('rasterized social-card.png')
+          except Exception as exc:
+              print('social card PNG skipped:', exc)
+
+          meta = (
+              f'<meta property="og:title" content="ROS Graph Debugger" />\n'
+              f'<meta property="og:description" content="Runtime DevTools for ROS 2 '
+              f'— see where and why your pipeline is slow." />\n'
+              f'<meta property="og:image" content="{base}/social-card.png" />\n'
+              f'<meta property="og:url" content="{base}/" />\n'
+              f'<meta property="og:type" content="website" />\n'
+              f'<meta name="twitter:card" content="summary_large_image" />\n')
+
           html = pathlib.Path('ros_graph_debugger/web/index.html').read_text()
           html = html.replace('="/', '="')  # relativize absolute asset paths for the Pages subpath
+          html = html.replace('</head>', '  ' + meta + '</head>', 1)
           html = html.replace(
               '<script src="app.js"></script>',
               '<script>window.RGD_DEMO_URL="demo.recording.json";</script>\n'
