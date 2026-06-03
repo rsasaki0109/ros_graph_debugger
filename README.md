@@ -119,7 +119,10 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   for a controller. The synthetic source ships now (the `--demo` shows the
   detector's callback spiking); a live `ros2_tracing`/LTTng adapter emitting the
   same shape is the remaining v0.3 work.
-- **Node CPU / memory**, with honest node→process mapping confidence.
+- **Node CPU / memory**, with honest node→process mapping confidence: layered
+  matching (`__node:=` remap → `high`, executable name → `medium`, bare token →
+  `low`) and component containers capped at `low` since per-node CPU can't be
+  split.
 - **TF freshness** — stale transform detection, plus a **TF tree view** that
   renders the live `/tf` forest (parent → child) with per-edge age and
   static/dynamic badges.
@@ -293,8 +296,8 @@ node is modified.
   `slow_callback` issues with **stage-aware budgets** (synthetic source shipped;
   live `ros2_tracing`/LTTng adapter next), a **pipeline-path tracer** (rate +
   callback bottleneck), a **system health verdict**, **focused per-node/-topic
-  AI briefings**, and report/Inspector polish. *Next:* live tracing adapter,
-  multi-host, richer process mapping.
+  AI briefings**, report/Inspector polish, and **layered node→process
+  attribution** with honest confidence. *Next:* live tracing adapter, multi-host.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full per-release list.
 

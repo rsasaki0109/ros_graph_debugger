@@ -26,6 +26,9 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
   pipeline path for the selected node; one-click **JSON / MD export** buttons.
 - **Recording report** — a system-health rollup and a slowest-callbacks table;
   `slow_callback` now ranks among bottlenecks.
+- **Layered node→process attribution** (`procmap.py`) — confidence from the
+  matching evidence (`__node:=` remap → high, executable name → medium, bare
+  token → low) with component containers capped at low.
 - **Showcase** — a regenerable [docs/example_briefing.md](docs/example_briefing.md)
   ("what an AI sees") and a Mermaid pipeline diagram in the README.
 

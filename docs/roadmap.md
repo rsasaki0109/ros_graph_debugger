@@ -35,7 +35,9 @@ briefing + MCP server, and a demo pipeline.
 - Tier B latency via `/statistics` and pipeline-latency topics.
 - In-UI recording replay scrubbing improvements; snapshot export from the UI.
 - Multi-host / federated agents.
-- Richer node→process attribution.
+- Richer node→process attribution — *done*: layered confidence (remap / exe
+  name / token) with component-container capping (`procmap.py`). Live `/proc`
+  coverage for anonymous and lifecycle nodes remains.
 
 Scope is intentionally driven by "does this reduce a ROS 2 developer's daily
 debugging time" rather than feature breadth.

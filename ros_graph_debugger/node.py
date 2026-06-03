@@ -28,8 +28,9 @@ from tf2_msgs.msg import TFMessage
 
 from .analysis import analyze
 from .config import ProbeConfig, Thresholds
-from .graph_build import build_graph, fq_node
+from .graph_build import build_graph
 from .msgutil import header_stamp_age_ms
+from .procmap import match_nodes_to_processes
 from .model import (
     DiagnosticStatus,
     RuntimeGraphStore,
@@ -265,29 +266,22 @@ class DebuggerNode(Node):
         if psutil is None:
             return
         try:
-            mapping = _map_nodes_to_processes()
+            procs = _collect_processes()
         except Exception:
             return
         nodes, _, _, _, _ = self.store.working_copy()
-        # Count how many nodes share each pid (component containers).
-        share: dict[int, int] = {}
-        for pid in mapping.values():
-            share[pid] = share.get(pid, 0) + 1
-        for node_id in nodes:
-            pid = mapping.get(node_id)
-            if pid is None:
-                continue
+        matches = match_nodes_to_processes(list(nodes), procs)
+        for node_id, m in matches.items():
             try:
-                proc = psutil.Process(pid)
+                proc = psutil.Process(m['pid'])
                 cpu = proc.cpu_percent(interval=None)
                 rss = proc.memory_info().rss
                 pname = proc.name()
             except Exception:
                 continue
-            confidence = 'low' if share.get(pid, 1) > 1 else 'medium'
             self.store.update_node_process(
-                node_id, pid=pid, process_name=pname, cpu_percent=cpu,
-                rss_bytes=rss, process_mapping_confidence=confidence)
+                node_id, pid=m['pid'], process_name=pname, cpu_percent=cpu,
+                rss_bytes=rss, process_mapping_confidence=m['confidence'])
 
     # --------------------------------------------------- metrics + analyze #
     def _refresh_metrics_and_analyze(self) -> None:
@@ -302,26 +296,15 @@ class DebuggerNode(Node):
             self.get_logger().warn(f'analysis failed: {exc}')
 
 
-def _map_nodes_to_processes() -> dict[str, int]:
-    """Best-effort ROS-node -> pid map from /proc command lines.
-
-    Only matches nodes whose process was launched with an explicit
-    ``__node:=`` (and optional ``__ns:=``) remap. Anonymous nodes and most
-    code-named nodes won't match — callers must treat the result as partial.
-    """
-    out: dict[str, int] = {}
+def _collect_processes() -> list[dict]:
+    """Snapshot live processes as plain dicts for ``match_nodes_to_processes``."""
+    procs: list[dict] = []
     if psutil is None:
-        return out
-    node_re = re.compile(r'__node:=(\S+)')
-    ns_re = re.compile(r'__ns:=(\S+)')
+        return procs
     for proc in psutil.process_iter(['pid', 'cmdline']):
         try:
-            cmd = ' '.join(proc.info.get('cmdline') or [])
+            procs.append({'pid': proc.info['pid'],
+                          'cmdline': proc.info.get('cmdline') or []})
         except Exception:
             continue
-        for m in node_re.finditer(cmd):
-            name = m.group(1)
-            nsm = ns_re.search(cmd)
-            ns = nsm.group(1) if nsm else '/'
-            out[fq_node(name, ns)] = proc.info['pid']
-    return out
+    return procs
