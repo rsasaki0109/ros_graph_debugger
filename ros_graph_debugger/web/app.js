@@ -367,40 +367,117 @@ function nodeCallbacks(nodeId) {
   return `<div class="section-title">Callbacks <span class="hint">p95</span></div>${rows}`;
 }
 
-// Fetch and render the constraining source->sink path through a node. Logic
-// lives server-side (/api/v1/path) so the UI and the AI briefing agree.
+// Show the constraining source->sink path through a node. The server traces it
+// (/api/v1/path); in the static demo there is no backend, so the same algorithm
+// (a port of pipeline.trace_pipeline_path) runs client-side — verified to match.
 function loadNodePath(nodeId) {
   const box = document.getElementById('node-path');
   if (!box) return;
+  if (window.RGD_STATIC) {
+    renderPathInto(box, nodeId, tracePathLocal(state.last, nodeId));
+    return;
+  }
   fetch('/api/v1/path?target=' + encodeURIComponent(nodeId))
     .then(r => r.ok ? r.json() : Promise.reject())
-    .then(p => {
-      if (!box || document.getElementById('node-path') !== box) return;  // selection changed
-      const names = {};
-      (state.last?.nodes || []).forEach(n => { names[n.id] = n.name || n.id; });
-      const cbBadge = (nid, cb) => {
-        if (typeof cb !== 'number') return '';
-        const cbslow = nid === p.cb_bottleneck_node;
-        return `<span class="pp-cb${cbslow ? ' slow' : ''}" title="callback p95">${cb.toFixed(0)}ms</span>`;
-      };
-      const segs = [];
-      segs.push(`<span class="pp-node${p.nodes[0] === p.pivot ? ' pivot' : ''}">${escapeHtml(names[p.nodes[0]] || p.nodes[0])}</span>`);
-      p.hops.forEach(h => {
-        const slow = h.topic === p.bottleneck_topic;
-        segs.push(`<span class="pp-edge${slow ? ' slow' : ''}" title="${escapeHtml(h.topic)}">${fmtRate(h.rate_hz) || '—'}${slow ? ' ⟵' : ''}</span>`);
-        segs.push(`<span class="pp-node${h.to === p.pivot ? ' pivot' : ''}">${escapeHtml(names[h.to] || h.to)}</span>${cbBadge(h.to, h.cb_p95_ms)}`);
-      });
-      box.className = 'node-path';
-      box.innerHTML = segs.join('<span class="pp-arrow">→</span>');
-      if (state.selected === 'N:' + nodeId) highlightPath(p);  // still the active selection
-    })
-    .catch(() => {
-      clearPathHighlight();
-      if (box && document.getElementById('node-path') === box) {
-        box.className = 'node-path hint';
-        box.textContent = 'no connected pipeline path';
+    .then(p => renderPathInto(box, nodeId, p))
+    .catch(() => renderPathInto(box, nodeId, null));
+}
+
+function renderPathInto(box, nodeId, p) {
+  if (!box || document.getElementById('node-path') !== box) return;  // selection changed
+  if (!p) {
+    clearPathHighlight();
+    box.className = 'node-path hint';
+    box.textContent = 'no connected pipeline path';
+    return;
+  }
+  const names = {};
+  (state.last?.nodes || []).forEach(n => { names[n.id] = n.name || n.id; });
+  const cbBadge = (nid, cb) => {
+    if (typeof cb !== 'number') return '';
+    const cbslow = nid === p.cb_bottleneck_node;
+    return `<span class="pp-cb${cbslow ? ' slow' : ''}" title="callback p95">${cb.toFixed(0)}ms</span>`;
+  };
+  const segs = [];
+  segs.push(`<span class="pp-node${p.nodes[0] === p.pivot ? ' pivot' : ''}">${escapeHtml(names[p.nodes[0]] || p.nodes[0])}</span>`);
+  p.hops.forEach(h => {
+    const slow = h.topic === p.bottleneck_topic;
+    segs.push(`<span class="pp-edge${slow ? ' slow' : ''}" title="${escapeHtml(h.topic)}">${fmtRate(h.rate_hz) || '—'}${slow ? ' ⟵' : ''}</span>`);
+    segs.push(`<span class="pp-node${h.to === p.pivot ? ' pivot' : ''}">${escapeHtml(names[h.to] || h.to)}</span>${cbBadge(h.to, h.cb_p95_ms)}`);
+  });
+  box.className = 'node-path';
+  box.innerHTML = segs.join('<span class="pp-arrow">→</span>');
+  if (state.selected === 'N:' + nodeId) highlightPath(p);  // still the active selection
+}
+
+// Client-side port of pipeline.trace_pipeline_path (used in the static demo).
+function tracePathLocal(snap, target) {
+  if (!snap) return null;
+  const nodes = snap.nodes || [], topics = snap.topics || [];
+  // resolve focus: node id, topic name, node name, suffix node, suffix topic
+  let kind = null, key = null;
+  for (const n of nodes) if (n.id === target) { kind = 'node'; key = n.id; break; }
+  if (!kind) for (const t of topics) if (t.name === target) { kind = 'topic'; key = t.name; break; }
+  if (!kind) for (const n of nodes) if (n.name === target) { kind = 'node'; key = n.id; break; }
+  if (!kind) for (const n of nodes) if (n.id.endsWith(target) || (n.name || '').endsWith(target)) { kind = 'node'; key = n.id; break; }
+  if (!kind) for (const t of topics) if (t.name.endsWith(target)) { kind = 'topic'; key = t.name; break; }
+  if (!kind) return null;
+
+  const nodesById = {}; nodes.forEach(n => { nodesById[n.id] = n; });
+  const topicsByName = {}; topics.forEach(t => { topicsByName[t.name] = t; });
+  const rateKey = t => (typeof t.rate_hz === 'number') ? t.rate_hz : Infinity;
+
+  function walk(start, downstream) {
+    const hops = [], visited = new Set([start]);
+    let cur = start;
+    for (let i = 0; i < 12; i++) {
+      const node = nodesById[cur];
+      if (!node) break;
+      const linkTopics = (downstream ? node.publishers : node.subscribers) || [];
+      const endpointKey = downstream ? 'subscribers' : 'publishers';
+      const cands = [];
+      for (const tn of linkTopics) {
+        const t = topicsByName[tn];
+        if (!t) continue;
+        const others = (t[endpointKey] || []).filter(e => !visited.has(e)).sort();
+        if (others.length) cands.push([t, others[0]]);
       }
-    });
+      if (!cands.length) break;
+      cands.sort((a, b) => {
+        const ra = rateKey(a[0]), rb = rateKey(b[0]);
+        if (ra !== rb) return ra - rb;
+        return a[0].name < b[0].name ? -1 : a[0].name > b[0].name ? 1 : 0;
+      });
+      const [t, nxt] = cands[0];
+      const from = downstream ? cur : nxt, to = downstream ? nxt : cur;
+      hops.push({ from, topic: t.name, rate_hz: t.rate_hz, status: t.status, to });
+      visited.add(nxt); cur = nxt;
+    }
+    return hops;
+  }
+
+  let pivot = key;
+  if (kind === 'topic') {
+    const t = topicsByName[key];
+    const pubs = (t.publishers || []).slice().sort(), subs = (t.subscribers || []).slice().sort();
+    pivot = pubs[0] || subs[0] || null;
+    if (!pivot) return null;
+  }
+  const up = walk(pivot, false), down = walk(pivot, true);
+  const hops = up.reverse().concat(down);
+  if (!hops.length) return null;
+
+  const cb = {};
+  (snap.callbacks || []).forEach(c => { if (typeof c.p95_ms === 'number') cb[c.node + ' ' + (c.topic || '')] = c.p95_ms; });
+  hops.forEach(h => { h.cb_p95_ms = cb[h.to + ' ' + h.topic]; });
+
+  const nodesSeq = [hops[0].from].concat(hops.map(h => h.to));
+  let bottleneck = null, minRate = Infinity;
+  hops.forEach(h => { if (typeof h.rate_hz === 'number' && h.rate_hz < minRate) { minRate = h.rate_hz; bottleneck = h.topic; } });
+  let cbNode = null, maxCb = -Infinity;
+  hops.forEach(h => { if (typeof h.cb_p95_ms === 'number' && h.cb_p95_ms > maxCb) { maxCb = h.cb_p95_ms; cbNode = h.to; } });
+
+  return { target: key, pivot, nodes: nodesSeq, hops, bottleneck_topic: bottleneck, cb_bottleneck_node: cbNode };
 }
 
 function clearPathHighlight() {
@@ -845,6 +922,7 @@ async function bootStatic(url) {
   const snaps = rec.snapshots || rec;
   if (!Array.isArray(snaps) || !snaps.length) { conn.textContent = 'demo empty'; return; }
   applyProfile((rec.header && rec.header.profile) || null);
+  window.RGD_STATIC = true;  // pipeline path is traced client-side (no backend)
   conn.textContent = 'demo'; conn.className = 'chip conn-on';
 
   const total = snaps.length;
