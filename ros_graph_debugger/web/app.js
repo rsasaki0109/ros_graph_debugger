@@ -345,4 +345,52 @@ function connect() {
   ws.onmessage = ev => { if (!state.paused) { try { render(JSON.parse(ev.data)); } catch (e) { console.error(e); } } };
 }
 
+// --- replay controls (only shown when the agent is serving a recording) ---
+const replayState = { active: false, total: 0, dragging: false };
+
+function rpSyncPlay(playing) {
+  const btn = document.getElementById('rp-play');
+  btn.dataset.playing = playing ? 'true' : 'false';
+  btn.textContent = playing ? '⏸ Pause' : '▶ Play';
+}
+
+async function initReplay() {
+  let s;
+  try { s = await (await fetch('/api/v1/replay')).json(); } catch (e) { return; }
+  if (!s || s.mode !== 'replay') return;
+  replayState.active = true;
+  replayState.total = s.total;
+  document.getElementById('replaybar').classList.remove('hidden');
+  const seek = document.getElementById('rp-seek');
+  const frame = document.getElementById('rp-frame');
+  seek.max = Math.max(0, s.total - 1);
+
+  seek.addEventListener('input', () => {
+    replayState.dragging = true;
+    frame.textContent = `${+seek.value + 1} / ${s.total}`;
+  });
+  seek.addEventListener('change', async () => {
+    await fetch('/api/v1/replay/seek?index=' + seek.value, { method: 'POST' });
+    replayState.dragging = false;
+    rpSyncPlay(false);
+  });
+  document.getElementById('rp-play').addEventListener('click', async () => {
+    const playing = document.getElementById('rp-play').dataset.playing !== 'true';
+    await fetch('/api/v1/replay/play?playing=' + playing, { method: 'POST' });
+    rpSyncPlay(playing);
+  });
+
+  rpSyncPlay(s.playing);
+  setInterval(async () => {
+    if (!replayState.active || replayState.dragging) return;
+    try {
+      const st = await (await fetch('/api/v1/replay')).json();
+      seek.value = st.index;
+      frame.textContent = `${st.index + 1} / ${st.total}`;
+      rpSyncPlay(st.playing);
+    } catch (e) { /* ignore */ }
+  }, 300);
+}
+
 loadProfile().finally(connect);
+initReplay();

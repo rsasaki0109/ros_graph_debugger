@@ -150,3 +150,12 @@ main { flex: 1 1 auto; display: flex; min-height: 0; }
 .pill.warning { color: var(--warning); }
 .pill.critical { color: var(--critical); }
 .pill.mismatch { color: var(--critical); border-color: var(--critical); }
+
+#replaybar {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 12px;
+  padding: 8px 14px; background: var(--panel); border-top: 1px solid var(--border);
+}
+#replaybar.hidden { display: none; }
+#replaybar .replay-chip { color: var(--accent); border-color: var(--accent); }
+#rp-seek { flex: 1; accent-color: var(--accent); cursor: pointer; }
+#rp-frame { min-width: 78px; text-align: center; }

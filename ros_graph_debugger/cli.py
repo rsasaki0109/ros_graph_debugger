@@ -60,6 +60,46 @@ def _cmd_record(args) -> int:
     return 0
 
 
+def _cmd_serve(args) -> int:
+    """Serve a recording (or the built-in demo) for time-scrub replay in the UI."""
+    import os
+    import threading
+    import webbrowser
+
+    import uvicorn
+
+    from .paths import find_web_dir
+    from .replay import ReplayStore, build_demo_recording
+    from .recording import read_recording
+    from .server import create_app
+
+    if args.demo:
+        header, snapshots = build_demo_recording()
+    elif args.file:
+        header, snapshots = read_recording(args.file)
+    else:
+        print('error: provide a recording file or --demo', file=sys.stderr)
+        return 1
+    if not snapshots:
+        print('error: recording has no snapshots', file=sys.stderr)
+        return 1
+
+    interval = args.interval or header.get('interval') or 0.5
+    replay = ReplayStore(snapshots, loop=not args.once)
+    profile_data = header.get('profile')
+    app = create_app(replay, find_web_dir(), profile_data=profile_data,
+                     stream_period=min(0.25, interval), replay=replay,
+                     replay_interval=interval)
+
+    url = f'http://{args.host}:{args.port}'
+    src = 'built-in demo' if args.demo else args.file
+    print(f'\n  replaying {src} ({len(snapshots)} frames @ {interval}s) at {url}\n')
+    if not args.no_browser and os.environ.get('DISPLAY'):
+        threading.Timer(1.0, lambda: webbrowser.open(url)).start()
+    uvicorn.run(app, host=args.host, port=args.port, log_level='warning')
+    return 0
+
+
 def _cmd_report(args) -> int:
     from .recording import read_recording
     from .report import build_report, render_html, render_markdown
@@ -110,6 +150,16 @@ def main(argv=None) -> int:
     rep.add_argument('--html', default=None, help='write a self-contained HTML report')
     rep.add_argument('--md', default=None, help='write a Markdown report')
 
+    sv = sub.add_parser('serve', help='replay a recording in the web UI (no ROS needed)')
+    sv.add_argument('file', nargs='?', default=None, help='recording file')
+    sv.add_argument('--demo', action='store_true', help='serve the built-in demo scenario')
+    sv.add_argument('--host', default='127.0.0.1')
+    sv.add_argument('--port', type=int, default=3939)
+    sv.add_argument('--interval', type=float, default=0.0,
+                    help='seconds per frame (default: from recording)')
+    sv.add_argument('--once', action='store_true', help='play once instead of looping')
+    sv.add_argument('--no-browser', action='store_true')
+
     args = p.parse_args(argv)
 
     if args.cmd in (None, 'version'):
@@ -119,6 +169,8 @@ def main(argv=None) -> int:
         return _cmd_record(args)
     if args.cmd == 'report':
         return _cmd_report(args)
+    if args.cmd == 'serve':
+        return _cmd_serve(args)
 
     try:
         if args.cmd == 'snapshot':

@@ -6,8 +6,6 @@ terse graph/metrics table. Kept small on purpose so it fits a prompt."""
 
 from __future__ import annotations
 
-from .model import GraphSnapshot
-
 
 def _fmt_rate(v):
     return f'{v:.1f} Hz' if isinstance(v, (int, float)) else '—'
@@ -23,8 +21,9 @@ def _fmt_bw(v):
     return f'{v:.0f} B/s'
 
 
-def snapshot_to_markdown(snap: GraphSnapshot) -> str:
-    d = snap.to_dict() if isinstance(snap, GraphSnapshot) else snap
+def snapshot_to_markdown(snap) -> str:
+    # Accept a GraphSnapshot, a replay _Frame, or a plain dict.
+    d = snap.to_dict() if hasattr(snap, 'to_dict') else snap
     lines: list[str] = []
     lines.append('# ROS Graph Debugger — Runtime Snapshot')
     if d.get('profile'):

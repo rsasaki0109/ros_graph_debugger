@@ -33,7 +33,22 @@ ros2 run ros_graph_debugger agent
 ros2 run ros_graph_debugger demo_pipeline
 ```
 
-Open <http://localhost:3939>. You'll see:
+### See it instantly — no robot, no ROS graph required
+
+```bash
+ros2 run ros_graph_debugger rgd serve --demo     # → http://localhost:3939
+```
+
+Replays a scripted `camera → detector → … → controller` session in the real web
+UI: the detector stalls in the middle, its output topic and node turn red, the
+bottleneck issue appears, and `map → base_link` goes stale — then recovers. Use
+the timeline at the bottom to scrub through it. This needs no DDS, so it's the
+fastest way to try the tool (and to record a demo GIF). Replay any captured
+session the same way: `rgd serve run.rgd.json`.
+
+---
+
+Open <http://localhost:3939>. With a live system you'll see:
 
 ```
 camera → /sensing/camera/image_raw → detector → /perception/.../objects → tracker → planner → controller
@@ -145,6 +160,9 @@ ros2 run ros_graph_debugger rgd record --out run.rgd.json --duration 30
 
 # self-contained HTML report + AI-friendly Markdown
 ros2 run ros_graph_debugger rgd report run.rgd.json --html report.html --md report.md
+
+# or replay the captured session in the web UI with a time-scrubber
+ros2 run ros_graph_debugger rgd serve run.rgd.json
 ```
 
 The report ranks bottlenecks by severity and frequency, summarizes per-topic
@@ -186,9 +204,10 @@ node is modified.
 - **v0.1** — live graph, topic metrics, QoS, TF, diagnostics, issues, profiles,
   AI Markdown + MCP.
 - **v0.2** *(current)* — pipeline-stage grouping (stage colours + legend), an
-  engage-readiness bar (per-stage OK/WARN/ERROR) for Autoware / Nav2, and
-  `rgd record` / `rgd report` (HTML + Markdown). *Next:* expected-rate config
-  UI, richer process mapping, in-UI recording replay.
+  engage-readiness bar (per-stage OK/WARN/ERROR) for Autoware / Nav2,
+  `rgd record` / `rgd report` (HTML + Markdown), and `rgd serve` time-scrub
+  replay (incl. a no-ROS `--demo`). *Next:* expected-rate config UI, richer
+  process mapping.
 - **v0.3** — `ros2_tracing` adapter, callback/critical-path timeline, multi-host.
 
 ## License

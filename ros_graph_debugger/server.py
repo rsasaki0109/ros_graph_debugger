@@ -23,10 +23,22 @@ from .markdown import snapshot_to_markdown
 from .model import RuntimeGraphStore
 
 
-def create_app(store: RuntimeGraphStore, web_dir: str,
+def create_app(store, web_dir: str,
                profile_data: dict | None = None,
-               stream_period: float = 1.0) -> FastAPI:
+               stream_period: float = 1.0,
+               replay=None, replay_interval: float = 0.5) -> FastAPI:
     app = FastAPI(title='ros_graph_debugger', version='0.1.0')
+
+    # A single background task advances the replay cursor, so playback speed is
+    # independent of how many browser tabs are connected.
+    if replay is not None:
+        @app.on_event('startup')
+        async def _start_replay_ticker():
+            async def _tick():
+                while True:
+                    await asyncio.sleep(replay_interval)
+                    replay.advance()
+            app.state._replay_task = asyncio.create_task(_tick())
 
     # Expose only the UI-relevant parts of the profile (groups), not the
     # derived expectation maps used internally.
@@ -45,6 +57,25 @@ def create_app(store: RuntimeGraphStore, web_dir: str,
     @app.get('/api/v1/profile')
     def profile():
         return profile_public or {}
+
+    # ------------------------------------------------------- replay control #
+    @app.get('/api/v1/replay')
+    def replay_state():
+        if replay is None:
+            return {'mode': 'live'}
+        return replay.state()
+
+    @app.post('/api/v1/replay/seek')
+    def replay_seek(index: int):
+        if replay is None:
+            return {'mode': 'live'}
+        return replay.seek(index)
+
+    @app.post('/api/v1/replay/play')
+    def replay_play(playing: bool = True):
+        if replay is None:
+            return {'mode': 'live'}
+        return replay.set_playing(playing)
 
     @app.get('/api/v1/snapshot')
     def snapshot():
