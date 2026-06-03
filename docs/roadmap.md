@@ -18,8 +18,9 @@ briefing + MCP server, and a demo pipeline.
 - Message latency Tier A — `header.stamp` age + freshness issues.
 - Dedicated TF tree view (live `/tf` forest) and Diagnostics view.
 - MCP server with full endpoint coverage + a `set_expected_rate` write tool.
-- Focused per-node AI briefing (`/snapshot.md?focus=NODE`, `get_node_briefing`,
-  and a "Copy AI briefing" button in the node Inspector).
+- Focused per-node/-topic AI briefing (`/snapshot.md?focus=TARGET`,
+  `get_node_briefing`, and "Copy AI briefing" buttons on the node Inspector and
+  every issue card).
 
 ## v0.3 — explain it
 - **Tier C tracing**: `ros2_tracing` adapter → callback-duration timeline and

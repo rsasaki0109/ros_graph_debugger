@@ -82,16 +82,16 @@ def main() -> None:
         mcp.tool(name=name, description=doc)(make(path))
 
     @mcp.tool()
-    def get_node_briefing(node: str) -> str:
-        """Get an AI-ready Markdown briefing focused on a single node.
+    def get_node_briefing(target: str) -> str:
+        """Get an AI-ready Markdown briefing focused on one node or topic.
 
-        Slices the live graph down to ``node`` and its direct neighbours
-        (the topics it pub/subs and the nodes on the other end), plus any
-        issues touching that neighbourhood. Use this instead of
-        get_runtime_briefing when you care about one part of a large
-        Autoware/Nav2 graph. ``node`` may be a full node id, a name, or a
-        suffix."""
-        return fetch('/api/v1/snapshot.md?focus=' + quote(node, safe=''))
+        Slices the live graph down to ``target`` and its direct neighbours
+        (for a node: the topics it pub/subs and the nodes on the other end;
+        for a topic: its publisher/subscriber nodes), plus any issues touching
+        that neighbourhood. Use this instead of get_runtime_briefing when you
+        care about one part of a large Autoware/Nav2 graph. ``target`` may be a
+        node id, node name, topic name, or a suffix of any of those."""
+        return fetch('/api/v1/snapshot.md?focus=' + quote(target, safe=''))
 
     @mcp.tool()
     def set_expected_rate(topic: str, min_hz: float) -> str:

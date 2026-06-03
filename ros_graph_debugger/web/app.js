@@ -243,6 +243,8 @@ function updateIssues(issues) {
       ${i.evidence && i.evidence.length ? `<ul>${i.evidence.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul>` : ''}
       ${i.suggested_actions && i.suggested_actions.length ?
         `<p class="actions">→ ${i.suggested_actions.map(escapeHtml).join(' · ')}</p>` : ''}
+      ${briefingFocusOf(i) ?
+        `<button class="brief-btn" data-focus='${escapeHtml(briefingFocusOf(i))}'>Copy AI briefing</button>` : ''}
     </div>`).join('');
   box.querySelectorAll('.issue').forEach(el => {
     el.addEventListener('click', () => {
@@ -252,6 +254,19 @@ function updateIssues(issues) {
       if (target) { selectElement(target); cy.animate({ center: { eles: cy.getElementById(target) } }, { duration: 300 }); }
     });
   });
+  box.querySelectorAll('.issue .brief-btn').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.stopPropagation();  // don't also trigger the card's select-and-center
+      copyBriefing(btn.dataset.focus, btn);
+    });
+  });
+}
+
+// What an issue's "Copy AI briefing" should focus on: prefer the implicated
+// node, fall back to the topic, so the briefing centres on the broken thing.
+function briefingFocusOf(i) {
+  return (i.related_nodes && i.related_nodes[0])
+      || (i.related_topics && i.related_topics[0]) || '';
 }
 
 function selectElement(id) {

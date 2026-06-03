@@ -14,7 +14,7 @@ unless noted. The same surface is served in replay mode (`rgd serve`), except
 | GET | `/api/v1/health` | liveness + version |
 | GET | `/api/v1/snapshot` | full `GraphSnapshot` (nodes, topics, edges, tf_edges, diagnostics, issues) |
 | GET | `/api/v1/snapshot.md` | the same snapshot as an AI-friendly Markdown briefing (text/plain) |
-| GET | `/api/v1/snapshot.md?focus=NODE` | a briefing sliced to one node + its 1-hop neighbourhood (`NODE` = id, name, or suffix) |
+| GET | `/api/v1/snapshot.md?focus=TARGET` | a briefing sliced to one node or topic + its 1-hop neighbourhood (`TARGET` = node id/name, topic name, or suffix) |
 | GET | `/api/v1/graph` | nodes + topics + edges only |
 | GET | `/api/v1/nodes` | node list with process metrics |
 | GET | `/api/v1/topics` | topic list with rate/bandwidth/size/age/QoS |
@@ -78,8 +78,8 @@ pattern.
 
 `python -m ros_graph_debugger.mcp_server` exposes the same data to AI assistants
 as tools. Read tools: `get_runtime_briefing` (`/snapshot.md`),
-`get_node_briefing(node)` (`/snapshot.md?focus=NODE` — a focused briefing for
-one node in a large graph), `get_issues`, `get_graph`, `get_topics`,
+`get_node_briefing(target)` (`/snapshot.md?focus=TARGET` — a focused briefing
+for one node or topic in a large graph), `get_issues`, `get_graph`, `get_topics`,
 `get_nodes`, `get_tf`, `get_diagnostics`, `get_config`, plus `health`. Write
 tool: `set_expected_rate(topic, min_hz)`
 posts to `/config` so an AI can set a topic's expected-rate floor at runtime.

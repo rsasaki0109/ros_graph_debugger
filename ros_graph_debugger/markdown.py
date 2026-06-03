@@ -21,37 +21,54 @@ def _fmt_bw(v):
     return f'{v:.0f} B/s'
 
 
-def _resolve_node(nodes, focus: str):
-    """Map a user-supplied focus string to a node id (exact id, exact name,
-    then suffix match). Returns the node id, or None if nothing matches."""
+def _resolve_focus(d: dict, focus: str):
+    """Map a focus string to a ``('node', id)`` or ``('topic', name)`` target.
+
+    Tries exact node id, exact topic name, exact node name, then a suffix
+    match on a node, then on a topic. Returns ``(None, None)`` if nothing
+    matches. Nodes win ties so a bare name resolves to the node, not a topic."""
+    nodes, topics = d['nodes'], d['topics']
     for n in nodes:
         if n['id'] == focus:
-            return n['id']
+            return 'node', n['id']
+    for t in topics:
+        if t['name'] == focus:
+            return 'topic', t['name']
     for n in nodes:
         if n.get('name') == focus:
-            return n['id']
+            return 'node', n['id']
     for n in nodes:
         if n['id'].endswith(focus) or (n.get('name') or '').endswith(focus):
-            return n['id']
-    return None
+            return 'node', n['id']
+    for t in topics:
+        if t['name'].endswith(focus):
+            return 'topic', t['name']
+    return None, None
 
 
 def focus_subgraph(d: dict, focus: str):
-    """Slice a snapshot down to one node and its 1-hop neighbourhood.
+    """Slice a snapshot down to one node/topic and its 1-hop neighbourhood.
 
-    Keeps the focus node, every node sharing a topic with it, those topics,
-    their edges, and any issues touching that neighbourhood. Returns
-    ``(node_id, sliced_dict)`` or ``(None, None)`` when the focus is unknown.
+    For a node: keeps it, every node sharing a topic with it, those topics and
+    edges. For a topic: keeps the topic and its publisher/subscriber nodes.
+    Either way it keeps issues touching that neighbourhood. Returns
+    ``(label, sliced_dict)`` or ``(None, None)`` when the focus is unknown.
     Big Autoware/Nav2 graphs are too large to hand an AI whole; this is the
     "just the part I'm asking about" briefing."""
-    node_id = _resolve_node(d['nodes'], focus)
-    if node_id is None:
+    kind, key = _resolve_focus(d, focus)
+    if kind is None:
         return None, None
 
-    topic_names = {t['name'] for t in d['topics']
-                   if node_id in t.get('publishers', [])
-                   or node_id in t.get('subscribers', [])}
-    neighbours = {node_id}
+    if kind == 'node':
+        label = key
+        topic_names = {t['name'] for t in d['topics']
+                       if key in t.get('publishers', [])
+                       or key in t.get('subscribers', [])}
+        neighbours = {key}
+    else:  # topic
+        label = key
+        topic_names = {key}
+        neighbours = set()
     for t in d['topics']:
         if t['name'] in topic_names:
             neighbours.update(t.get('publishers', []))
@@ -77,7 +94,7 @@ def focus_subgraph(d: dict, focus: str):
         'diagnostics': [],
         'issues': issues,
     }
-    return node_id, sliced
+    return label, sliced
 
 
 def snapshot_to_markdown(snap, focus: str | None = None) -> str:
@@ -86,11 +103,11 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
 
     focused_on = None
     if focus:
-        node_id, sliced = focus_subgraph(d, focus)
+        label, sliced = focus_subgraph(d, focus)
         if sliced is None:
             return (f'# ROS Graph Debugger — Runtime Snapshot\n'
-                    f'No node matching `{focus}` is in the graph.')
-        d, focused_on = sliced, node_id
+                    f'No node or topic matching `{focus}` is in the graph.')
+        d, focused_on = sliced, label
 
     lines: list[str] = []
     lines.append('# ROS Graph Debugger — Runtime Snapshot')

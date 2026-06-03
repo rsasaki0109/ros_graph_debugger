@@ -140,9 +140,18 @@ def test_focused_briefing_resolves_by_name_and_suffix():
     assert 'Focused on **/planner**' in snapshot_to_markdown(snap, focus='planner')
 
 
-def test_focused_briefing_unknown_node_is_explicit():
+def test_focused_briefing_on_a_topic_keeps_its_endpoints():
+    md = snapshot_to_markdown(_store_with_unrelated().snapshot(), focus='/objects')
+    assert 'Focused on **/objects**' in md
+    # Both endpoint nodes of /objects are named as neighbours...
+    assert '/detector' in md and '/tracker' in md
+    # ...and the unrelated planner/traj are sliced away.
+    assert '/planner' not in md and '/traj' not in md
+
+
+def test_focused_briefing_unknown_target_is_explicit():
     md = snapshot_to_markdown(_store().snapshot(), focus='/nope')
-    assert 'No node matching `/nope`' in md
+    assert 'No node or topic matching `/nope`' in md
 
 
 def test_snapshot_md_endpoint_focus(base_url):
