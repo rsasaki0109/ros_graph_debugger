@@ -42,7 +42,9 @@ expectations:
   /cmd_vel:
     min_rate_hz: 10
     max_age_ms: 200
+    max_callback_ms: 20
 
 expectation_patterns:
   - pattern: '.*costmap.*'
     min_rate_hz: 1
+    max_callback_ms: 120

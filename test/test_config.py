@@ -59,7 +59,28 @@ def test_apply_config_ignores_bad_values():
 def test_autoware_profile_has_pattern_expectations():
     data, _ = load_profile(find_profile('autoware'))
     pats = data['_min_rate_patterns']
-    assert any(p == '^/control/command/.*' for p, _ in pats)
+    assert any(p == '^/control/.*' for p, _ in pats)
+
+
+def test_autoware_profile_has_callback_budgets():
+    data, _ = load_profile(find_profile('autoware'))
+    # Exact: the control command has a tight 10 ms budget.
+    assert data['_expected_callback_ms']['/control/command/control_cmd'] == 10.0
+    # Pattern: control stage is tighter than planning.
+    cb = dict(data['_callback_ms_patterns'])
+    assert cb['^/control/.*'] < cb['^/planning/.*']
+
+
+def test_callback_budget_lookup_is_stage_aware():
+    t = Thresholds(slow_callback_ms=100.0,
+                   expected_callback_ms={'/control/command/control_cmd': 10.0},
+                   callback_ms_patterns=[('^/control/.*', 15.0),
+                                         ('^/planning/.*', 200.0)])
+    assert t.callback_budget_for('/control/command/control_cmd') == 10.0  # exact
+    assert t.callback_budget_for('/control/other') == 15.0                # pattern
+    assert t.callback_budget_for('/planning/x') == 200.0                  # pattern
+    assert t.callback_budget_for('/misc/topic') == 100.0                 # global floor
+    assert t.callback_budget_for('') == 100.0                            # timer/no topic
 
 
 def test_analyzer_fires_rate_drop_via_pattern():

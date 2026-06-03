@@ -218,10 +218,10 @@ def analyze(store: RuntimeGraphStore, thresholds) -> list[Issue]:
 def _slow_callbacks(callbacks, thresholds, counter) -> list[Issue]:
     """Flag callbacks whose p95 execution time exceeds the threshold — the
     measured (Tier C) counterpart to the inferred bottleneck rule."""
-    limit = thresholds.slow_callback_ms
     out: list[Issue] = []
     for c in callbacks:
         p95 = c.p95_ms
+        limit = thresholds.callback_budget_for(c.topic)  # per-topic, stage-aware
         if not limit or p95 is None or p95 <= limit:
             continue
         severity = CRITICAL if p95 > 2 * limit else WARNING

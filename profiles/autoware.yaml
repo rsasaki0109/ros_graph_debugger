@@ -34,17 +34,27 @@ expectations:
   /perception/object_recognition/objects:
     min_rate_hz: 10
     max_age_ms: 200
+    max_callback_ms: 80
   /planning/scenario_planning/trajectory:
     min_rate_hz: 10
     max_age_ms: 300
+    max_callback_ms: 150
   /control/command/control_cmd:
     min_rate_hz: 30
     max_age_ms: 100
+    max_callback_ms: 10
 
 # Pattern expectations apply a floor to a whole stage (first match wins, after
 # exact expectations above). Useful because real systems have many topics.
+# Callback budgets differ wildly by stage: control must be fast, planning can
+# afford more.
 expectation_patterns:
   - pattern: '^/localization/.*pose.*'
     min_rate_hz: 10
-  - pattern: '^/control/command/.*'
+  - pattern: '^/control/.*'
     min_rate_hz: 10
+    max_callback_ms: 15
+  - pattern: '^/perception/.*'
+    max_callback_ms: 100
+  - pattern: '^/planning/.*'
+    max_callback_ms: 200

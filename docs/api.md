@@ -47,10 +47,13 @@ Body is a partial object; only recognized keys are applied, the rest ignored.
   "high_bandwidth_bps": 50000000,
   "stale_topic_ms": 2000,
   "tf_stale_ms": 1000,
+  "slow_callback_ms": 100,
   "expected_min_rate": { "/perception/.../objects": 10 },
   "expected_max_age_ms": { "/localization/kinematic_state": 100 },
-  "min_rate_patterns": [["^/control/command/.*", 10]],
-  "max_age_patterns":  [["^/localization/.*", 200]]
+  "expected_callback_ms": { "/control/command/control_cmd": 10 },
+  "min_rate_patterns": [["^/control/.*", 10]],
+  "max_age_patterns":  [["^/localization/.*", 200]],
+  "callback_ms_patterns": [["^/control/.*", 15], ["^/planning/.*", 200]]
 }
 ```
 

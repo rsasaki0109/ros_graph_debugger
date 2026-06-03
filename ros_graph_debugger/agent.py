@@ -69,9 +69,12 @@ def main(argv=None) -> None:
                 profile_data.get('_expected_min_rate', {}))
             thresholds.expected_max_age_ms.update(
                 profile_data.get('_expected_max_age_ms', {}))
+            thresholds.expected_callback_ms.update(
+                profile_data.get('_expected_callback_ms', {}))
             thresholds.set_patterns(
                 min_rate=profile_data.get('_min_rate_patterns', []),
-                max_age=profile_data.get('_max_age_patterns', []))
+                max_age=profile_data.get('_max_age_patterns', []),
+                callback_ms=profile_data.get('_callback_ms_patterns', []))
         else:
             print(f'[warn] profile not found: {args.profile}')
 

@@ -113,9 +113,12 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   localization). Cheap approximation now; tracing-based tiers below.
 - **Callback execution time (Tier C)** — per-callback p95/mean/max duration, a
   `slow_callback` issue when a callback blows its budget, and the stat surfaced
-  in the node Inspector and AI briefing. The synthetic source ships now (the
-  `--demo` shows the detector's callback spiking); a live `ros2_tracing`/LTTng
-  adapter emitting the same shape is the remaining v0.3 work.
+  in the node Inspector and AI briefing. Budgets are **stage-aware** — the
+  Autoware/Nav2 profiles give control callbacks a tight (~10–15 ms) budget and
+  planning a looser one, so the same 60 ms is fine for a planner but a violation
+  for a controller. The synthetic source ships now (the `--demo` shows the
+  detector's callback spiking); a live `ros2_tracing`/LTTng adapter emitting the
+  same shape is the remaining v0.3 work.
 - **Node CPU / memory**, with honest node→process mapping confidence.
 - **TF freshness** — stale transform detection, plus a **TF tree view** that
   renders the live `/tf` forest (parent → child) with per-edge age and

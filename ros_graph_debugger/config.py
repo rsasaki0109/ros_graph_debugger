@@ -37,13 +37,17 @@ class Thresholds:
     # Exact-topic expectations (highest priority).
     expected_min_rate: dict[str, float] = field(default_factory=dict)
     expected_max_age_ms: dict[str, float] = field(default_factory=dict)
+    # Per-topic callback execution budget (Tier C); falls back to slow_callback_ms.
+    expected_callback_ms: dict[str, float] = field(default_factory=dict)
     # Regex-pattern expectations: list of (pattern, value), first match wins.
     min_rate_patterns: list[tuple[str, float]] = field(default_factory=list)
     max_age_patterns: list[tuple[str, float]] = field(default_factory=list)
+    callback_ms_patterns: list[tuple[str, float]] = field(default_factory=list)
 
     # Compiled cache (rebuilt whenever patterns change via set_patterns).
     _min_rate_re: list = field(default_factory=list, repr=False)
     _max_age_re: list = field(default_factory=list, repr=False)
+    _callback_ms_re: list = field(default_factory=list, repr=False)
 
     def __post_init__(self):
         self._recompile()
@@ -60,12 +64,15 @@ class Thresholds:
             return out
         self._min_rate_re = compile_pairs(self.min_rate_patterns)
         self._max_age_re = compile_pairs(self.max_age_patterns)
+        self._callback_ms_re = compile_pairs(self.callback_ms_patterns)
 
-    def set_patterns(self, min_rate=None, max_age=None) -> None:
+    def set_patterns(self, min_rate=None, max_age=None, callback_ms=None) -> None:
         if min_rate is not None:
             self.min_rate_patterns = list(min_rate)
         if max_age is not None:
             self.max_age_patterns = list(max_age)
+        if callback_ms is not None:
+            self.callback_ms_patterns = list(callback_ms)
         self._recompile()
 
     # -- lookups (exact first, then first matching pattern) ----------------- #
@@ -84,6 +91,18 @@ class Thresholds:
             if rgx.search(topic):
                 return val
         return None
+
+    def callback_budget_for(self, topic: str):
+        """Per-topic callback p95 budget (ms): exact, then pattern, then the
+        global ``slow_callback_ms`` floor. A control callback can demand a far
+        tighter budget than a planning one."""
+        if topic:
+            if topic in self.expected_callback_ms:
+                return self.expected_callback_ms[topic]
+            for rgx, val in self._callback_ms_re:
+                if rgx.search(topic):
+                    return val
+        return self.slow_callback_ms
 
 
 # Scalar threshold fields that POST /api/v1/config may set.
@@ -129,6 +148,16 @@ def apply_config(thresholds: Thresholds, payload: dict) -> dict:
         thresholds.expected_max_age_ms = merged
         changed['expected_max_age_ms'] = merged
 
+    if isinstance(payload.get('expected_callback_ms'), dict):
+        merged = dict(thresholds.expected_callback_ms)
+        for t, v in payload['expected_callback_ms'].items():
+            try:
+                merged[t] = float(v)
+            except (TypeError, ValueError):
+                continue
+        thresholds.expected_callback_ms = merged
+        changed['expected_callback_ms'] = merged
+
     if isinstance(payload.get('min_rate_patterns'), list):
         thresholds.set_patterns(min_rate=[tuple(p) for p in payload['min_rate_patterns']
                                           if len(p) == 2])
@@ -137,6 +166,10 @@ def apply_config(thresholds: Thresholds, payload: dict) -> dict:
         thresholds.set_patterns(max_age=[tuple(p) for p in payload['max_age_patterns']
                                          if len(p) == 2])
         changed['max_age_patterns'] = thresholds.max_age_patterns
+    if isinstance(payload.get('callback_ms_patterns'), list):
+        thresholds.set_patterns(callback_ms=[tuple(p) for p in payload['callback_ms_patterns']
+                                             if len(p) == 2])
+        changed['callback_ms_patterns'] = thresholds.callback_ms_patterns
 
     return changed
 
@@ -152,6 +185,8 @@ def config_to_dict(thresholds: Thresholds) -> dict:
         'slow_callback_ms': thresholds.slow_callback_ms,
         'expected_min_rate': thresholds.expected_min_rate,
         'expected_max_age_ms': thresholds.expected_max_age_ms,
+        'expected_callback_ms': thresholds.expected_callback_ms,
         'min_rate_patterns': thresholds.min_rate_patterns,
         'max_age_patterns': thresholds.max_age_patterns,
+        'callback_ms_patterns': thresholds.callback_ms_patterns,
     }

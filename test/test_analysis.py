@@ -97,6 +97,23 @@ def test_slow_callback_issue():
     assert '/image' in slow[0].related_topics
 
 
+def test_slow_callback_budget_is_stage_aware():
+    # The same 60 ms callback is fine for planning but a violation for control.
+    store = RuntimeGraphStore()
+    store.set_graph({'/p': NodeInfo(id='/p', name='p'),
+                     '/c': NodeInfo(id='/c', name='c')}, {})
+    store.set_callbacks([
+        CallbackStat(node='/p', callback='sub /planning/plan',
+                     topic='/planning/plan', p95_ms=60.0),
+        CallbackStat(node='/c', callback='sub /control/cmd',
+                     topic='/control/cmd', p95_ms=60.0),
+    ])
+    thr = Thr(callback_ms_patterns=[('^/control/.*', 15.0), ('^/planning/.*', 200.0)])
+    slow = [i for i in analyze(store, thr) if i.kind == 'slow_callback']
+    assert len(slow) == 1
+    assert slow[0].related_topics == ['/control/cmd']  # only control trips
+
+
 def test_callbacks_under_budget_are_silent():
     store = RuntimeGraphStore()
     store.set_graph({'/n': NodeInfo(id='/n', name='n')}, {})
