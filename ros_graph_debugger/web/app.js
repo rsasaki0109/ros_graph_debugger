@@ -287,6 +287,7 @@ function refreshInspector() {
     const n = state.last.nodes.find(x => x.id === id);
     if (!n) return;
     box.innerHTML = nodeDetail(n);
+    loadNodePath(n.id);
   } else if (state.selected.startsWith('T:')) {
     const name = state.selected.slice(2);
     const t = state.last.topics.find(x => x.name === name);
@@ -309,9 +310,40 @@ function nodeDetail(n) {
     ${n.publishers.map(p => `<span class="pill" onclick="window._sel('T:${p}')">${p}</span>`).join('') || '<span class="hint">none</span>'}
     <div class="section-title">Subscribers (${n.subscribers.length})</div>
     ${n.subscribers.map(s => `<span class="pill" onclick="window._sel('T:${s}')">${s}</span>`).join('') || '<span class="hint">none</span>'}
+    <div class="section-title">Pipeline path</div>
+    <div id="node-path" class="node-path hint">tracing…</div>
     <div class="section-title">AI</div>
     <button class="brief-btn" onclick="window._copyBriefing('${escapeHtml(n.id)}', this)">Copy AI briefing</button>
     <span class="hint">a focused Markdown briefing for this node — paste into an LLM</span>`;
+}
+
+// Fetch and render the constraining source->sink path through a node. Logic
+// lives server-side (/api/v1/path) so the UI and the AI briefing agree.
+function loadNodePath(nodeId) {
+  const box = document.getElementById('node-path');
+  if (!box) return;
+  fetch('/api/v1/path?target=' + encodeURIComponent(nodeId))
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(p => {
+      if (!box || document.getElementById('node-path') !== box) return;  // selection changed
+      const names = {};
+      (state.last?.nodes || []).forEach(n => { names[n.id] = n.name || n.id; });
+      const segs = [];
+      segs.push(`<span class="pp-node${p.nodes[0] === p.pivot ? ' pivot' : ''}">${escapeHtml(names[p.nodes[0]] || p.nodes[0])}</span>`);
+      p.hops.forEach(h => {
+        const slow = h.topic === p.bottleneck_topic;
+        segs.push(`<span class="pp-edge${slow ? ' slow' : ''}" title="${escapeHtml(h.topic)}">${fmtRate(h.rate_hz) || '—'}${slow ? ' ⟵' : ''}</span>`);
+        segs.push(`<span class="pp-node${h.to === p.pivot ? ' pivot' : ''}">${escapeHtml(names[h.to] || h.to)}</span>`);
+      });
+      box.className = 'node-path';
+      box.innerHTML = segs.join('<span class="pp-arrow">→</span>');
+    })
+    .catch(() => {
+      if (box && document.getElementById('node-path') === box) {
+        box.className = 'node-path hint';
+        box.textContent = 'no connected pipeline path';
+      }
+    });
 }
 
 function copyBriefing(nodeId, btn) {

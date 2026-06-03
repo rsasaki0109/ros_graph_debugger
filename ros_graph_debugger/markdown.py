@@ -6,6 +6,8 @@ terse graph/metrics table. Kept small on purpose so it fits a prompt."""
 
 from __future__ import annotations
 
+from .pipeline import resolve_focus, trace_pipeline_path
+
 
 def _fmt_rate(v):
     return f'{v:.1f} Hz' if isinstance(v, (int, float)) else '—'
@@ -21,31 +23,6 @@ def _fmt_bw(v):
     return f'{v:.0f} B/s'
 
 
-def _resolve_focus(d: dict, focus: str):
-    """Map a focus string to a ``('node', id)`` or ``('topic', name)`` target.
-
-    Tries exact node id, exact topic name, exact node name, then a suffix
-    match on a node, then on a topic. Returns ``(None, None)`` if nothing
-    matches. Nodes win ties so a bare name resolves to the node, not a topic."""
-    nodes, topics = d['nodes'], d['topics']
-    for n in nodes:
-        if n['id'] == focus:
-            return 'node', n['id']
-    for t in topics:
-        if t['name'] == focus:
-            return 'topic', t['name']
-    for n in nodes:
-        if n.get('name') == focus:
-            return 'node', n['id']
-    for n in nodes:
-        if n['id'].endswith(focus) or (n.get('name') or '').endswith(focus):
-            return 'node', n['id']
-    for t in topics:
-        if t['name'].endswith(focus):
-            return 'topic', t['name']
-    return None, None
-
-
 def focus_subgraph(d: dict, focus: str):
     """Slice a snapshot down to one node/topic and its 1-hop neighbourhood.
 
@@ -55,7 +32,7 @@ def focus_subgraph(d: dict, focus: str):
     ``(label, sliced_dict)`` or ``(None, None)`` when the focus is unknown.
     Big Autoware/Nav2 graphs are too large to hand an AI whole; this is the
     "just the part I'm asking about" briefing."""
-    kind, key = _resolve_focus(d, focus)
+    kind, key = resolve_focus(d, focus)
     if kind is None:
         return None, None
 
@@ -97,9 +74,32 @@ def focus_subgraph(d: dict, focus: str):
     return label, sliced
 
 
+def _path_line(full: dict, focus: str) -> str | None:
+    """Render the constraining pipeline path through ``focus`` as one line,
+    e.g. ``camera → /cam (30.0 Hz) → **detector** → /obj (4.1 Hz ⟵ slowest) → tracker``.
+    The focused node is bolded; the lowest-rate hop is marked."""
+    path = trace_pipeline_path(full, focus)
+    if not path:
+        return None
+    names = {n['id']: (n.get('name') or n['id']) for n in full['nodes']}
+
+    def node_disp(nid):
+        label = names.get(nid, nid)
+        return f'**{label}**' if nid == path['pivot'] else label
+
+    parts = [node_disp(path['nodes'][0])]
+    for h in path['hops']:
+        rate = _fmt_rate(h['rate_hz'])
+        mark = ' ⟵ slowest' if h['topic'] == path['bottleneck_topic'] else ''
+        parts.append(f'{h["topic"]} ({rate}{mark})')
+        parts.append(node_disp(h['to']))
+    return ' → '.join(parts)
+
+
 def snapshot_to_markdown(snap, focus: str | None = None) -> str:
     # Accept a GraphSnapshot, a replay _Frame, or a plain dict.
     d = snap.to_dict() if hasattr(snap, 'to_dict') else snap
+    full = d  # the pipeline path may extend beyond the focused neighbourhood
 
     focused_on = None
     if focus:
@@ -140,6 +140,14 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
                 + i.get('related_frames', [])
             if related:
                 lines.append('- Related: ' + ', '.join(related))
+            lines.append('')
+
+    # --- Pipeline path: the constraining route through the focus. ---
+    if focused_on:
+        path_line = _path_line(full, focused_on)
+        if path_line:
+            lines.append('## Pipeline path (lowest-rate route through the focus)')
+            lines.append(path_line)
             lines.append('')
 
     # --- Topic table. ---

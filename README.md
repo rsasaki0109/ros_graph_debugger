@@ -102,6 +102,10 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   and hardware id.
 - **Issue panel**: each issue has a plain-English explanation, evidence, and
   suggested actions, ranked by severity.
+- **Pipeline path** — trace the constraining source→sink route through any node
+  or topic (it follows the lowest-rate link at each branch), so a bottleneck
+  reads as `camera → … → detector → /objects (4.1 Hz ⟵ slowest) → tracker → …`.
+  Shown in the node Inspector, the focused AI briefing, and `GET /api/v1/path`.
 - **Profiles**: `autoware`, `nav2`, `moveit` (grouping + expected rates, incl.
   regex patterns like `^/control/command/.*` that set a floor for a whole stage).
 - **Live tuning**: a Settings tab (and `POST /api/v1/config`) to adjust expected
@@ -237,9 +241,10 @@ node is modified.
   (incl. a no-ROS `--demo`), live tuning (Settings tab + pattern-based expected
   rates), a topic Network table, **TF tree + Diagnostics views**, an **MCP
   server** with full endpoint coverage, and **focused per-node/-topic AI
-  briefings** (REST + MCP + Copy buttons on nodes and issue cards). *Next:*
-  richer process mapping.
-- **v0.3** — `ros2_tracing` adapter, callback/critical-path timeline, multi-host.
+  briefings** (REST + MCP + Copy buttons on nodes and issue cards), and a
+  **pipeline-path tracer** (the constraining source→sink route through a node).
+  *Next:* richer process mapping.
+- **v0.3** — `ros2_tracing` adapter, callback-duration timeline, multi-host.
 
 ## License
 

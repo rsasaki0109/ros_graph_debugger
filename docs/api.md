@@ -21,6 +21,7 @@ unless noted. The same surface is served in replay mode (`rgd serve`), except
 | GET | `/api/v1/tf` | TF edges with staleness |
 | GET | `/api/v1/diagnostics` | latest `/diagnostics` statuses |
 | GET | `/api/v1/issues` | detected issues (sorted by severity) |
+| GET | `/api/v1/path?target=TARGET` | the constraining source→sink pipeline path through a node/topic (`{target, pivot, nodes, hops, bottleneck_topic}`; 404 if no connected path) |
 | GET | `/api/v1/profile` | active profile name + stage groups (UI grouping) |
 | GET | `/api/v1/config` | current thresholds + expectations (live mode only; `{}` in replay) |
 | POST | `/api/v1/config` | merge a partial config into the live thresholds |

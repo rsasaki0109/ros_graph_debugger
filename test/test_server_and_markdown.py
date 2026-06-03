@@ -7,6 +7,7 @@ The HTTP endpoints are exercised against a real uvicorn server in a thread
 import json
 import threading
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -160,3 +161,26 @@ def test_snapshot_md_endpoint_focus(base_url):
         text = r.read().decode()
     assert 'Focused on **/detector**' in text
     assert 'Likely bottleneck: detector' in text
+
+
+def test_focused_briefing_includes_pipeline_path():
+    md = snapshot_to_markdown(_store_with_unrelated().snapshot(), focus='/detector')
+    assert '## Pipeline path' in md
+    # detector -> /objects -> tracker is on the path, and the focus is bolded.
+    assert '**detector**' in md
+    assert '/objects' in md and '⟵ slowest' in md
+
+
+def test_path_endpoint(base_url):
+    p = _get_json(base_url + '/api/v1/path?target=' + urllib.parse.quote('/detector'))
+    assert p['pivot'] == '/detector'
+    assert '/detector' in p['nodes'] and '/tracker' in p['nodes']
+    assert p['bottleneck_topic'] == '/objects'
+
+
+def test_path_endpoint_unknown_target_404(base_url):
+    try:
+        _get_json(base_url + '/api/v1/path?target=/nope')
+        assert False, 'expected 404'
+    except urllib.error.HTTPError as e:
+        assert e.code == 404

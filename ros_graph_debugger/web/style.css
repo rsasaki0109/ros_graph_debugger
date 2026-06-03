@@ -100,6 +100,13 @@ body {
 }
 .brief-btn:hover { background: var(--accent); color: #06080d; }
 
+.node-path { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12px; }
+.pp-node { background: var(--panel-2); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; }
+.pp-node.pivot { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.pp-edge { color: var(--muted); font-variant-numeric: tabular-nums; }
+.pp-edge.slow { color: var(--critical); font-weight: 600; }
+.pp-arrow { color: var(--muted); }
+
 #readiness {
   display: flex; align-items: stretch; gap: 1px; flex: 0 0 auto;
   background: var(--border); border-bottom: 1px solid var(--border);

@@ -112,6 +112,16 @@ def create_app(store, web_dir: str,
     def issues():
         return store.snapshot().to_dict()['issues']
 
+    @app.get('/api/v1/path')
+    def path(target: str):
+        from .pipeline import trace_pipeline_path
+        p = trace_pipeline_path(store.snapshot().to_dict(), target)
+        if p is None:
+            return JSONResponse(
+                {'error': f'no connected path through {target!r}'},
+                status_code=404)
+        return p
+
     # ------------------------------------------------- live config (tuning) #
     @app.get('/api/v1/config')
     def get_config():
