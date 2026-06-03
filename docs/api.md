@@ -76,6 +76,9 @@ pattern.
 ## MCP
 
 `python -m ros_graph_debugger.mcp_server` exposes the same data to AI assistants
-as tools (`get_runtime_briefing`, `get_issues`, `get_graph`, `get_topics`,
-`health`). It is a thin client of the REST API; point it at a non-default agent
-with `RGD_BASE`.
+as tools. Read tools: `get_runtime_briefing` (`/snapshot.md`), `get_issues`,
+`get_graph`, `get_topics`, `get_nodes`, `get_tf`, `get_diagnostics`,
+`get_config`, plus `health`. Write tool: `set_expected_rate(topic, min_hz)`
+posts to `/config` so an AI can set a topic's expected-rate floor at runtime.
+It is a thin client of the REST API; point it at a non-default agent with
+`RGD_BASE`.

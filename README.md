@@ -127,8 +127,11 @@ pip install "mcp[cli]"
 claude mcp add ros-graph -- python -m ros_graph_debugger.mcp_server
 ```
 
-Now an AI assistant can call `get_runtime_briefing`, `get_issues`, `get_graph`,
-and reason about your robot's runtime.
+Now an AI assistant can read the live robot — `get_runtime_briefing`,
+`get_issues`, `get_graph`, `get_topics`, `get_nodes`, `get_tf`,
+`get_diagnostics`, `get_config` — and **act** on it: `set_expected_rate(topic,
+min_hz)` encodes what "healthy" looks like for a topic at runtime, so the issue
+engine starts flagging it immediately. No restart, no file editing.
 
 ## Safety: probing is opt-in and bounded
 
