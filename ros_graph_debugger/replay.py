@@ -17,6 +17,7 @@ from __future__ import annotations
 import threading
 from dataclasses import asdict
 
+from .federation import merge_snapshots
 from .recording import make_header
 from .tracing import synthesize_callbacks
 
@@ -82,6 +83,64 @@ class ReplayStore:
     def snapshot(self) -> _Frame:
         with self._lock:
             return _Frame(self._snaps[self._idx])
+
+
+class FleetReplayStore:
+    """Replay one recording as a phase-shifted fleet of namespaced hosts."""
+
+    def __init__(self, snapshots: list[dict], fleet_size: int, loop: bool = True):
+        self._snaps = snapshots or [_EMPTY]
+        self._fleet_size = max(1, int(fleet_size))
+        self._idx = 0
+        self._loop = loop
+        self._playing = True
+        self._lock = threading.Lock()
+
+    @property
+    def total(self) -> int:
+        return len(self._snaps)
+
+    def state(self) -> dict:
+        with self._lock:
+            return {'mode': 'replay', 'index': self._idx, 'total': len(self._snaps),
+                    'playing': self._playing, 'loop': self._loop,
+                    'fleet_size': self._fleet_size}
+
+    def advance(self) -> None:
+        with self._lock:
+            if not self._playing:
+                return
+            nxt = self._idx + 1
+            if nxt >= len(self._snaps):
+                self._idx = 0 if self._loop else len(self._snaps) - 1
+                if not self._loop:
+                    self._playing = False
+            else:
+                self._idx = nxt
+
+    def seek(self, index: int) -> dict:
+        with self._lock:
+            self._idx = max(0, min(len(self._snaps) - 1, int(index)))
+            self._playing = False
+            return {'index': self._idx, 'total': len(self._snaps),
+                    'playing': self._playing}
+
+    def set_playing(self, playing: bool) -> dict:
+        with self._lock:
+            self._playing = bool(playing)
+            return {'index': self._idx, 'playing': self._playing}
+
+    def snapshot(self) -> _Frame:
+        with self._lock:
+            total = len(self._snaps)
+            host_snaps = []
+            for i in range(self._fleet_size):
+                # Evenly spread robots across the replay so the demo wall always
+                # contains a mix of healthy and incident frames.
+                offset = int(round((i * total) / self._fleet_size)) if total else 0
+                host_snaps.append((f'robot{i + 1}', self._snaps[(self._idx + offset) % total]))
+            merged = merge_snapshots(host_snaps)
+        return _Frame(merged)
 
 
 # --------------------------------------------------------------------------- #

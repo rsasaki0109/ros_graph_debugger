@@ -1,8 +1,10 @@
 """Regression diff between two recordings — pure, no ROS."""
 
 from ros_graph_debugger.diff import diff_reports, render_diff_markdown
+from ros_graph_debugger.diff_image import render_diff_svg, write_diff_image
 from ros_graph_debugger.recording import make_header
 from ros_graph_debugger.report import build_report
+from ros_graph_debugger.replay import build_demo_recording
 
 PROFILE = {'name': 'autoware', 'groups': {
     'perception': {'topic_patterns': ['^/perception/.*']}}}
@@ -71,3 +73,35 @@ def test_render_diff_markdown():
     assert 'Rate drop:' in md and '/perception/objects' in md
     assert 'Slower callback:' in md
     assert 'New issue: [bottleneck]' in md
+
+
+def test_render_diff_svg_highlights_demo_regression():
+    header, snaps = build_demo_recording()
+    base_snaps = [s for s in snaps if not s['issues']]
+    base = build_report(header, base_snaps)
+    cur = build_report(header, snaps)
+    d = diff_reports(base, cur)
+
+    svg = render_diff_svg(d, base_snaps, snaps)
+
+    assert 'ROS Graph Regression Diff' in svg
+    assert 'Baseline' in svg and 'Candidate' in svg
+    assert 'REGRESSED' in svg
+    assert '#f85149' in svg
+    assert 'object_recognition/objects' in svg
+    assert 'detector' in svg
+
+
+def test_write_diff_image_svg_and_stable_badge(tmp_path):
+    header, snaps = build_demo_recording()
+    summary = build_report(header, snaps[:4])
+    d = diff_reports(summary, summary)
+
+    out = tmp_path / 'stable.svg'
+    result = write_diff_image(str(out), d, snaps[:4], snaps[:4])
+    svg = out.read_text()
+
+    assert result['format'] == 'svg'
+    assert result['path'] == str(out)
+    assert 'STABLE' in svg
+    assert 'No regressions detected' in svg

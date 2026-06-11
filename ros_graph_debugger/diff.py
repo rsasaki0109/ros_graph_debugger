@@ -35,8 +35,21 @@ def diff_reports(base: dict, cur: dict, *, rate_tol: float = 0.2,
 
     b_issues = {(i['kind'], i['title']) for i in base.get('issue_catalog', [])}
     c_issues = {(i['kind'], i['title']) for i in cur.get('issue_catalog', [])}
-    new_issues = [{'kind': k, 'title': t} for k, t in sorted(c_issues - b_issues)]
-    resolved_issues = [{'kind': k, 'title': t} for k, t in sorted(b_issues - c_issues)]
+    def issue_rows(src, keys):
+        by_key = {(i.get('kind', ''), i.get('title', '')): i
+                  for i in src.get('issue_catalog', [])}
+        rows = []
+        for k, t in sorted(keys):
+            issue = by_key.get((k, t), {})
+            rows.append({
+                'kind': k, 'title': t,
+                'related_nodes': issue.get('related_nodes', []),
+                'related_topics': issue.get('related_topics', []),
+            })
+        return rows
+
+    new_issues = issue_rows(cur, c_issues - b_issues)
+    resolved_issues = issue_rows(base, b_issues - c_issues)
 
     bc = {(c['node'], c['callback']): c for c in base.get('callbacks', [])}
     cc = {(c['node'], c['callback']): c for c in cur.get('callbacks', [])}

@@ -18,6 +18,7 @@
     </div>
     <div class="viewtabs">
       <button class="viewtab active" data-view="graph">Graph</button>
+      <button class="viewtab hidden" data-view="fleet" id="fleet-viewtab">Fleet</button>
       <button class="viewtab" data-view="network">Network</button>
       <button class="viewtab" data-view="tf">TF</button>
       <button class="viewtab" data-view="diag">Diagnostics</button>
@@ -30,6 +31,8 @@
       <button id="pause-btn" class="btn">⏸ Pause</button>
       <button id="fit-btn" class="btn">⤢ Fit</button>
       <button id="flow-btn" class="btn active" title="animate data flow on the graph" onclick="window._toggleFlow(this)">✨ Flow</button>
+      <button id="cinema-btn" class="btn" title="replay the incident with camera moves and captions" disabled>▶ Cinema</button>
+      <button id="export-webm" class="btn" title="record one cinema pass as WebM" disabled>⤓ WebM</button>
       <button id="export-json" class="btn" title="download the current snapshot as JSON">⤓ JSON</button>
       <button id="export-md" class="btn" title="download the AI briefing as Markdown">⤓ MD</button>
       <a id="ai-md-link" class="btn" href="/api/v1/snapshot.md" target="_blank">⧉ AI&nbsp;Markdown</a>
@@ -41,6 +44,11 @@
   <main>
     <section id="graph-pane">
       <div id="cy"></div>
+      <div id="fleet-drilldown" class="hidden">
+        <span id="fleet-drilldown-label"></span>
+        <button id="fleet-back" class="btn">← Fleet</button>
+      </div>
+      <div id="cinema-caption" class="hidden"></div>
       <div id="stage-legend" class="hidden"></div>
       <div id="legend" class="status-legend">
         <span><i class="dot ok"></i>ok</span>
@@ -48,6 +56,10 @@
         <span><i class="dot critical"></i>critical</span>
         <span><i class="dot unknown"></i>unknown</span>
       </div>
+    </section>
+
+    <section id="fleet-pane" class="hidden">
+      <div id="fleet-grid"></div>
     </section>
 
     <section id="network-pane" class="hidden">

@@ -31,6 +31,10 @@ setup(
     packages=find_packages(exclude=['test']),
     data_files=data_files,
     install_requires=['setuptools'],
+    extras_require={
+        'image': ['cairosvg'],
+        'tui': ['textual'],
+    },
     zip_safe=True,
     maintainer='Ryohei Sasaki',
     maintainer_email='rsasaki0109@gmail.com',

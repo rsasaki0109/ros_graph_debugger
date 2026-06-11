@@ -4,11 +4,42 @@
 'use strict';
 
 const HIDDEN_TOPICS = new Set(['/rosout', '/parameter_events']);
+const EKG_CONFIG = {
+  historySeconds: 30,
+  maxSamples: 90,
+  width: 58,
+  height: 18,
+  zoomMin: 0.2,
+  maxEdges: 220,
+  accent: '#58a6ff',
+  danger: '#f85149',
+  bg: 'rgba(13,17,23,0.68)',
+};
+const CINEMA_CONFIG = {
+  normalFrameMs: 500,
+  slowFrameMs: 1650,
+  overviewFrames: 6,
+  recoveryFrames: 5,
+  zoomLevel: 2.25,
+  fitPadding: 70,
+  cameraMs: 850,
+  subtitleCharMs: 18,
+  exportFps: 30,
+  exportHoldMs: 900,
+  maxNoIssueLoops: 1,
+  mimeTypes: ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'],
+};
+const AUTO_CINEMA = new URLSearchParams(location.search).get('cinema') === '1';
 const state = {
   paused: false,
   topoSig: '',
   last: null,
+  rawLast: null,
   selected: null,
+};
+const fleetState = {
+  selectedHost: null,
+  autoOpened: false,
 };
 
 // --- profile (pipeline stage) grouping ---
@@ -160,6 +191,60 @@ function fmtBytes(v) {
   return v + ' B';
 }
 
+function hostFromName(name) {
+  const s = String(name || '');
+  if (!s) return '';
+  if (s[0] === '/') return s.split('/').filter(Boolean)[0] || '';
+  return s.split('/')[0] || '';
+}
+
+function hostOf(item) {
+  if (!item) return '';
+  if (item.host) return item.host;
+  return hostFromName(item.id || item.name || item.topic ||
+                      item.parent || item.child || item.node || '');
+}
+
+function isFleetSnapshot(snap) {
+  return !!(snap && Array.isArray(snap.hosts) && snap.hosts.length > 1);
+}
+
+function hostNamesFromSnapshot(snap) {
+  const hosts = new Set((snap.hosts || []).map(h => h.host).filter(Boolean));
+  ['nodes', 'topics', 'tf_edges', 'diagnostics', 'callbacks', 'issues'].forEach(k => {
+    (snap[k] || []).forEach(x => { const h = hostOf(x); if (h) hosts.add(h); });
+  });
+  return [...hosts].sort();
+}
+
+function issueHost(issue) {
+  if (issue.host) return issue.host;
+  const refs = []
+    .concat(issue.related_nodes || [])
+    .concat(issue.related_topics || [])
+    .concat(issue.related_frames || []);
+  for (const r of refs) {
+    const h = hostFromName(r);
+    if (h) return h;
+  }
+  return '';
+}
+
+function filterSnapshotByHost(snap, host) {
+  if (!snap || !host) return snap;
+  const keep = x => hostOf(x) === host;
+  return Object.assign({}, snap, {
+    nodes: (snap.nodes || []).filter(keep),
+    topics: (snap.topics || []).filter(keep),
+    edges: (snap.edges || []).filter(keep),
+    tf_edges: (snap.tf_edges || []).filter(keep),
+    diagnostics: (snap.diagnostics || []).filter(keep),
+    callbacks: (snap.callbacks || []).filter(keep),
+    issues: (snap.issues || []).filter(i => issueHost(i) === host),
+    hosts: (snap.hosts || []).filter(h => h.host === host),
+  });
+}
+
 function buildElements(snap) {
   const els = [];
   const nodeStatus = {};
@@ -189,19 +274,26 @@ function buildElements(snap) {
     const rate = (typeof t.rate_hz === 'number') ? t.rate_hz : null;
     t.publishers.forEach(p => {
       if (nodeStatus[p] === undefined) return;
-      els.push({ data: { id: `E:${p}->${t.name}`, source: 'N:' + p, target: tid, rate }, classes: estatus });
+      els.push({ data: { id: `E:${p}->${t.name}`, source: 'N:' + p, target: tid,
+                          rate, topic: t.name, topicStatus: estatus },
+                 classes: estatus });
     });
     t.subscribers.forEach(s => {
       if (nodeStatus[s] === undefined) return;
-      els.push({ data: { id: `E:${t.name}->${s}`, source: tid, target: 'N:' + s, rate }, classes: estatus });
+      els.push({ data: { id: `E:${t.name}->${s}`, source: tid, target: 'N:' + s,
+                          rate, topic: t.name, topicStatus: estatus },
+                 classes: estatus });
     });
   });
   return els;
 }
 
 function render(snap) {
-  state.last = snap;
-  const els = buildElements(snap);
+  state.rawLast = snap;
+  syncFleetUi(snap);
+  const displaySnap = fleetState.selectedHost ? filterSnapshotByHost(snap, fleetState.selectedHost) : snap;
+  state.last = displaySnap;
+  const els = buildElements(displaySnap);
   const sig = els.filter(e => !e.data.source).map(e => e.data.id).sort().join('|') + '#' +
               els.filter(e => e.data.source).map(e => e.data.id).sort().join('|');
 
@@ -217,16 +309,22 @@ function render(snap) {
       const ele = cy.getElementById(e.data.id);
       if (ele.length === 0) return;
       if (e.data.label !== undefined) ele.data('label', e.data.label);
+      if (e.data.rate !== undefined) ele.data('rate', e.data.rate);
+      if (e.data.topic !== undefined) ele.data('topic', e.data.topic);
+      if (e.data.topicStatus !== undefined) ele.data('topicStatus', e.data.topicStatus);
       ele.classes(e.classes || '');
     });
     if (state.selected) cy.getElementById(state.selected).addClass('selected');
   }
-  updateIssues(snap.issues);
-  updateChrome(snap);
-  renderReadiness(snap);
-  if (netState.view === 'network') renderNetwork(snap);
-  else if (netState.view === 'tf') renderTf(snap);
-  else if (netState.view === 'diag') renderDiagnostics(snap);
+  updateIssues(displaySnap.issues);
+  updateChrome(displaySnap);
+  renderReadiness(displaySnap);
+  renderFleetDrilldown();
+  updateEkgFromSnapshot(displaySnap);
+  if (netState.view === 'fleet') renderFleet(snap);
+  else if (netState.view === 'network') renderNetwork(displaySnap);
+  else if (netState.view === 'tf') renderTf(displaySnap);
+  else if (netState.view === 'diag') renderDiagnostics(displaySnap);
   if (state.selected) refreshInspector();
 }
 
@@ -237,6 +335,163 @@ function updateChrome(snap) {
   if (snap.profile) { chip.textContent = 'profile: ' + snap.profile; chip.classList.remove('hidden'); }
   else chip.classList.add('hidden');
   updateHealthChip(snap.issues || []);
+}
+
+function syncFleetUi(snap) {
+  const multi = isFleetSnapshot(snap);
+  const tab = document.getElementById('fleet-viewtab');
+  tab.classList.toggle('hidden', !multi);
+  if (!multi) {
+    if (fleetState.selectedHost) {
+      fleetState.selectedHost = null;
+      state.selected = null;
+      state.topoSig = '';
+    }
+    if (netState.view === 'fleet') setView('graph');
+    return;
+  }
+  if (!fleetState.autoOpened && !fleetState.selectedHost && netState.view === 'graph') {
+    fleetState.autoOpened = true;
+    setView('fleet');
+  }
+}
+
+function hostStats(snap, host) {
+  const match = x => hostOf(x) === host;
+  const nodes = (snap.nodes || []).filter(match);
+  const topics = (snap.topics || []).filter(match);
+  const issues = (snap.issues || []).filter(i => issueHost(i) === host);
+  const summary = (snap.hosts || []).find(h => h.host === host) || {};
+  const verdict = summary.verdict || (issues.some(i => i.severity === 'critical') ? 'critical'
+    : issues.some(i => i.severity === 'warning') ? 'warning' : 'ok');
+  return {
+    host,
+    nodes,
+    topics,
+    issues,
+    verdict,
+    issueCount: summary.issue_count ?? issues.length,
+    headline: summary.headline || '',
+  };
+}
+
+function readinessHtml(verdict) {
+  return `<div class="fleet-readiness" title="${escapeHtml(verdict)}">
+    <span class="ok ${verdict === 'ok' ? 'on' : ''}"></span>
+    <span class="warning ${verdict === 'warning' ? 'on' : ''}"></span>
+    <span class="critical ${verdict === 'critical' ? 'on' : ''}"></span>
+  </div>`;
+}
+
+function renderFleet(snap) {
+  const grid = document.getElementById('fleet-grid');
+  if (!isFleetSnapshot(snap)) {
+    grid.innerHTML = '<p class="hint">Fleet view appears when multiple hosts are present.</p>';
+    return;
+  }
+  const rows = hostNamesFromSnapshot(snap).map(h => hostStats(snap, h));
+  grid.innerHTML = rows.map(r => `
+    <button class="fleet-tile ${r.verdict === 'critical' ? 'critical' : ''}" data-host="${escapeHtml(r.host)}" title="${escapeHtml(r.headline)}">
+      <div class="fleet-head">
+        <span class="fleet-host">${escapeHtml(r.host)}</span>
+        <span class="fleet-issues ${r.issueCount ? 'hot' : ''}">${r.issueCount}</span>
+      </div>
+      ${readinessHtml(r.verdict)}
+      <canvas class="fleet-thumb" width="440" height="200" data-host="${escapeHtml(r.host)}"></canvas>
+      <div class="fleet-meta">
+        <span><b>${r.nodes.length}</b> nodes</span>
+        <span><b>${r.topics.length}</b> topics</span>
+        <span>${escapeHtml(r.verdict.toUpperCase())}</span>
+      </div>
+    </button>`).join('');
+  grid.querySelectorAll('.fleet-tile').forEach(tile => {
+    tile.addEventListener('click', () => openFleetHost(tile.dataset.host));
+  });
+  grid.querySelectorAll('canvas.fleet-thumb').forEach(c => {
+    drawFleetThumb(c, snap, c.dataset.host);
+  });
+}
+
+function drawFleetThumb(canvas, snap, host) {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const w = Math.max(180, Math.floor(rect.width || 240));
+  const h = Math.max(78, Math.floor(rect.height || 96));
+  if (canvas.width !== Math.ceil(w * dpr) || canvas.height !== Math.ceil(h * dpr)) {
+    canvas.width = Math.ceil(w * dpr);
+    canvas.height = Math.ceil(h * dpr);
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#0b0f15';
+  ctx.fillRect(0, 0, w, h);
+  const nodes = (snap.nodes || []).filter(n => hostOf(n) === host).slice(0, 10);
+  const topics = (snap.topics || []).filter(t => hostOf(t) === host && !HIDDEN_TOPICS.has(t.name)).slice(0, 10);
+  const xNode = 24, xTopic = w * 0.56, rowH = Math.max(16, Math.min(24, (h - 18) / Math.max(nodes.length, topics.length, 1)));
+  const posNode = {}, posTopic = {};
+  nodes.forEach((n, i) => { posNode[n.id] = { x: xNode, y: 12 + i * rowH }; });
+  topics.forEach((t, i) => { posTopic[t.name] = { x: xTopic, y: 12 + i * rowH }; });
+  ctx.lineWidth = 1;
+  topics.forEach(t => {
+    (t.publishers || []).forEach(p => {
+      if (!posNode[p] || !posTopic[t.name]) return;
+      ctx.strokeStyle = (t.status === 'critical') ? '#f85149' : (t.status === 'warning') ? '#d29922' : '#3b4252';
+      ctx.beginPath();
+      ctx.moveTo(posNode[p].x + 12, posNode[p].y + 4);
+      ctx.lineTo(posTopic[t.name].x - 10, posTopic[t.name].y + 4);
+      ctx.stroke();
+    });
+  });
+  const dot = (x, y, r, fill, stroke) => {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = fill;
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 1.5;
+    ctx.fill();
+    ctx.stroke();
+  };
+  nodes.forEach(n => {
+    const p = posNode[n.id], st = n.status || 'ok';
+    dot(p.x, p.y + 4, 5, '#1c2330', st === 'critical' ? '#f85149' : st === 'warning' ? '#d29922' : '#3fb950');
+  });
+  topics.forEach(t => {
+    const p = posTopic[t.name], st = t.status || 'unknown';
+    ctx.fillStyle = '#11161f';
+    ctx.strokeStyle = st === 'critical' ? '#f85149' : st === 'warning' ? '#d29922' : st === 'ok' ? '#3fb950' : '#6e7681';
+    ctx.lineWidth = 1.5;
+    roundRectPath(ctx, p.x - 8, p.y - 1, 18, 10, 3);
+    ctx.fill();
+    ctx.stroke();
+  });
+}
+
+function openFleetHost(host) {
+  fleetState.selectedHost = host;
+  state.selected = null;
+  state.topoSig = '';
+  setView('graph');
+  if (state.rawLast) render(state.rawLast);
+}
+
+function closeFleetHost() {
+  fleetState.selectedHost = null;
+  state.selected = null;
+  state.topoSig = '';
+  setView('fleet');
+  if (state.rawLast) render(state.rawLast);
+}
+
+function renderFleetDrilldown() {
+  const box = document.getElementById('fleet-drilldown');
+  const label = document.getElementById('fleet-drilldown-label');
+  if (!fleetState.selectedHost) {
+    box.classList.add('hidden');
+    return;
+  }
+  label.textContent = fleetState.selectedHost;
+  box.classList.toggle('hidden', netState.view !== 'graph');
 }
 
 // One-line system verdict in the header: ok / degraded / critical, mirroring
@@ -601,7 +856,10 @@ function escapeHtml(s) {
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-cy.on('tap', 'node', evt => selectElement(evt.target.id()));
+cy.on('tap', 'node', evt => {
+  cancelCinemaForUser();
+  selectElement(evt.target.id());
+});
 
 // --- network table (DevTools-style topic view) ---
 const NET_COLS = [
@@ -617,6 +875,220 @@ const NET_COLS = [
   { key: 'status', label: 'Status', cls: '', fmt: t => `<span class="net-badge ${t.status}">${t.status}</span>` },
 ];
 const netState = { sortKey: 'name', sortDir: 1, query: '', view: 'graph' };
+
+// --- EKG sparklines on graph edges --------------------------------------- #
+const ekgState = {
+  on: true,
+  canvas: document.createElement('canvas'),
+  ctx: null,
+  histories: new Map(),
+  cache: new Map(),
+  lastTimestamp: null,
+  raf: 0,
+  width: -1,
+  height: -1,
+  dpr: 0,
+};
+ekgState.canvas.id = 'ekg-overlay';
+document.getElementById('graph-pane').appendChild(ekgState.canvas);
+ekgState.ctx = ekgState.canvas.getContext('2d');
+
+function snapshotSeconds(snap) {
+  return (typeof snap.timestamp === 'number') ? snap.timestamp : performance.now() / 1000;
+}
+
+function rateIssueTopics(snap) {
+  const topics = new Set();
+  (snap.issues || []).forEach(issue => {
+    const kind = String(issue.kind || '');
+    if (kind !== 'rate_drop' && kind !== 'bottleneck') return;
+    (issue.related_topics || []).forEach(t => topics.add(t));
+  });
+  return topics;
+}
+
+function resetEkgHistory() {
+  ekgState.histories.clear();
+  ekgState.cache.clear();
+  ekgState.lastTimestamp = null;
+}
+
+function setEkgEnabled(on) {
+  ekgState.on = !!on;
+  if (!ekgState.on) {
+    resetEkgHistory();
+    clearEkgCanvas();
+    return;
+  }
+  if (state.last) updateEkgFromSnapshot(state.last);
+}
+
+function updateEkgFromSnapshot(snap) {
+  if (!ekgState.on) return;
+  const now = snapshotSeconds(snap);
+  if (ekgState.lastTimestamp !== null && now < ekgState.lastTimestamp - 0.001) {
+    resetEkgHistory();  // replay scrubbed or looped backwards
+  }
+  ekgState.lastTimestamp = now;
+
+  const slowTopics = rateIssueTopics(snap);
+  const active = new Set();
+  (snap.topics || []).forEach(t => {
+    if (HIDDEN_TOPICS.has(t.name) || typeof t.rate_hz !== 'number') return;
+    active.add(t.name);
+    let h = ekgState.histories.get(t.name);
+    if (!h) {
+      h = { samples: [], sig: '' };
+      ekgState.histories.set(t.name, h);
+    }
+    const last = h.samples[h.samples.length - 1];
+    if (!last || last.t !== now || last.rate !== t.rate_hz) {
+      h.samples.push({ t: now, rate: t.rate_hz });
+    }
+    const cutoff = now - EKG_CONFIG.historySeconds;
+    while (h.samples.length && h.samples[0].t < cutoff) h.samples.shift();
+    while (h.samples.length > EKG_CONFIG.maxSamples) h.samples.shift();
+
+    const bad = slowTopics.has(t.name);
+    const color = bad ? EKG_CONFIG.danger : EKG_CONFIG.accent;
+    const sig = `${color}|${h.samples.map(p => `${p.t}:${p.rate}`).join(',')}`;
+    if (sig !== h.sig) {
+      drawEkgCache(t.name, h.samples, color, bad);
+      h.sig = sig;
+    }
+  });
+
+  for (const name of Array.from(ekgState.histories.keys())) {
+    if (!active.has(name)) {
+      ekgState.histories.delete(name);
+      ekgState.cache.delete(name);
+    }
+  }
+  scheduleEkgDraw();
+}
+
+function drawEkgCache(topic, samples, color, bad) {
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const w = EKG_CONFIG.width;
+  const h = EKG_CONFIG.height;
+  const c = document.createElement('canvas');
+  c.width = Math.ceil(w * dpr);
+  c.height = Math.ceil(h * dpr);
+  const ctx = c.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = EKG_CONFIG.bg;
+  ctx.strokeStyle = bad ? 'rgba(248,81,73,0.55)' : 'rgba(88,166,255,0.34)';
+  ctx.lineWidth = 1;
+  roundRectPath(ctx, 0.5, 0.5, w - 1, h - 1, 4);
+  ctx.fill();
+  ctx.stroke();
+
+  const pad = 3;
+  const maxRate = Math.max(1, ...samples.map(p => Math.max(0, p.rate || 0)));
+  const start = Math.max(samples[0]?.t ?? 0, (samples[samples.length - 1]?.t ?? 0) - EKG_CONFIG.historySeconds);
+  const end = samples[samples.length - 1]?.t ?? start;
+  const span = Math.max(1, end - start);
+  const point = (p, i) => {
+    const x = samples.length === 1 ? w / 2 : pad + ((p.t - start) / span) * (w - pad * 2);
+    const clampedRate = Math.max(0, Math.min(maxRate, p.rate || 0));
+    const y = pad + (1 - clampedRate / maxRate) * (h - pad * 2);
+    return { x: Math.max(pad, Math.min(w - pad, x)), y: Math.max(pad, Math.min(h - pad, y + (i % 2 ? 0.4 : -0.4))) };
+  };
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.8;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  if (!samples.length) {
+    ctx.moveTo(pad, h / 2);
+    ctx.lineTo(w - pad, h / 2);
+  } else if (samples.length === 1) {
+    const p = point(samples[0], 0);
+    ctx.moveTo(pad, p.y);
+    ctx.lineTo(w - pad, p.y);
+  } else {
+    samples.forEach((s, i) => {
+      const p = point(s, i);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    });
+  }
+  ctx.stroke();
+  ekgState.cache.set(topic, { canvas: c, bad });
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function resizeEkgCanvas() {
+  const rect = document.getElementById('graph-pane').getBoundingClientRect();
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const w = Math.max(0, Math.floor(rect.width));
+  const h = Math.max(0, Math.floor(rect.height));
+  if (w === ekgState.width && h === ekgState.height && dpr === ekgState.dpr) return;
+  ekgState.width = w;
+  ekgState.height = h;
+  ekgState.dpr = dpr;
+  ekgState.canvas.width = Math.ceil(w * dpr);
+  ekgState.canvas.height = Math.ceil(h * dpr);
+  ekgState.canvas.style.width = `${w}px`;
+  ekgState.canvas.style.height = `${h}px`;
+  ekgState.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function clearEkgCanvas() {
+  resizeEkgCanvas();
+  ekgState.ctx.clearRect(0, 0, ekgState.width, ekgState.height);
+}
+
+function scheduleEkgDraw() {
+  if (!ekgState.on) return;
+  if (ekgState.raf) return;
+  ekgState.raf = requestAnimationFrame(() => {
+    ekgState.raf = 0;
+    drawEkgOverlay();
+  });
+}
+
+function drawEkgOverlay() {
+  resizeEkgCanvas();
+  const ctx = ekgState.ctx;
+  ctx.clearRect(0, 0, ekgState.width, ekgState.height);
+  if (!ekgState.on || netState.view !== 'graph') return;
+  if (cy.zoom() < EKG_CONFIG.zoomMin) return;
+  const edges = cy.edges().filter(e => e.data('topic') && e.visible());
+  if (!edges.length || edges.length > EKG_CONFIG.maxEdges) return;
+
+  edges.forEach(e => {
+    const topic = e.data('topic');
+    const cached = ekgState.cache.get(topic);
+    if (!cached) return;
+    const src = e.source().renderedPosition();
+    const dst = e.target().renderedPosition();
+    const x = (src.x + dst.x) / 2;
+    const y = (src.y + dst.y) / 2;
+    if (x < -EKG_CONFIG.width || y < -EKG_CONFIG.height ||
+        x > ekgState.width + EKG_CONFIG.width ||
+        y > ekgState.height + EKG_CONFIG.height) return;
+    ctx.drawImage(cached.canvas, x - EKG_CONFIG.width / 2, y - EKG_CONFIG.height / 2,
+                  EKG_CONFIG.width, EKG_CONFIG.height);
+  });
+}
+
+cy.on('pan zoom viewport resize layoutstop', scheduleEkgDraw);
 
 function netNum(t, key) {
   const v = t[key];
@@ -665,21 +1137,36 @@ function renderNetwork(snap) {
     tr.addEventListener('click', () => selectElement('T:' + tr.dataset.topic)));
 }
 
-const VIEW_PANES = { graph: 'graph-pane', network: 'network-pane', tf: 'tf-pane', diag: 'diag-pane' };
+const VIEW_PANES = { graph: 'graph-pane', fleet: 'fleet-pane', network: 'network-pane', tf: 'tf-pane', diag: 'diag-pane' };
 
 function setView(view) {
   netState.view = view;
   document.querySelectorAll('.viewtab').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   Object.entries(VIEW_PANES).forEach(([v, id]) =>
     document.getElementById(id).classList.toggle('hidden', v !== view));
-  if (view === 'network' && state.last) renderNetwork(state.last);
+  renderFleetDrilldown();
+  if (view === 'fleet' && state.rawLast) renderFleet(state.rawLast);
+  else if (view === 'network' && state.last) renderNetwork(state.last);
   else if (view === 'tf' && state.last) renderTf(state.last);
   else if (view === 'diag' && state.last) renderDiagnostics(state.last);
-  else if (view === 'graph') setTimeout(() => cy.resize(), 0);  // container was hidden
+  else if (view === 'graph') setTimeout(() => { cy.resize(); scheduleEkgDraw(); }, 0);  // container was hidden
+  if (view !== 'graph') clearEkgCanvas();
 }
 
 document.querySelectorAll('.viewtab').forEach(b =>
-  b.addEventListener('click', () => setView(b.dataset.view)));
+  b.addEventListener('click', () => {
+    cancelCinemaForUser();
+    if (b.dataset.view === 'fleet') {
+      fleetState.selectedHost = null;
+      state.selected = null;
+      state.topoSig = '';
+    }
+    setView(b.dataset.view);
+  }));
+document.getElementById('fleet-back').addEventListener('click', () => {
+  cancelCinemaForUser();
+  closeFleetHost();
+});
 document.getElementById('net-filter').addEventListener('input', e => {
   netState.query = e.target.value;
   if (state.last) renderNetwork(state.last);
@@ -810,8 +1297,12 @@ function switchTab(name) {
 }
 window._issuesTab = () => switchTab('issues');
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
-document.getElementById('fit-btn').addEventListener('click', () => cy.fit(undefined, 40));
+document.getElementById('fit-btn').addEventListener('click', () => {
+  cancelCinemaForUser();
+  cy.fit(undefined, 40);
+});
 document.getElementById('pause-btn').addEventListener('click', e => {
+  cancelCinemaForUser();
   state.paused = !state.paused;
   e.target.textContent = state.paused ? '▶ Resume' : '⏸ Pause';
 });
@@ -865,21 +1356,25 @@ async function initReplay() {
   if (!s || s.mode !== 'replay') return;
   replayState.active = true;
   replayState.total = s.total;
+  updateCinemaButtons();
   document.getElementById('replaybar').classList.remove('hidden');
   const seek = document.getElementById('rp-seek');
   const frame = document.getElementById('rp-frame');
   seek.max = Math.max(0, s.total - 1);
 
   seek.addEventListener('input', () => {
+    cancelCinemaForUser();
     replayState.dragging = true;
     frame.textContent = `${+seek.value + 1} / ${s.total}`;
   });
   seek.addEventListener('change', async () => {
+    cancelCinemaForUser();
     await fetch('/api/v1/replay/seek?index=' + seek.value, { method: 'POST' });
     replayState.dragging = false;
     rpSyncPlay(false);
   });
   document.getElementById('rp-play').addEventListener('click', async () => {
+    cancelCinemaForUser();
     const playing = document.getElementById('rp-play').dataset.playing !== 'true';
     await fetch('/api/v1/replay/play?playing=' + playing, { method: 'POST' });
     rpSyncPlay(playing);
@@ -895,19 +1390,438 @@ async function initReplay() {
       rpSyncPlay(st.playing);
     } catch (e) { /* ignore */ }
   }, 300);
+
+  if (AUTO_CINEMA) setTimeout(() => startCinema(), 500);
 }
 
-// --- settings (live config tuning; absent in replay mode) ---
+// --- cinematic incident replay + WebM export ----------------------------- #
+const cinemaState = {
+  active: false,
+  recording: false,
+  timer: 0,
+  phase: 'idle',
+  frame: 0,
+  total: 0,
+  recoveryLeft: 0,
+  noIssueLoops: 0,
+  issueSeen: false,
+  lastIssueKey: '',
+  currentIssue: null,
+  caption: '',
+  captionFull: '',
+  captionTimer: 0,
+  done: null,
+  staticReplay: null,
+};
+
+function cinemaAvailable() {
+  return replayState.active || !!cinemaState.staticReplay;
+}
+
+function updateCinemaButtons() {
+  const available = cinemaAvailable();
+  const cinemaBtn = document.getElementById('cinema-btn');
+  const exportBtn = document.getElementById('export-webm');
+  if (cinemaBtn) cinemaBtn.disabled = !available;
+  if (exportBtn) exportBtn.disabled = !available;
+}
+
+function cancelCinemaForUser() {
+  if (cinemaState.active) cancelCinema({ resume: false, resolve: true });
+}
+
+function setCaption(text) {
+  clearInterval(cinemaState.captionTimer);
+  cinemaState.captionFull = text || '';
+  cinemaState.caption = '';
+  const el = document.getElementById('cinema-caption');
+  if (!cinemaState.captionFull) {
+    el.classList.add('hidden');
+    el.textContent = '';
+    return;
+  }
+  el.classList.remove('hidden');
+  let i = 0;
+  cinemaState.captionTimer = setInterval(() => {
+    i += 1;
+    cinemaState.caption = cinemaState.captionFull.slice(0, i);
+    el.textContent = cinemaState.caption;
+    if (i >= cinemaState.captionFull.length) clearInterval(cinemaState.captionTimer);
+  }, CINEMA_CONFIG.subtitleCharMs);
+}
+
+function clearCaption() {
+  clearInterval(cinemaState.captionTimer);
+  cinemaState.caption = '';
+  cinemaState.captionFull = '';
+  const el = document.getElementById('cinema-caption');
+  el.classList.add('hidden');
+  el.textContent = '';
+}
+
+function pickCinemaIssue(issues) {
+  const sev = { critical: 0, warning: 1, info: 2 };
+  return (issues || []).slice().sort((a, b) => {
+    const sa = sev[a.severity] ?? 9;
+    const sb = sev[b.severity] ?? 9;
+    if (sa !== sb) return sa - sb;
+    const ak = (a.related_nodes || []).length || (a.related_topics || []).length ? 0 : 1;
+    const bk = (b.related_nodes || []).length || (b.related_topics || []).length ? 0 : 1;
+    return ak - bk;
+  })[0] || null;
+}
+
+function cinemaIssueKey(issue) {
+  if (!issue) return '';
+  const node = (issue.related_nodes || [])[0] || '';
+  const topic = (issue.related_topics || [])[0] || '';
+  return `${issue.severity}|${issue.kind || ''}|${issue.title || ''}|${node}|${topic}`;
+}
+
+function cinemaIssueTarget(issue) {
+  const node = (issue.related_nodes || [])[0];
+  const topic = (issue.related_topics || [])[0];
+  if (node) return { id: 'N:' + node, key: node };
+  if (topic) return { id: 'T:' + topic, key: topic };
+  return null;
+}
+
+function cinemaIssueCaption(issue) {
+  const bits = [issue.title || 'Runtime issue'];
+  (issue.evidence || []).slice(0, 2).forEach(e => bits.push(e));
+  return bits.join(' - ');
+}
+
+function focusCinemaIssue(issue) {
+  const target = cinemaIssueTarget(issue);
+  if (!target) return;
+  const ele = cy.getElementById(target.id);
+  if (!ele.length) return;
+  const path = tracePathLocal(state.last, target.key);
+  if (path) highlightPath(path);
+  const pos = ele.position();
+  const zoom = CINEMA_CONFIG.zoomLevel;
+  const pan = {
+    x: cy.width() / 2 - pos.x * zoom,
+    y: cy.height() / 2 - pos.y * zoom,
+  };
+  cy.animate({
+    zoom,
+    pan,
+  }, { duration: CINEMA_CONFIG.cameraMs });
+  setTimeout(() => {
+    if (!cinemaState.active || cinemaState.currentIssue !== issue) return;
+    cy.viewport({ zoom, pan });
+    if (cy.zoom() < CINEMA_CONFIG.zoomLevel) {
+      cy.animate({ zoom: { level: CINEMA_CONFIG.zoomLevel, position: ele.position() } },
+                 { duration: Math.floor(CINEMA_CONFIG.cameraMs / 2) });
+    }
+  }, CINEMA_CONFIG.cameraMs + 20);
+}
+
+function updateReplayUi(index, total, playing) {
+  const seek = document.getElementById('rp-seek');
+  const frame = document.getElementById('rp-frame');
+  seek.max = Math.max(0, total - 1);
+  seek.value = index;
+  frame.textContent = `${index + 1} / ${total}`;
+  rpSyncPlay(playing);
+}
+
+async function showCinemaFrame(index) {
+  const total = cinemaState.total;
+  const clamped = Math.max(0, Math.min(total - 1, index));
+  cinemaState.frame = clamped;
+  if (cinemaState.staticReplay) {
+    const snap = cinemaState.staticReplay.show(clamped, false);
+    updateReplayUi(clamped, total, false);
+    return snap;
+  }
+  await fetch('/api/v1/replay/seek?index=' + clamped, { method: 'POST' });
+  const snap = await (await fetch('/api/v1/snapshot')).json();
+  render(snap);
+  updateReplayUi(clamped, total, false);
+  return snap;
+}
+
+function pauseCinemaSource() {
+  if (cinemaState.staticReplay) {
+    cinemaState.staticReplay.setPlaying(false);
+    return Promise.resolve();
+  }
+  return fetch('/api/v1/replay/play?playing=false', { method: 'POST' }).catch(() => {});
+}
+
+function resumeCinemaSource() {
+  if (cinemaState.staticReplay) {
+    cinemaState.staticReplay.setPlaying(true);
+    return Promise.resolve();
+  }
+  return fetch('/api/v1/replay/play?playing=true', { method: 'POST' }).catch(() => {});
+}
+
+function finishCinema(result) {
+  clearTimeout(cinemaState.timer);
+  cinemaState.timer = 0;
+  cinemaState.active = false;
+  cinemaState.recording = false;
+  cinemaState.phase = 'done';
+  cinemaState.currentIssue = null;
+  document.body.classList.remove('cinema-active');
+  const btn = document.getElementById('cinema-btn');
+  btn.classList.remove('active');
+  btn.textContent = '▶ Cinema';
+  updateCinemaButtons();
+  const done = cinemaState.done;
+  cinemaState.done = null;
+  if (done) done(result);
+}
+
+function cancelCinema(opts) {
+  const options = Object.assign({ resume: false, resolve: true }, opts || {});
+  clearTimeout(cinemaState.timer);
+  clearInterval(cinemaState.captionTimer);
+  clearCaption();
+  clearPathHighlight();
+  if (!cinemaState.active && !cinemaState.done) return;
+  if (options.resume) resumeCinemaSource();
+  if (options.resolve) finishCinema({ cancelled: true });
+  else {
+    cinemaState.active = false;
+    cinemaState.recording = false;
+    cinemaState.phase = 'idle';
+    cinemaState.done = null;
+    document.body.classList.remove('cinema-active');
+    const btn = document.getElementById('cinema-btn');
+    btn.classList.remove('active');
+    btn.textContent = '▶ Cinema';
+    updateCinemaButtons();
+  }
+}
+
+async function startCinema(options) {
+  if (!cinemaAvailable()) return { unavailable: true };
+  if (cinemaState.active) cancelCinema({ resume: false });
+  const opts = options || {};
+  await pauseCinemaSource();
+  setView('graph');
+  state.paused = false;
+  document.getElementById('pause-btn').textContent = '⏸ Pause';
+
+  cinemaState.active = true;
+  cinemaState.recording = !!opts.recording;
+  cinemaState.phase = 'overview';
+  cinemaState.frame = 0;
+  cinemaState.total = cinemaState.staticReplay ? cinemaState.staticReplay.total : replayState.total;
+  cinemaState.recoveryLeft = 0;
+  cinemaState.noIssueLoops = 0;
+  cinemaState.issueSeen = false;
+  cinemaState.lastIssueKey = '';
+  cinemaState.currentIssue = null;
+  document.body.classList.add('cinema-active');
+  const btn = document.getElementById('cinema-btn');
+  btn.classList.add('active');
+  btn.textContent = '■ Cinema';
+  setCaption('Incident Theater');
+  clearPathHighlight();
+  cy.animate({ fit: { eles: cy.elements(), padding: CINEMA_CONFIG.fitPadding } },
+             { duration: CINEMA_CONFIG.cameraMs });
+
+  const promise = new Promise(resolve => { cinemaState.done = resolve; });
+  cinemaState.timer = setTimeout(cinemaStep, CINEMA_CONFIG.normalFrameMs);
+  return promise;
+}
+
+async function cinemaStep() {
+  if (!cinemaState.active) return;
+  const snap = await showCinemaFrame(cinemaState.frame);
+  const issue = pickCinemaIssue(snap.issues || []);
+
+  if (issue) {
+    const key = cinemaIssueKey(issue);
+    cinemaState.phase = 'incident';
+    cinemaState.issueSeen = true;
+    cinemaState.currentIssue = issue;
+    if (key !== cinemaState.lastIssueKey) {
+      cinemaState.lastIssueKey = key;
+      setCaption(cinemaIssueCaption(issue));
+      focusCinemaIssue(issue);
+    }
+  } else if (cinemaState.issueSeen) {
+    if (cinemaState.phase !== 'recovery') {
+      cinemaState.phase = 'recovery';
+      cinemaState.recoveryLeft = CINEMA_CONFIG.recoveryFrames;
+      clearPathHighlight();
+      cy.animate({ fit: { eles: cy.elements(), padding: CINEMA_CONFIG.fitPadding } },
+                 { duration: CINEMA_CONFIG.cameraMs });
+      setCaption('Recovered - readiness restored');
+    } else {
+      cinemaState.recoveryLeft -= 1;
+    }
+    if (cinemaState.recoveryLeft <= 0) {
+      setTimeout(() => {
+        clearCaption();
+        finishCinema({ completed: true });
+      }, CINEMA_CONFIG.exportHoldMs);
+      return;
+    }
+  }
+
+  const next = cinemaState.frame + 1;
+  if (next >= cinemaState.total) {
+    if (!cinemaState.issueSeen && cinemaState.noIssueLoops < CINEMA_CONFIG.maxNoIssueLoops) {
+      cinemaState.noIssueLoops += 1;
+      cinemaState.frame = 0;
+      cinemaState.timer = setTimeout(cinemaStep, CINEMA_CONFIG.normalFrameMs);
+      return;
+    }
+    if (!cinemaState.issueSeen) {
+      setCaption('No issues in this recording - normal replay');
+      setTimeout(() => {
+        clearCaption();
+        clearPathHighlight();
+        resumeCinemaSource();
+        finishCinema({ noIssue: true });
+      }, CINEMA_CONFIG.exportHoldMs);
+      return;
+    }
+    setCaption('Incident remains active at end of recording');
+    setTimeout(() => finishCinema({ completed: true }), CINEMA_CONFIG.exportHoldMs);
+    return;
+  }
+
+  cinemaState.frame = next;
+  const delay = cinemaState.phase === 'incident' ? CINEMA_CONFIG.slowFrameMs : CINEMA_CONFIG.normalFrameMs;
+  cinemaState.timer = setTimeout(cinemaStep, delay);
+}
+
+function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  let line = '';
+  for (const word of words) {
+    const test = line ? line + ' ' + word : word;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      ctx.fillText(line, x, y);
+      line = word;
+      y += lineHeight;
+    } else {
+      line = test;
+    }
+  }
+  if (line) ctx.fillText(line, x, y);
+}
+
+function createCinemaCapture() {
+  const pane = document.getElementById('graph-pane');
+  const rect = pane.getBoundingClientRect();
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(640, Math.floor(rect.width));
+  canvas.height = Math.max(360, Math.floor(rect.height));
+  const ctx = canvas.getContext('2d');
+  let raf = 0;
+
+  const draw = () => {
+    const current = pane.getBoundingClientRect();
+    const sx = canvas.width / Math.max(1, current.width);
+    const sy = canvas.height / Math.max(1, current.height);
+    ctx.fillStyle = '#0d1117';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    document.querySelectorAll('#cy canvas').forEach(src => {
+      const r = src.getBoundingClientRect();
+      ctx.drawImage(src, (r.left - current.left) * sx, (r.top - current.top) * sy,
+                    r.width * sx, r.height * sy);
+    });
+    const ekg = document.getElementById('ekg-overlay');
+    if (ekg) ctx.drawImage(ekg, 0, 0, canvas.width, canvas.height);
+    if (cinemaState.caption) {
+      const pad = 22;
+      const boxH = 78;
+      ctx.fillStyle = 'rgba(6,8,13,0.78)';
+      ctx.fillRect(0, canvas.height - boxH, canvas.width, boxH);
+      ctx.fillStyle = '#c9d1d9';
+      ctx.font = '18px -apple-system, Segoe UI, sans-serif';
+      drawWrappedText(ctx, cinemaState.caption, pad, canvas.height - boxH + 31,
+                      canvas.width - pad * 2, 24);
+    }
+    raf = requestAnimationFrame(draw);
+  };
+  draw();
+  return {
+    canvas,
+    stream: canvas.captureStream(CINEMA_CONFIG.exportFps),
+    stop: () => cancelAnimationFrame(raf),
+  };
+}
+
+function downloadBlob(name, blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function exportCinemaWebm(btn) {
+  if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) {
+    flash(btn, 'unsupported');
+    return;
+  }
+  btn.disabled = true;
+  const old = btn.textContent;
+  btn.textContent = 'recording...';
+  const capture = createCinemaCapture();
+  const chunks = [];
+  const mimeType = CINEMA_CONFIG.mimeTypes.find(t => MediaRecorder.isTypeSupported(t)) || '';
+  const recorder = mimeType
+    ? new MediaRecorder(capture.stream, { mimeType })
+    : new MediaRecorder(capture.stream);
+  const stopped = new Promise(resolve => {
+    recorder.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    recorder.onstop = resolve;
+  });
+  recorder.start(200);
+  try {
+    await startCinema({ recording: true });
+    await new Promise(resolve => setTimeout(resolve, 200));
+    recorder.stop();
+    await stopped;
+    downloadBlob('ros-graph-incident-theater.webm',
+                 new Blob(chunks, { type: mimeType || 'video/webm' }));
+  } catch (e) {
+    try { recorder.stop(); } catch (_) { /* already stopped */ }
+    flash(btn, 'failed');
+  } finally {
+    capture.stop();
+    btn.disabled = !cinemaAvailable();
+    btn.textContent = old;
+  }
+}
+
+document.getElementById('cinema-btn').addEventListener('click', () => {
+  if (cinemaState.active) cancelCinema({ resume: false });
+  else startCinema();
+});
+document.getElementById('export-webm').addEventListener('click', e => exportCinemaWebm(e.target));
+updateCinemaButtons();
+
+// --- settings (local visual toggles + live config tuning when available) ---
 async function initSettings() {
+  renderSettingsPanel(null);
   let cfg;
   try { cfg = await (await fetch('/api/v1/config')).json(); } catch (e) { return; }
   if (!cfg || cfg.high_cpu_percent === undefined) return;  // replay/no-config
+  renderSettingsPanel(cfg);
+}
+
+function renderSettingsPanel(cfg) {
   document.getElementById('tab-settings-btn').classList.remove('hidden');
 
-  const rates = Object.entries(cfg.expected_min_rate || {})
+  const rates = Object.entries((cfg && cfg.expected_min_rate) || {})
     .map(([t, hz]) => `${t} = ${hz}`).join('\n');
-  document.getElementById('tab-settings').innerHTML = `
-    <div class="settings">
+  const liveControls = cfg ? `
       <div class="section-title">Thresholds</div>
       <label>High CPU % <input id="cfg-cpu" type="number" step="1"></label>
       <label>High bandwidth (MB/s) <input id="cfg-bw" type="number" step="1"></label>
@@ -916,9 +1830,21 @@ async function initSettings() {
       <div class="section-title">Expected min rate — one <code>topic = Hz</code> per line</div>
       <textarea id="cfg-rates" rows="6"></textarea>
       <div><button id="cfg-save" class="btn">Save</button>
-        <span id="cfg-status" class="hint"></span></div>
+        <span id="cfg-status" class="hint"></span></div>` :
+      '<p class="hint">Live threshold tuning is available when connected to an agent.</p>';
+  document.getElementById('tab-settings').innerHTML = `
+    <div class="settings">
+      <div class="section-title">Visuals</div>
+      <label class="setting-row">
+        <span><b>EKG sparklines</b><small>Topic rate history on graph edges</small></span>
+        <input id="cfg-ekg" type="checkbox" ${ekgState.on ? 'checked' : ''}>
+      </label>
+      ${liveControls}
     </div>`;
   const $ = id => document.getElementById(id);
+  $('cfg-ekg').addEventListener('change', e => setEkgEnabled(e.target.checked));
+  if (!cfg) return;
+
   $('cfg-cpu').value = cfg.high_cpu_percent;
   $('cfg-bw').value = Math.round((cfg.high_bandwidth_bps || 0) / 1e6);
   $('cfg-stale').value = cfg.stale_topic_ms;
@@ -972,7 +1898,7 @@ async function bootStatic(url) {
   banner.id = 'demo-banner';
   banner.innerHTML =
     '▶ <b>Recorded demo</b> — scrub the timeline below; select a node to light up ' +
-    'its pipeline path. Live-only features (Copy AI briefing, MD export, Settings) ' +
+    'its pipeline path. Live-only features (Copy AI briefing, MD export, threshold tuning) ' +
     'need a running agent. <a href="https://github.com/rsasaki0109/ros_graph_debugger" target="_blank">Get it →</a>';
   document.body.insertBefore(banner, document.body.firstChild);
   ['export-md', 'ai-md-link'].forEach(id => {
@@ -987,17 +1913,40 @@ async function bootStatic(url) {
   document.getElementById('replaybar').classList.remove('hidden');
   seek.max = Math.max(0, total - 1);
   const show = () => { render(snaps[idx]); seek.value = idx; frame.textContent = `${idx + 1} / ${total}`; };
-  seek.addEventListener('input', () => { playing = false; rpSyncPlay(false); idx = +seek.value; show(); });
-  document.getElementById('rp-play').addEventListener('click', () => { playing = !playing; rpSyncPlay(playing); });
+  cinemaState.staticReplay = {
+    total,
+    show: (index, syncPlay) => {
+      idx = Math.max(0, Math.min(total - 1, index));
+      if (syncPlay === false) playing = false;
+      show();
+      return snaps[idx];
+    },
+    setPlaying: on => { playing = !!on; rpSyncPlay(playing); },
+  };
+  updateCinemaButtons();
+  seek.addEventListener('input', () => {
+    cancelCinemaForUser();
+    playing = false;
+    rpSyncPlay(false);
+    idx = +seek.value;
+    show();
+  });
+  document.getElementById('rp-play').addEventListener('click', () => {
+    cancelCinemaForUser();
+    playing = !playing;
+    rpSyncPlay(playing);
+  });
   rpSyncPlay(playing);
   show();
   setInterval(() => { if (playing && !state.paused) { idx = (idx + 1) % total; show(); } }, 600);
+  if (AUTO_CINEMA) setTimeout(() => startCinema(), 500);
 }
 
 if (window.RGD_DEMO_URL) {
+  initSettings();
   bootStatic(window.RGD_DEMO_URL);
 } else {
+  initSettings();
   loadProfile().finally(connect);
   initReplay();
-  initSettings();
 }

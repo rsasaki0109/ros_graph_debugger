@@ -6,6 +6,7 @@ from ros_graph_debugger.federation import (
 )
 from ros_graph_debugger.health import summarize_health
 from ros_graph_debugger.markdown import snapshot_to_markdown
+from ros_graph_debugger.replay import FleetReplayStore, build_demo_recording
 
 
 def _snap(rate, critical):
@@ -96,3 +97,41 @@ def test_federated_store_skips_unreachable_agent():
     store.refresh()
     assert {n['id'] for n in store.snapshot().to_dict()['nodes']} == \
         {'/up/detector', '/down/detector'}
+
+
+def test_fleet_replay_store_multiplexes_demo_with_phase_offsets():
+    _, snaps = build_demo_recording(frames=48)
+    store = FleetReplayStore(snaps, 6)
+    snap = store.snapshot().to_dict()
+
+    assert snap['profile'] == 'federated'
+    assert {h['host'] for h in snap['hosts']} == {
+        'robot1', 'robot2', 'robot3', 'robot4', 'robot5', 'robot6'}
+    assert {n['host'] for n in snap['nodes']} == {
+        'robot1', 'robot2', 'robot3', 'robot4', 'robot5', 'robot6'}
+    assert all(n['id'].startswith('/robot') for n in snap['nodes'])
+    critical_hosts = [h for h in snap['hosts'] if h['verdict'] == 'critical']
+    assert 1 <= len(critical_hosts) <= 2
+
+    counts = []
+    for i in range(len(snaps)):
+        store.seek(i)
+        frame = store.snapshot().to_dict()
+        counts.append(sum(h['verdict'] == 'critical' for h in frame['hosts']))
+    assert min(counts) >= 1
+    assert max(counts) <= 2
+
+
+def test_fleet_replay_store_keeps_replay_controls():
+    _, snaps = build_demo_recording()
+    store = FleetReplayStore(snaps, 3, loop=False)
+
+    store.seek(12)
+    state = store.state()
+    assert state['index'] == 12
+    assert state['playing'] is False
+    assert state['fleet_size'] == 3
+
+    store.set_playing(True)
+    store.advance()
+    assert store.state()['index'] == 13
