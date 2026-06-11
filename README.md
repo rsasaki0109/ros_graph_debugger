@@ -131,7 +131,7 @@ and `htop`. Finding "why is my pipeline slow" means bouncing between all of them
 ROS Graph Debugger puts graph, metrics, QoS, TF, diagnostics, and bottleneck
 detection into one live view — and one Markdown briefing you can hand to an AI.
 
-## Features (v0.1)
+## Features
 
 - **Live ROS graph** with auto layout (pub → topic → sub) and **animated data
   flow** — dashes march along each edge at a speed set by the topic's rate, and
@@ -386,15 +386,18 @@ node is modified.
   (incl. a no-ROS `--demo`), live tuning (Settings tab + pattern-based expected
   rates), a topic Network table, **TF tree + Diagnostics views**, an **MCP
   server** with full endpoint coverage, and message latency Tier A.
-- **v0.3** *(current)* — Tier C **callback execution-time** stats +
+- **v0.3** — Tier C **callback execution-time** stats +
   `slow_callback` issues with **stage-aware budgets** (synthetic source shipped;
   live `ros2_tracing`/LTTng adapter next), a **pipeline-path tracer** (rate +
   callback bottleneck), a **system health verdict**, **focused per-node/-topic
   AI briefings**, report/Inspector polish, and **layered node→process
   attribution** with honest confidence, and **fleet federation**
   (`rgd federate` merges several robots' agents into one namespaced briefing, or
-  `--serve` shows the whole fleet live in the web UI). *Next:* a turn-key live
-  tracing converter.
+  `--serve` shows the whole fleet live in the web UI).
+- **v0.4** *(current)* — EKG sparklines on graph edges, Incident Theater
+  replay/WebM export, `rgd diff --image` plus PR action support, optional
+  `rgd top`, and the Fleet wall with `rgd serve --demo --fleet N`. *Next:* a
+  turn-key live tracing converter.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full per-release list.
 

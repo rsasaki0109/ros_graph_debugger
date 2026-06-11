@@ -7,6 +7,11 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 ## [Unreleased]
 
 ### Added
+- Nothing yet.
+
+## [0.4.0] — show it — 2026-06-11
+
+### Added
 - **EKG sparklines** on graph edges — recent topic-rate history is drawn on
   the live graph, turning red when a rate/bottleneck issue touches that topic.
 - **Incident Theater** — replay/cinema mode pans to the first critical issue,
@@ -29,7 +34,7 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
   new issues, and a health-verdict change, as a Markdown / JSON briefing.
   `--fail-on-regression` exits non-zero to gate CI.
 
-## [0.3.0] — explain it (in progress)
+## [0.3.0] — explain it — 2026-06-03
 
 ### Added
 - **Tier C tracing (synthetic source)** — per-callback execution-time stats
