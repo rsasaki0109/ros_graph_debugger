@@ -69,6 +69,8 @@ ros2 run ros_graph_debugger demo_pipeline
 
 ```bash
 ros2 run ros_graph_debugger rgd serve --demo     # → http://localhost:3939
+ros2 run ros_graph_debugger rgd serve --demo --cinema
+ros2 run ros_graph_debugger rgd serve --demo --fleet 6
 ```
 
 Replays a scripted `camera → detector → … → controller` session in the real web
@@ -77,6 +79,23 @@ bottleneck issue appears, and `map → base_link` goes stale — then recovers. 
 the timeline at the bottom to scrub through it. This needs no DDS, so it's the
 fastest way to try the tool (and to record a demo GIF). Replay any captured
 session the same way: `rgd serve run.rgd.json`.
+
+`--fleet N` multiplexes the built-in demo into `robot1..robotN` with phase
+offsets and opens the Fleet wall: per-robot health tiles, issue badges, mini
+graph thumbnails, and click-through drill-down to one robot's full graph.
+
+<p align="center">
+  <img src="docs/img/fleet-wall.png" alt="Fleet wall showing six robots, with two critical hosts pulsing red and each tile showing a mini graph thumbnail" width="900">
+</p>
+
+`--cinema` opens Incident Theater: the replay starts from a wide view, zooms to
+the first critical issue, slows the timeline, captions the evidence, lights the
+pipeline path, then pulls back on recovery. In the UI, use **Export WebM** to
+record one pass in the browser. Convert it to a shareable GIF with:
+
+```bash
+ffmpeg -i ros-graph-incident-theater.webm -vf "fps=12,scale=900:-1:flags=lanczos" docs/img/demo.gif
+```
 
 ---
 
@@ -162,6 +181,11 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   regex patterns like `^/control/command/.*` that set a floor for a whole stage).
 - **Live tuning**: a Settings tab (and `POST /api/v1/config`) to adjust expected
   rates and thresholds at runtime — no restart, the issue engine picks it up.
+- **Terminal top view**: `rgd top` gives an SSH-friendly dashboard with
+  readiness, node/topic rows, rate sparklines, CPU/callback p95, and issues.
+- **Fleet wall**: federation snapshots with multiple hosts show a Fleet tab of
+  per-robot tiles. Critical hosts pulse red, and each tile drills into that
+  host's full graph. Try it without DDS via `rgd serve --demo --fleet 6`.
 
 ## AI-friendly by design
 
@@ -236,6 +260,12 @@ ros2 run ros_graph_debugger rgd markdown        # AI briefing to stdout
 ros2 run ros_graph_debugger rgd issues          # list current issues
 ros2 run ros_graph_debugger rgd doctor          # is the agent up?
 
+# terminal dashboard (requires optional TUI extra)
+pip install ros_graph_debugger[tui]
+ros2 run ros_graph_debugger rgd top             # live agent from --base
+ros2 run ros_graph_debugger rgd top --demo      # no DDS required
+ros2 run ros_graph_debugger rgd top run.rgd.json
+
 # fleet: merge several robots' agents into one AI briefing
 ros2 run ros_graph_debugger rgd federate robot1=http://10.0.0.2:3939 robot2=http://10.0.0.3:3939
 
@@ -258,14 +288,48 @@ ros2 run ros_graph_debugger rgd report run.rgd.json --html report.html --md repo
 # or replay the captured session in the web UI with a time-scrubber
 ros2 run ros_graph_debugger rgd serve run.rgd.json
 
+# cinematic replay for screenshots / WebM export
+ros2 run ros_graph_debugger rgd serve run.rgd.json --cinema
+
 # did my change regress the pipeline? compare two recordings (exit 1 = regressed)
 ros2 run ros_graph_debugger rgd diff before.rgd.json after.rgd.json --fail-on-regression
+
+# render the same comparison as a before/after graph image
+ros2 run ros_graph_debugger rgd diff before.rgd.json after.rgd.json --image diff.svg
 ```
 
 `rgd diff` compares two recordings and reports what got **worse** — topic-rate
 drops, slower callbacks, new issues, and a health-verdict change — as a Markdown
 (or `--json`) regression briefing. With `--fail-on-regression` it exits non-zero,
-so you can gate a CI job on "this change didn't slow the pipeline down."
+so you can gate a CI job on "this change didn't slow the pipeline down." Add
+`--image diff.svg` to render a side-by-side graph; use `--image diff.png` after
+installing `ros_graph_debugger[image]` for optional PNG conversion.
+
+### CI graph diff comments
+
+Use the bundled composite action to upload the diff image as a workflow artifact
+and comment on pull requests:
+
+```yaml
+name: ROS graph regression
+
+on:
+  pull_request:
+
+jobs:
+  graph-diff:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./  # or rsasaki0109/ros_graph_debugger@vX.Y.Z
+        with:
+          baseline: recordings/before.rgd.json
+          candidate: recordings/after.rgd.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+```
 
 The report leads with a **system-health rollup** (what share of the recording
 was critical / degraded / ok, and how it ended — a one-line CI gate), ranks

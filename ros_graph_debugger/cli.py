@@ -69,13 +69,17 @@ def _cmd_serve(args) -> int:
     import uvicorn
 
     from .paths import find_web_dir
-    from .replay import ReplayStore, build_demo_recording
+    from .replay import FleetReplayStore, ReplayStore, build_demo_recording
     from .recording import read_recording
     from .server import create_app
 
     if args.demo:
-        header, snapshots = build_demo_recording()
+        frames = 48 if args.fleet and args.fleet > 1 else 40
+        header, snapshots = build_demo_recording(frames=frames)
     elif args.file:
+        if args.fleet and args.fleet > 1:
+            print('error: --fleet is only supported with --demo', file=sys.stderr)
+            return 1
         header, snapshots = read_recording(args.file)
     else:
         print('error: provide a recording file or --demo', file=sys.stderr)
@@ -85,17 +89,25 @@ def _cmd_serve(args) -> int:
         return 1
 
     interval = args.interval or header.get('interval') or 0.5
-    replay = ReplayStore(snapshots, loop=not args.once)
-    profile_data = header.get('profile')
+    if args.fleet < 1:
+        print('error: --fleet must be >= 1', file=sys.stderr)
+        return 1
+    replay = (FleetReplayStore(snapshots, args.fleet, loop=not args.once)
+              if args.demo and args.fleet > 1
+              else ReplayStore(snapshots, loop=not args.once))
+    profile_data = {'name': 'federated', 'groups': {}} \
+        if args.demo and args.fleet > 1 else header.get('profile')
     app = create_app(replay, find_web_dir(), profile_data=profile_data,
                      stream_period=min(0.25, interval), replay=replay,
                      replay_interval=interval)
 
     url = f'http://{args.host}:{args.port}'
-    src = 'built-in demo' if args.demo else args.file
-    print(f'\n  replaying {src} ({len(snapshots)} frames @ {interval}s) at {url}\n')
+    open_url = url + ('/?cinema=1' if args.cinema else '')
+    src = f'built-in fleet demo x{args.fleet}' if args.demo and args.fleet > 1 \
+        else ('built-in demo' if args.demo else args.file)
+    print(f'\n  replaying {src} ({len(snapshots)} frames @ {interval}s) at {open_url}\n')
     if not args.no_browser and os.environ.get('DISPLAY'):
-        threading.Timer(1.0, lambda: webbrowser.open(url)).start()
+        threading.Timer(1.0, lambda: webbrowser.open(open_url)).start()
     uvicorn.run(app, host=args.host, port=args.port, log_level='warning')
     return 0
 
@@ -145,14 +157,23 @@ def _cmd_diff(args) -> int:
     from .report import build_report
 
     summaries = []
+    recordings = []
     for path in (args.baseline, args.current):
         header, snaps = read_recording(path)
         if not snaps:
             print(f'error: no snapshots in {path}', file=sys.stderr)
             return 2
         summaries.append(build_report(header, snaps))
+        recordings.append(snaps)
 
     d = diff_reports(*summaries)
+    if args.image:
+        from .diff_image import write_diff_image
+        image = write_diff_image(args.image, d, recordings[0], recordings[1])
+        print(f'wrote {image["format"].upper()} diff image: {image["path"]}',
+              file=sys.stderr)
+        if image['note']:
+            print(f'note: {image["note"]}', file=sys.stderr)
     if args.json:
         sys.stdout.write(json.dumps(d))
     else:
@@ -216,6 +237,62 @@ def _cmd_federate(args) -> int:
     return 0
 
 
+def _cmd_top(args) -> int:
+    """Run the terminal dashboard against HTTP, a recording, or the demo."""
+    from .top_tui import (
+        build_top_model,
+        http_source,
+        recording_source,
+        render_plain,
+        run_top,
+        TopHistory,
+    )
+
+    profile = None
+    if args.demo:
+        from .replay import build_demo_recording
+        header, snaps = build_demo_recording()
+        profile = header.get('profile')
+        source = recording_source(snaps)
+    elif args.target and args.target.startswith(('http://', 'https://')):
+        base = args.target.rstrip('/')
+        source = http_source(base)
+        try:
+            profile = json.loads(_get(base, '/api/v1/profile'))
+        except Exception:
+            profile = None
+    elif args.target:
+        from .recording import read_recording
+        header, snaps = read_recording(args.target)
+        if not snaps:
+            print(f'error: recording has no snapshots: {args.target}',
+                  file=sys.stderr)
+            return 1
+        profile = header.get('profile')
+        source = recording_source(snaps)
+    else:
+        base = args.base.rstrip('/')
+        source = http_source(base)
+        try:
+            profile = json.loads(_get(base, '/api/v1/profile'))
+        except Exception:
+            profile = None
+
+    if args.plain:
+        hist = TopHistory()
+        # Advance a few demo/recording frames so sparklines and issues can show
+        # up in non-interactive smoke tests.
+        snap = None
+        for _ in range(max(1, args.frames)):
+            snap = source()
+            hist.update(snap)
+        model = build_top_model(snap or {}, hist, profile=profile)
+        print(render_plain(model, width=args.width, height=args.height))
+        return 0
+
+    return run_top(source, interval=args.interval, profile=profile)
+
+
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(prog='rgd', description='ros_graph_debugger CLI')
     p.add_argument('--base', default=DEFAULT_BASE, help='agent base URL')
@@ -243,18 +320,40 @@ def main(argv=None) -> int:
     df.add_argument('baseline', help='baseline recording (the "before")')
     df.add_argument('current', help='current recording (the "after")')
     df.add_argument('--json', action='store_true', help='emit the diff as JSON')
+    df.add_argument('--image', default=None,
+                    help='write a before/after graph diff image (.svg, or .png with cairosvg)')
     df.add_argument('--fail-on-regression', action='store_true',
                     help='exit 1 if the verdict is "regressed" (for CI gating)')
 
     sv = sub.add_parser('serve', help='replay a recording in the web UI (no ROS needed)')
     sv.add_argument('file', nargs='?', default=None, help='recording file')
     sv.add_argument('--demo', action='store_true', help='serve the built-in demo scenario')
+    sv.add_argument('--fleet', type=int, default=1,
+                    help='with --demo, multiplex the demo into N phase-shifted robots')
     sv.add_argument('--host', default='127.0.0.1')
     sv.add_argument('--port', type=int, default=3939)
     sv.add_argument('--interval', type=float, default=0.0,
                     help='seconds per frame (default: from recording)')
     sv.add_argument('--once', action='store_true', help='play once instead of looping')
+    sv.add_argument('--cinema', action='store_true',
+                    help='open replay in cinematic incident-theater mode')
     sv.add_argument('--no-browser', action='store_true')
+
+    top = sub.add_parser('top', help='terminal dashboard for a live agent or recording')
+    top.add_argument('target', nargs='?', default=None,
+                     help='agent URL or recording.rgd.json (default: --base)')
+    top.add_argument('--demo', action='store_true',
+                     help='play the built-in demo recording in the terminal')
+    top.add_argument('--interval', type=float, default=0.5,
+                     help='seconds between refreshes')
+    top.add_argument('--plain', action='store_true',
+                     help='render one plain-text frame and exit')
+    top.add_argument('--frames', type=int, default=1,
+                     help='frames to advance before --plain output')
+    top.add_argument('--width', type=int, default=100,
+                     help='plain-text output width')
+    top.add_argument('--height', type=int, default=28,
+                     help='plain-text output height')
 
     fed = sub.add_parser('federate',
                          help='merge snapshots from several agents (a fleet) '
@@ -288,6 +387,8 @@ def main(argv=None) -> int:
         return _cmd_serve(args)
     if args.cmd == 'federate':
         return _cmd_federate(args)
+    if args.cmd == 'top':
+        return _cmd_top(args)
 
     try:
         if args.cmd == 'snapshot':

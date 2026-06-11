@@ -7,6 +7,20 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 ## [Unreleased]
 
 ### Added
+- **EKG sparklines** on graph edges — recent topic-rate history is drawn on
+  the live graph, turning red when a rate/bottleneck issue touches that topic.
+- **Incident Theater** — replay/cinema mode pans to the first critical issue,
+  slows the timeline, captions evidence, lights the pipeline path, and can
+  export a browser-recorded WebM.
+- **Diff image output and PR action** — `rgd diff --image out.svg` renders a
+  before/after regression graph, with an included composite GitHub Action for
+  PR artifact/comment workflows.
+- **Terminal top view** — `rgd top` provides an SSH-friendly dashboard with
+  readiness, topic/node rows, sparklines, CPU/callback p95, and issue context
+  through the optional `ros_graph_debugger[tui]` extra.
+- **Fleet wall** — federated snapshots with multiple hosts show per-robot
+  health tiles, mini graph thumbnails, red pulsing critical hosts, and
+  click-through drill-down. `rgd serve --demo --fleet N` demos this without DDS.
 - **Animated data flow** on the graph — dashes march pub→sub at a rate-scaled
   speed, bottleneck nodes pulse a red halo, with a **✨ Flow** toggle and a
   perf guard for large graphs.
