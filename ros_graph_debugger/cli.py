@@ -185,6 +185,91 @@ def _cmd_diff(args) -> int:
     return 0
 
 
+def _parse_expect(items):
+    """Turn ``TOPIC=HZ`` specs (same syntax as ``agent --expect``) into a dict."""
+    rates = {}
+    for item in items:
+        topic, _, hz = item.rpartition('=')
+        if not topic:
+            raise ValueError(f'--expect needs TOPIC=HZ, got {item!r}')
+        rates[topic] = float(hz)
+    return rates
+
+
+def _cmd_assert(args) -> int:
+    """Check a window of snapshots against a health contract (exit 1 = failed)."""
+    from .assertions import evaluate, render_junit, render_markdown
+
+    try:
+        expect_rates = _parse_expect(args.expect)
+    except ValueError as exc:
+        print(f'error: {exc}', file=sys.stderr)
+        return 2
+    if not 0.0 <= args.max_breach <= 1.0:
+        print('error: --max-breach must be between 0 and 1', file=sys.stderr)
+        return 2
+
+    if args.demo:
+        from .replay import build_demo_recording
+        _, snapshots = build_demo_recording()
+    elif args.target and not args.target.startswith(('http://', 'https://')):
+        from .recording import read_recording
+        _, snapshots = read_recording(args.target)
+    else:
+        base = (args.target or args.base).rstrip('/')
+        snapshots = []
+        fh = None
+        if args.record:
+            from .recording import append_snapshot, make_header, write_header
+            fh = open(args.record, 'w')
+            write_header(fh, make_header(started=time.time(),
+                                         interval=args.interval))
+        deadline = time.time() + args.duration
+        print(f'observing {base} for {args.duration:g}s @ {args.interval:g}s',
+              file=sys.stderr)
+        try:
+            while True:
+                tick = time.time()
+                try:
+                    snap = json.loads(_get(base, '/api/v1/snapshot'))
+                    snapshots.append(snap)
+                    if fh:
+                        append_snapshot(fh, snap)
+                except Exception as exc:
+                    print(f'[warn] sample failed: {exc}', file=sys.stderr)
+                if tick + args.interval >= deadline:
+                    break
+                time.sleep(max(0.0, args.interval - (time.time() - tick)))
+        except KeyboardInterrupt:
+            print('stopped early.', file=sys.stderr)
+        finally:
+            if fh:
+                fh.close()
+        if not snapshots:
+            print(f'error: no snapshots from agent at {base}', file=sys.stderr)
+            return 2
+
+    if not snapshots:
+        print('error: no snapshots to evaluate', file=sys.stderr)
+        return 2
+
+    result = evaluate(snapshots, fail_on=args.fail_on, expect_rates=expect_rates,
+                      forbid_kinds=args.forbid, ignore_kinds=args.ignore,
+                      require_nodes=args.require_node,
+                      require_topics=args.require_topic,
+                      settle=args.settle, max_breach=args.max_breach)
+    if args.junit:
+        with open(args.junit, 'w') as f:
+            f.write(render_junit(result))
+    if args.json:
+        sys.stdout.write(json.dumps(result) + '\n')
+    else:
+        sys.stdout.write(render_markdown(result))
+    if not result['samples']:
+        return 2
+    return 0 if result['passed'] else 1
+
+
 def _cmd_federate(args) -> int:
     """Merge snapshots from several agents — print a briefing or serve the UI."""
     from .federation import FederatedStore, merge_snapshots
@@ -325,6 +410,42 @@ def main(argv=None) -> int:
     df.add_argument('--fail-on-regression', action='store_true',
                     help='exit 1 if the verdict is "regressed" (for CI gating)')
 
+    asr = sub.add_parser('assert',
+                         help='check snapshots against a health contract '
+                              '(exit 1 = failed; for CI / launch tests)')
+    asr.add_argument('target', nargs='?', default=None,
+                     help='agent URL or recording.rgd.json (default: --base)')
+    asr.add_argument('--demo', action='store_true',
+                     help='evaluate the built-in demo recording')
+    asr.add_argument('--duration', type=float, default=10.0,
+                     help='seconds to observe a live agent')
+    asr.add_argument('--interval', type=float, default=1.0,
+                     help='seconds between live samples')
+    asr.add_argument('--settle', type=float, default=0.0,
+                     help='ignore samples from the first N seconds (warm-up)')
+    asr.add_argument('--fail-on', choices=['critical', 'degraded', 'never'],
+                     default='critical',
+                     help='health verdict that counts as a breach (default: critical)')
+    asr.add_argument('--expect', action='append', default=[], metavar='TOPIC=HZ',
+                     help='topic must be measured at >= HZ (repeatable)')
+    asr.add_argument('--forbid', action='append', default=[], metavar='KIND',
+                     help='issue kind that must not appear, e.g. qos_mismatch '
+                          '(repeatable)')
+    asr.add_argument('--ignore', action='append', default=[], metavar='KIND',
+                     help='issue kind left out of the health verdict (repeatable)')
+    asr.add_argument('--require-node', action='append', default=[], metavar='NODE',
+                     help='fully-qualified node that must be present (repeatable)')
+    asr.add_argument('--require-topic', action='append', default=[], metavar='TOPIC',
+                     help='topic that must be present (repeatable)')
+    asr.add_argument('--max-breach', type=float, default=0.0, metavar='FRACTION',
+                     help='share of samples a check may breach and still pass '
+                          '(0..1, default 0)')
+    asr.add_argument('--json', action='store_true', help='emit the result as JSON')
+    asr.add_argument('--junit', default=None, metavar='FILE',
+                     help='also write a JUnit XML report')
+    asr.add_argument('--record', default=None, metavar='FILE',
+                     help='live only: save the observed samples as a recording')
+
     sv = sub.add_parser('serve', help='replay a recording in the web UI (no ROS needed)')
     sv.add_argument('file', nargs='?', default=None, help='recording file')
     sv.add_argument('--demo', action='store_true', help='serve the built-in demo scenario')
@@ -383,6 +504,8 @@ def main(argv=None) -> int:
         return _cmd_report(args)
     if args.cmd == 'diff':
         return _cmd_diff(args)
+    if args.cmd == 'assert':
+        return _cmd_assert(args)
     if args.cmd == 'serve':
         return _cmd_serve(args)
     if args.cmd == 'federate':
