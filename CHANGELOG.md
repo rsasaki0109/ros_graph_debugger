@@ -7,7 +7,23 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 ## [Unreleased]
 
 ### Added
-- Nothing yet.
+- **`rgd assert`** — a CI health gate that needs no baseline recording: observe
+  a live agent (or read a recording / the demo) and check a contract per
+  snapshot — no critical (or degraded) verdict, `--expect TOPIC=HZ` rates,
+  `--forbid` issue kinds, `--require-node` / `--require-topic` — with
+  `--settle` warm-up, a `--max-breach` tolerance, Markdown / `--json` /
+  `--junit` output, `--record` to keep the window, and exit codes
+  0 pass / 1 fail / 2 no samples.
+- **Distribution** — PyPI packaging (`pip install "ros_graph_debugger[web]"`
+  for the offline CLI and web replay; only `rgd` goes on the PATH), a
+  `Dockerfile` for the live agent (`docker run --net=host --pid=host
+  ghcr.io/rsasaki0109/ros_graph_debugger`), a tag-triggered release workflow
+  (PyPI trusted publishing + GHCR jazzy/humble images), CI jobs that build and
+  smoke-test the wheel and the image, and [docs/releasing.md](docs/releasing.md).
+
+### Changed
+- Bundled web UI and profiles are also found under the pip install prefix
+  (`<prefix>/share/ros_graph_debugger`) when there is no ament index.
 
 ## [0.4.0] — show it — 2026-06-11
 

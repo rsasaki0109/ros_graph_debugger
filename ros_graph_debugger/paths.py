@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import site
+import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -12,7 +14,14 @@ def _share_dir() -> str | None:
         from ament_index_python.packages import get_package_share_directory
         return get_package_share_directory('ros_graph_debugger')
     except Exception:
-        return None
+        pass
+    # pip install (no ament index): setup.py's data_files land under the
+    # install prefix, or the user base for `pip install --user`.
+    for prefix in (sys.prefix, site.getuserbase()):
+        share = os.path.join(prefix, 'share', 'ros_graph_debugger')
+        if os.path.isdir(share):
+            return share
+    return None
 
 
 def find_web_dir() -> str:

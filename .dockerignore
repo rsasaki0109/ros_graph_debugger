@@ -1,0 +1,7 @@
+.git
+build/
+install/
+log/
+**/__pycache__
+*.egg-info
+docs/img

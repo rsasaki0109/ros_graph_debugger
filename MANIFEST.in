@@ -1,0 +1,4 @@
+include README.md LICENSE CHANGELOG.md package.xml
+include resource/ros_graph_debugger
+recursive-include profiles *.yaml
+recursive-include ros_graph_debugger/web *
