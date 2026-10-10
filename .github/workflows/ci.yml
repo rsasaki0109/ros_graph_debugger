@@ -72,3 +72,43 @@ jobs:
             head -c 200 "$f" | grep -qiE 'cytoscape|dagre|module|function' \
               && echo "ok: $f" || { echo "suspect: $f"; exit 1; }
           done
+
+  package:
+    name: PyPI package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build and check
+        env:
+          RGD_PYPI_BUILD: '1'
+        run: |
+          python -m pip install build twine
+          python -m build
+          python -m twine check dist/*
+      - name: Install the wheel in a clean venv and smoke-test the CLI
+        shell: bash
+        run: |
+          python -m venv /tmp/venv
+          /tmp/venv/bin/pip install "$(ls dist/*.whl)[web]"
+          cd /tmp
+          /tmp/venv/bin/rgd version
+          /tmp/venv/bin/rgd assert --demo --fail-on never --require-node /detector
+          /tmp/venv/bin/python -c "from ros_graph_debugger.paths import find_web_dir, find_profile; import os; assert os.path.isfile(os.path.join(find_web_dir(), 'index.html')); assert find_profile('autoware')"
+
+  docker:
+    name: docker image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: rgd:ci
+      - name: Agent entrypoint starts
+        run: docker run --rm --entrypoint /ros_entrypoint.sh rgd:ci ros2 run ros_graph_debugger rgd version

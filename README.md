@@ -65,6 +65,22 @@ ros2 run ros_graph_debugger agent
 ros2 run ros_graph_debugger demo_pipeline
 ```
 
+### Other ways to install
+
+```bash
+# pip — the offline CLI (report / diff / assert / federate / MCP) + web replay.
+# The live agent still needs ROS 2 (rclpy); use colcon or Docker for that.
+pip install "ros_graph_debugger[web]"
+rgd serve --demo
+
+# Docker — the live agent, joining the host's DDS graph
+docker run --rm --net=host --pid=host ghcr.io/rsasaki0109/ros_graph_debugger
+docker run --rm --net=host --pid=host ghcr.io/rsasaki0109/ros_graph_debugger:humble --profile nav2
+```
+
+Match `ROS_DOMAIN_ID` / `RMW_IMPLEMENTATION` to your robot with `-e`.
+`--pid=host` lets the agent map nodes to processes for CPU / memory.
+
 ### See it instantly — no robot, no ROS graph required
 
 ```bash
@@ -291,6 +307,9 @@ ros2 run ros_graph_debugger rgd serve run.rgd.json
 # cinematic replay for screenshots / WebM export
 ros2 run ros_graph_debugger rgd serve run.rgd.json --cinema
 
+# did the system meet its contract over the window? (exit 1 = failed)
+ros2 run ros_graph_debugger rgd assert run.rgd.json --expect /objects=10
+
 # did my change regress the pipeline? compare two recordings (exit 1 = regressed)
 ros2 run ros_graph_debugger rgd diff before.rgd.json after.rgd.json --fail-on-regression
 
@@ -331,6 +350,33 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+### CI health gate (no baseline needed)
+
+`rgd diff` needs a known-good recording to compare against. `rgd assert` checks
+a window of runtime against a **contract** instead — handy in a launch test or a
+simulation CI job:
+
+```bash
+# observe a live agent for 30s (after 5s of warm-up) and gate on the result
+ros2 run ros_graph_debugger rgd assert --duration 30 --settle 5 \
+  --expect /perception/object_recognition/objects=10 \
+  --require-node /planning/planner --forbid qos_mismatch \
+  --junit rgd-assert.xml --record run.rgd.json
+
+# or check a recording you already have
+ros2 run ros_graph_debugger rgd assert run.rgd.json --fail-on degraded
+```
+
+Every check is evaluated per snapshot: no `critical` health verdict (or no
+`degraded` one, with `--fail-on degraded`; `--ignore KIND` leaves an issue kind
+out of it), each `--expect TOPIC=HZ` measured at or above its rate, each
+`--forbid KIND` absent, each `--require-node` / `--require-topic` present. A
+check passes when it is never breached — or in at most `--max-breach` (0..1) of
+the samples. It prints a Markdown pass/fail table (or `--json`), writes JUnit
+XML with `--junit`, and exits `0` pass / `1` fail / `2` no samples. `--record`
+keeps the observed window, so a failing run can be opened with `rgd serve` or
+compared with `rgd diff`.
+
 The report leads with a **system-health rollup** (what share of the recording
 was critical / degraded / ok, and how it ended — a one-line CI gate), ranks
 bottlenecks by severity and frequency (now including slow callbacks), lists the
@@ -364,6 +410,7 @@ node is modified.
 - [HTTP API](docs/api.md) — REST / WebSocket / config schema (kept in sync by a test)
 - [Performance & safety](docs/performance_safety.md) — probing policy, latency tiers
 - [Tier C tracing](docs/tracing.md) — feed real `ros2_tracing` callback durations
+- [Releasing](docs/releasing.md) — PyPI, container image, ROS buildfarm
 - [Roadmap](docs/roadmap.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
 
 ## Comparison
