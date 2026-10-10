@@ -160,6 +160,15 @@ detection into one live view — and one Markdown briefing you can hand to an AI
 - **Message latency (Tier A)** — `header.stamp` age (p50/p95) on probed topics,
   with a freshness issue when it exceeds a profile's `max_age_ms` (e.g. stale
   localization). Cheap approximation now; tracing-based tiers below.
+- **Topic statistics (Tier B)** — reads rclcpp topic statistics
+  (`statistics_msgs/MetricsMessage` on `/statistics`) and turns each
+  subscriber's message period / age into a rate and age for topics the agent
+  does **not** probe — e.g. the camera and LiDAR topics it never subscribes to.
+  The message names a node, not a topic, so attribution is explicit: a node
+  with one data subscription is matched automatically; for others map the
+  stats topic yourself (`agent --statistics-topic /stats/image=/camera/image_raw`).
+  Marked `stats` in the UI and briefing; unattributed stats are listed, not
+  guessed.
 - **Callback execution time (Tier C)** — per-callback p95/mean/max duration, a
   `slow_callback` issue when a callback blows its budget, and the stat surfaced
   in the node Inspector and AI briefing. Budgets are **stage-aware** — the

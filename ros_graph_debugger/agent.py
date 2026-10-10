@@ -44,6 +44,13 @@ def _parse_args(argv=None):
                    help='expected minimum rate, e.g. /objects=10 (repeatable)')
     p.add_argument('--no-browser', action='store_true',
                    help='do not open a browser automatically')
+    p.add_argument('--statistics-topic', action='append', default=None,
+                   metavar='STATS[=TOPIC]',
+                   help='rclcpp topic-statistics topic to read (latency Tier B); '
+                        'map it to the data topic it measures with =TOPIC. '
+                        'Repeatable; replaces the default /statistics')
+    p.add_argument('--no-statistics', action='store_true',
+                   help='do not read topic statistics')
     p.add_argument('--trace-file', default=None, metavar='PATH',
                    help='NDJSON callback-duration trace (Tier C) to load as '
                         'callback stats; produce it from ros2_tracing')
@@ -98,8 +105,13 @@ def main(argv=None) -> None:
         except OSError as exc:
             print(f'[warn] could not read --trace-file: {exc}')
 
+    from .statistics import parse_statistics_topics
+    statistics_topics = {} if args.no_statistics \
+        else parse_statistics_topics(args.statistics_topic)
+
     rclpy.init()
-    node = DebuggerNode(store, probe, thresholds, profile_name)
+    node = DebuggerNode(store, probe, thresholds, profile_name,
+                        statistics_topics=statistics_topics)
     executor = MultiThreadedExecutor()
     executor.add_node(node)
 

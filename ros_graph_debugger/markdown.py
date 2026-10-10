@@ -169,7 +169,9 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
                          name=t['name'],
                          type=t['type'].split('/')[-1] if t['type'] else '—',
                          p=t['publisher_count'], s=t['subscriber_count'],
-                         rate=_fmt_rate(t.get('rate_hz')),
+                         rate=_fmt_rate(t.get('rate_hz'))
+                         + (' (stats)' if t.get('rate_source') == 'statistics'
+                            and t.get('rate_hz') is not None else ''),
                          age=f'{age:.0f} ms' if isinstance(age, (int, float)) else '—',
                          bw=_fmt_bw(t.get('bandwidth_bps')),
                          qos=t.get('qos_status', 'unknown'),
@@ -205,6 +207,23 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
                          if isinstance(mean, (int, float)) else
                          f'| {c["node"]} | {c.get("callback", "—")} | '
                          f'{c["p95_ms"]:.0f} ms | — | {c.get("count", "—")} |')
+        lines.append('')
+
+    # --- Topic statistics we could not tie to a topic (Tier B). ---
+    loose = [s for s in d.get('statistics', []) if not s.get('topic')]
+    if loose:
+        lines.append('## Topic statistics (not attributed to a topic)')
+        for s in loose:
+            why = {'ambiguous': 'node subscribes to several topics',
+                   'unknown_node': 'no unique node by that name',
+                   'unknown_topic': 'mapped topic not in the graph'}.get(
+                       s.get('attribution'), s.get('attribution'))
+            avg = s.get('avg')
+            avg_s = f'avg {avg:.1f} {s.get("unit", "ms")}' \
+                if isinstance(avg, (int, float)) else 'no samples'
+            lines.append(f'- {s.get("node") or s["source"]} {s["metric"]}: '
+                         f'{avg_s} ({why}; map it with '
+                         f'`--statistics-topic {s["stats_topic"]}=TOPIC`)')
         lines.append('')
 
     # --- TF staleness, if any. ---

@@ -21,7 +21,19 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
   (PyPI trusted publishing + GHCR jazzy/humble images), CI jobs that build and
   smoke-test the wheel and the image, and [docs/releasing.md](docs/releasing.md).
 
+- **Topic statistics (latency Tier B)** — the agent reads rclcpp topic
+  statistics (`statistics_msgs/MetricsMessage`, `/statistics` by default;
+  `--statistics-topic STATS[=TOPIC]`, `--no-statistics`) and overlays the
+  subscriber-observed rate and message age on topics it does not probe, so
+  rate/freshness rules (and the bottleneck inference) also cover large sensor
+  topics. Node→topic attribution is explicit (`single_sub` / `explicit`, else
+  left unattributed), shown as `stats` in the UI and briefing, and exposed via
+  `topics[].rate_source`, snapshot `statistics`, `GET /api/v1/statistics`, and
+  the `get_statistics` MCP tool.
+
 ### Changed
+- `rate_drop`, `stale_data` and the bottleneck inference now consider any
+  measured topic (`rate_source` `probe` or `statistics`), not only probed ones.
 - Bundled web UI and profiles are also found under the pip install prefix
   (`<prefix>/share/ros_graph_debugger`) when there is no ament index.
 

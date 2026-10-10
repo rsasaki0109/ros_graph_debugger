@@ -113,6 +113,10 @@ def create_app(store, web_dir: str,
     def callbacks():
         return store.snapshot().to_dict().get('callbacks', [])
 
+    @app.get('/api/v1/statistics')
+    def statistics():
+        return store.snapshot().to_dict().get('statistics', [])
+
     @app.get('/api/v1/issues')
     def issues():
         return store.snapshot().to_dict()['issues']

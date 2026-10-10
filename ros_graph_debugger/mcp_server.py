@@ -46,6 +46,10 @@ READ_TOOLS = [
     ('get_callbacks', '/api/v1/callbacks',
      'Get per-callback execution-time stats (node, callback, p95/mean/max ms) '
      'from tracing, as JSON — to see which callback is slow, not just which node.'),
+    ('get_statistics', '/api/v1/statistics',
+     'Get rclcpp topic statistics (message period/age per subscriber node) and '
+     'which topic each was attributed to, as JSON — rate/latency for topics '
+     'the agent does not probe itself.'),
     ('get_config', '/api/v1/config',
      'Get the current analysis thresholds and expected-rate config as JSON.'),
 ]

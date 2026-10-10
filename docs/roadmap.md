@@ -38,7 +38,10 @@ briefing + MCP server, and a demo pipeline.
   `rows_with_owners` building blocks) is documented in
   [tracing.md](tracing.md). Remaining: a turn-key `ros2_tracing` → NDJSON
   converter and a callback-duration timeline along the pipeline path.
-- Tier B latency via `/statistics` and pipeline-latency topics.
+- Tier B latency — *done for topic statistics*: rclcpp `/statistics`
+  (`MetricsMessage`) feeds rate/age for unprobed topics with explicit
+  node→topic attribution (`statistics.py`, `/api/v1/statistics`,
+  `get_statistics`). App-specific pipeline-latency topics remain.
 - In-UI recording replay scrubbing improvements; snapshot export from the UI.
 - Multi-host / federated agents — *done*: `federation.merge_snapshots` stitches
   several agents' snapshots into one host-namespaced view, served by
