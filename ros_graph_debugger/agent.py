@@ -52,8 +52,9 @@ def _parse_args(argv=None):
     p.add_argument('--no-statistics', action='store_true',
                    help='do not read topic statistics')
     p.add_argument('--trace-file', default=None, metavar='PATH',
-                   help='NDJSON callback-duration trace (Tier C) to load as '
-                        'callback stats; produce it from ros2_tracing')
+                   help='callback-duration trace (Tier C) to load as callback '
+                        'stats: a `ros2 trace` session directory (needs '
+                        'python3-bt2) or NDJSON from `rgd trace convert`')
     return p.parse_args(argv)
 
 
@@ -99,10 +100,11 @@ def main(argv=None) -> None:
     store = RuntimeGraphStore()
 
     if args.trace_file:
+        from .trace_convert import TraceReaderUnavailable
         from .tracing import callbacks_from_trace_file
         try:
             store.set_callbacks(callbacks_from_trace_file(args.trace_file))
-        except OSError as exc:
+        except (OSError, TraceReaderUnavailable) as exc:
             print(f'[warn] could not read --trace-file: {exc}')
 
     from .statistics import parse_statistics_topics

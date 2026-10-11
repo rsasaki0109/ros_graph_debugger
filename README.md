@@ -174,10 +174,12 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   in the node Inspector and AI briefing. Budgets are **stage-aware** — the
   Autoware/Nav2 profiles give control callbacks a tight (~10–15 ms) budget and
   planning a looser one, so the same 60 ms is fine for a planner but a violation
-  for a controller. Feed **real** traces with `agent --trace-file run.ndjson`
-  (one `{node, callback, topic, duration_ms}` per callback invocation →
-  aggregated to count/mean/p95/max); the `--demo` shows it synthetically. See
-  [docs/tracing.md](docs/tracing.md) for the capture-and-convert workflow.
+  for a controller. Feed **real** traces turn-key: record with `ros2 trace`,
+  then `agent --trace-file ~/.ros/tracing/<session>` (or convert once with
+  `rgd trace convert <session> --out run.ndjson`). Each callback is resolved to
+  its node and topic from the trace's own registration events (subscriptions,
+  timers, services; needs `python3-bt2`); the `--demo` shows it synthetically.
+  See [docs/tracing.md](docs/tracing.md).
 - **Node CPU / memory**, with honest node→process mapping confidence: layered
   matching (`__node:=` remap → `high`, executable name → `medium`, bare token →
   `low`) and component containers capped at `low` since per-node CPU can't be
@@ -284,6 +286,9 @@ ros2 run ros_graph_debugger rgd snapshot --out snap.json
 ros2 run ros_graph_debugger rgd markdown        # AI briefing to stdout
 ros2 run ros_graph_debugger rgd issues          # list current issues
 ros2 run ros_graph_debugger rgd doctor          # is the agent up?
+
+# Tier C: turn a `ros2 trace` session into callback durations (needs python3-bt2)
+ros2 run ros_graph_debugger rgd trace convert ~/.ros/tracing/my_session --out run.ndjson
 
 # terminal dashboard (requires optional TUI extra)
 pip install ros_graph_debugger[tui]
@@ -430,7 +435,7 @@ node is modified.
 | `ros2 topic hz/bw` | accurate, per-topic | unified across the whole graph |
 | Foxglove | rich data visualization | causality graph + bottleneck diagnosis |
 | PlotJuggler | timeseries analysis | shows *which* series to look at |
-| `ros2_tracing` | low-level traces | callback p95 as issues + on the path (live adapter on roadmap) |
+| `ros2_tracing` | low-level traces | callback p95 as issues + on the path (`rgd trace convert`) |
 
 ## Roadmap
 
@@ -452,8 +457,10 @@ node is modified.
   `--serve` shows the whole fleet live in the web UI).
 - **v0.4** *(current)* — EKG sparklines on graph edges, Incident Theater
   replay/WebM export, `rgd diff --image` plus PR action support, optional
-  `rgd top`, and the Fleet wall with `rgd serve --demo --fleet N`. *Next:* a
-  turn-key live tracing converter.
+  `rgd top`, and the Fleet wall with `rgd serve --demo --fleet N`.
+- **v0.5** *(in progress)* — `rgd assert` CI health gate, PyPI / Docker
+  distribution, topic statistics (Tier B), and turn-key `ros2_tracing`
+  conversion (`rgd trace convert`, `agent --trace-file <session dir>`).
 
 See [CHANGELOG.md](CHANGELOG.md) for the full per-release list.
 

@@ -7,6 +7,15 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 ## [Unreleased]
 
 ### Added
+- **Turn-key Tier C tracing** — `rgd trace convert <session> --out run.ndjson`
+  reads a `ros2 trace` CTF session with babeltrace2 (`python3-bt2`, optional,
+  imported lazily), resolves each callback to its node and topic per process
+  from the registration events (subscription / timer / service chains), pairs
+  `callback_start`/`callback_end` into durations, and reports how many
+  invocations it could attribute plus the slowest callbacks.
+  `agent --trace-file` now also takes the session directory directly. CI
+  installs `python3-bt2` and round-trips a real CTF trace written by
+  babeltrace2's `sink.ctf.fs`.
 - **`rgd assert`** — a CI health gate that needs no baseline recording: observe
   a live agent (or read a recording / the demo) and check a contract per
   snapshot — no critical (or degraded) verdict, `--expect TOPIC=HZ` rates,
