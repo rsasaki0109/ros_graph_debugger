@@ -22,10 +22,13 @@ from .model import (
 _SEVERITY_ORDER = {CRITICAL: 0, WARNING: 1, INFO: 2}
 
 
-def analyze(store: RuntimeGraphStore, thresholds) -> list[Issue]:
+def analyze(store: RuntimeGraphStore, thresholds,
+            now: float | None = None) -> list[Issue]:
+    """Run every rule over the store. ``now`` is the analysis clock (epoch
+    seconds) — wall time live, the bag's own time when replaying a bag."""
     nodes, topics, tf, diagnostics, callbacks = store.working_copy()
     issues: list[Issue] = []
-    now = time.time()
+    now = time.time() if now is None else now
     counter = _Counter()
 
     # Recompute per-topic status while we walk the rules so the graph edges

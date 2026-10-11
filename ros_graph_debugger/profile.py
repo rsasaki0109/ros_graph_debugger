@@ -50,3 +50,14 @@ def load_profile(path: str) -> tuple[dict, str]:
     data['_max_age_patterns'] = max_age_patterns
     data['_callback_ms_patterns'] = callback_ms_patterns
     return data, name
+
+
+def apply_profile(thresholds, data: dict) -> None:
+    """Merge a loaded profile's expectations into ``thresholds`` (shared by the
+    live agent and offline bag analysis)."""
+    thresholds.expected_min_rate.update(data.get('_expected_min_rate', {}))
+    thresholds.expected_max_age_ms.update(data.get('_expected_max_age_ms', {}))
+    thresholds.expected_callback_ms.update(data.get('_expected_callback_ms', {}))
+    thresholds.set_patterns(min_rate=data.get('_min_rate_patterns', []),
+                            max_age=data.get('_max_age_patterns', []),
+                            callback_ms=data.get('_callback_ms_patterns', []))

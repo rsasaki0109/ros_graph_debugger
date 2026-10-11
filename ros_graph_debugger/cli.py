@@ -302,6 +302,66 @@ def _cmd_trace(args) -> int:
     return 0
 
 
+def _cmd_bag(args) -> int:
+    """Turn a rosbag2 / MCAP bag into a snapshot recording, offline."""
+    from .bag_analyze import BagReaderUnavailable, analyze_bag
+    from .config import Thresholds
+    from .health import summarize_health
+    from .paths import find_profile
+    from .profile import apply_profile, load_profile
+    from .recording import append_snapshot, make_header, write_header
+
+    try:
+        expect_rates = _parse_expect(args.expect)
+    except ValueError as exc:
+        print(f'error: {exc}', file=sys.stderr)
+        return 2
+    if args.interval <= 0 or args.window <= 0:
+        print('error: --interval and --window must be > 0', file=sys.stderr)
+        return 2
+
+    thresholds = Thresholds()
+    profile_public, profile_name = None, None
+    if args.profile:
+        path = find_profile(args.profile)
+        if not path:
+            print(f'error: profile not found: {args.profile}', file=sys.stderr)
+            return 2
+        data, profile_name = load_profile(path)
+        apply_profile(thresholds, data)
+        profile_public = {'name': data.get('name'), 'groups': data.get('groups', {})}
+    thresholds.expected_min_rate.update(expect_rates)
+
+    try:
+        analyzer = analyze_bag(args.bag, thresholds, profile_name)
+    except BagReaderUnavailable as exc:
+        print(f'error: {exc}', file=sys.stderr)
+        return 2
+    except Exception as exc:  # rosbag2 raises plain RuntimeErrors
+        print(f'error: cannot read bag {args.bag}: {exc}', file=sys.stderr)
+        return 2
+    snapshots = analyzer.snapshots(interval=args.interval, window=args.window)
+    if not snapshots:
+        print(f'error: no messages in {args.bag}', file=sys.stderr)
+        return 2
+
+    start, end = analyzer.time_range()
+    with open(args.out, 'w') as fh:
+        write_header(fh, make_header(started=start, interval=args.interval,
+                                     profile=profile_public))
+        for snap in snapshots:
+            append_snapshot(fh, snap)
+    verdicts = [summarize_health(s)['verdict'] for s in snapshots]
+    tally = ', '.join(f'{verdicts.count(v)} {v}' for v in ('critical', 'degraded', 'ok')
+                      if verdicts.count(v))
+    print(f'wrote {len(snapshots)} snapshots ({end - start:.1f} s of bag time, '
+          f'{len(analyzer.topic_types)} topics) to {args.out}: {tally}',
+          file=sys.stderr)
+    print(f'next: rgd report {args.out} | rgd assert {args.out} | '
+          f'rgd serve {args.out}', file=sys.stderr)
+    return 0
+
+
 def _cmd_federate(args) -> int:
     """Merge snapshots from several agents — print a briefing or serve the UI."""
     from .federation import FederatedStore, merge_snapshots
@@ -481,6 +541,22 @@ def main(argv=None) -> int:
     asr.add_argument('--record', default=None, metavar='FILE',
                      help='live only: save the observed samples as a recording')
 
+    bg = sub.add_parser('bag', help='offline rosbag2 / MCAP analysis')
+    bgs = bg.add_subparsers(dest='bag_cmd', required=True)
+    bga = bgs.add_parser('analyze',
+                         help='turn a bag into a snapshot recording for '
+                              'report / diff / assert / serve (no live ROS graph)')
+    bga.add_argument('bag', help='bag directory, .mcap or .db3 file')
+    bga.add_argument('--out', required=True, help='output .rgd.json recording')
+    bga.add_argument('--profile', default=None,
+                     help='profile pack (autoware | nav2 | moveit | path)')
+    bga.add_argument('--expect', action='append', default=[], metavar='TOPIC=HZ',
+                     help='expected minimum rate (repeatable)')
+    bga.add_argument('--interval', type=float, default=1.0,
+                     help='seconds of bag time between snapshots')
+    bga.add_argument('--window', type=float, default=2.0,
+                     help='seconds of bag time each snapshot measures over')
+
     tr = sub.add_parser('trace', help='Tier C tracing helpers')
     trs = tr.add_subparsers(dest='trace_cmd', required=True)
     trc = trs.add_parser('convert',
@@ -554,6 +630,8 @@ def main(argv=None) -> int:
         return _cmd_assert(args)
     if args.cmd == 'trace':
         return _cmd_trace(args)
+    if args.cmd == 'bag':
+        return _cmd_bag(args)
     if args.cmd == 'serve':
         return _cmd_serve(args)
     if args.cmd == 'federate':

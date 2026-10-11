@@ -19,7 +19,7 @@ from .config import ProbeConfig, Thresholds
 from .node import DebuggerNode
 from .model import RuntimeGraphStore
 from .paths import find_profile, find_web_dir
-from .profile import load_profile
+from .profile import apply_profile, load_profile
 from .server import create_app
 
 
@@ -78,16 +78,7 @@ def main(argv=None) -> None:
         path = find_profile(args.profile)
         if path:
             profile_data, profile_name = load_profile(path)
-            thresholds.expected_min_rate.update(
-                profile_data.get('_expected_min_rate', {}))
-            thresholds.expected_max_age_ms.update(
-                profile_data.get('_expected_max_age_ms', {}))
-            thresholds.expected_callback_ms.update(
-                profile_data.get('_expected_callback_ms', {}))
-            thresholds.set_patterns(
-                min_rate=profile_data.get('_min_rate_patterns', []),
-                max_age=profile_data.get('_max_age_patterns', []),
-                callback_ms=profile_data.get('_callback_ms_patterns', []))
+            apply_profile(thresholds, profile_data)
         else:
             print(f'[warn] profile not found: {args.profile}')
 

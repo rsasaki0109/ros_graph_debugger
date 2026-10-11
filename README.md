@@ -334,6 +334,9 @@ ros2 run ros_graph_debugger rgd serve run.rgd.json
 # cinematic replay for screenshots / WebM export
 ros2 run ros_graph_debugger rgd serve run.rgd.json --cinema
 
+# turn a rosbag2 / MCAP bag into the same kind of recording (offline)
+ros2 run ros_graph_debugger rgd bag analyze drive.mcap --out drive.rgd.json
+
 # did the system meet its contract over the window? (exit 1 = failed)
 ros2 run ros_graph_debugger rgd assert run.rgd.json --expect /objects=10
 
@@ -350,6 +353,29 @@ drops, slower callbacks, new issues, and a health-verdict change — as a Markdo
 so you can gate a CI job on "this change didn't slow the pipeline down." Add
 `--image diff.svg` to render a side-by-side graph; use `--image diff.png` after
 installing `ros_graph_debugger[image]` for optional PNG conversion.
+
+### From a bag (offline, no live system)
+
+Already have a rosbag2 bag from the robot, sim or CI? Turn it into the same
+recording — then everything above works on it:
+
+```bash
+ros2 run ros_graph_debugger rgd bag analyze drive.mcap --out drive.rgd.json \
+  --profile nav2 --expect /scan=8
+
+ros2 run ros_graph_debugger rgd report drive.rgd.json --html report.html
+ros2 run ros_graph_debugger rgd assert drive.rgd.json --forbid tf_stale   # CI gate
+ros2 run ros_graph_debugger rgd diff baseline.rgd.json drive.rgd.json     # regression
+```
+
+The bag (directory, `.mcap` or `.db3`) is cut into windows of bag time
+(`--interval`, `--window`). Per window: topic rate, bandwidth, message size and
+— for stamped types — header-stamp age, read straight from the CDR bytes so
+even images cost nothing; `/tf`, `/tf_static` and `/diagnostics` feed TF
+freshness and diagnostics. Each window runs through the live issue engine on
+the bag's own clock, with the same profile expectations. A bag records topics,
+not the graph, so nodes, CPU and callback times stay empty. Needs a sourced
+ROS 2 (`rosbag2_py`; MCAP on Humble also needs `ros-humble-rosbag2-storage-mcap`).
 
 ### CI graph diff comments
 
@@ -477,8 +503,9 @@ node is modified.
 - **v0.5** *(current)* — `rgd assert` CI health gate, PyPI / Docker
   distribution, topic statistics (Tier B), turn-key `ros2_tracing`
   conversion (`rgd trace convert`, `agent --trace-file <session dir>`), and
-  lifecycle (managed) node states. *Next:* offline rosbag2 / MCAP analysis
-  and a callback-duration timeline along the pipeline path.
+  lifecycle (managed) node states. *Since 0.5.0 (unreleased):* offline
+  rosbag2 / MCAP analysis, the pipeline path over time in reports, and
+  services / actions with missing-server issues.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full per-release list.
 

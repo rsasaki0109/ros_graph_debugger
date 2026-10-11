@@ -21,6 +21,18 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
   the node most often named by bottleneck / slow-callback issues;
   `rgd report --path TARGET` picks another. The path is traced once and held
   fixed so the series compare like with like.
+- **Offline rosbag2 / MCAP analysis** — `rgd bag analyze BAG --out run.rgd.json`
+  turns a bag (directory, `.mcap` or `.db3`) into a snapshot recording, so
+  `rgd report` / `diff` / `assert` / `serve` work on it with no live system.
+  Windows of bag time (`--interval`, `--window`) get topic rate, bandwidth,
+  size and header-stamp age (read from the CDR bytes without deserializing),
+  TF freshness and diagnostics, and run through the live issue engine on the
+  bag's clock with the profile / `--expect` expectations. One-shot topics
+  (a static TF, a latched map) are never reported stale.
+
+### Changed
+- `analysis.analyze()` takes an optional `now` (the analysis clock), and the
+  profile → thresholds merge is shared as `profile.apply_profile()`.
 
 ## [0.5.0] — measure it — 2026-10-11
 
