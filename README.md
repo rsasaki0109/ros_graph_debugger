@@ -462,13 +462,14 @@ node is modified.
   attribution** with honest confidence, and **fleet federation**
   (`rgd federate` merges several robots' agents into one namespaced briefing, or
   `--serve` shows the whole fleet live in the web UI).
-- **v0.4** *(current)* — EKG sparklines on graph edges, Incident Theater
+- **v0.4** — EKG sparklines on graph edges, Incident Theater
   replay/WebM export, `rgd diff --image` plus PR action support, optional
   `rgd top`, and the Fleet wall with `rgd serve --demo --fleet N`.
-- **v0.5** *(in progress)* — `rgd assert` CI health gate, PyPI / Docker
-  distribution, topic statistics (Tier B), and turn-key `ros2_tracing`
+- **v0.5** *(current)* — `rgd assert` CI health gate, PyPI / Docker
+  distribution, topic statistics (Tier B), turn-key `ros2_tracing`
   conversion (`rgd trace convert`, `agent --trace-file <session dir>`), and
-  lifecycle (managed) node states.
+  lifecycle (managed) node states. *Next:* offline rosbag2 / MCAP analysis
+  and a callback-duration timeline along the pipeline path.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full per-release list.
 
