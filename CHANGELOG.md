@@ -7,6 +7,15 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 ## [Unreleased]
 
 ### Added
+- **Lifecycle (managed) node states** — nodes serving `<node>/get_state` are
+  detected from the graph's service list and their state is read with a
+  non-blocking `lifecycle_msgs/srv/GetState` query every 2 s
+  (`agent --no-lifecycle` to disable). A new `lifecycle_not_active` issue fires
+  for `unconfigured` / `inactive` / `finalized` / `errorprocessing` nodes —
+  critical when the node's outputs have subscribers waiting or a transition
+  failed — with the `ros2 lifecycle set` command to fix it. Exposed as
+  `nodes[].lifecycle_state`, a dashed graph node with the state, an Inspector
+  row, and a "Lifecycle nodes" briefing section.
 - **Turn-key Tier C tracing** — `rgd trace convert <session> --out run.ndjson`
   reads a `ros2 trace` CTF session with babeltrace2 (`python3-bt2`, optional,
   imported lazily), resolves each callback to its node and topic per process

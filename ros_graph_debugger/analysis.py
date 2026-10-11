@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import time
 
+from .lifecycle import ERROR, NOT_ACTIVE, suggested_transition, waiting_outputs
 from .model import (
     CRITICAL,
     INFO,
@@ -205,6 +206,38 @@ def analyze(store: RuntimeGraphStore, thresholds) -> list[Issue]:
                 suggested_actions=['Profile the node callbacks',
                                    'Check executor / thread configuration'],
                 related_nodes=[node_id]))
+
+    # 13: lifecycle nodes that are not active (they publish nothing).
+    for node_id, n in nodes.items():
+        state = n.lifecycle_state
+        if state not in NOT_ACTIVE and state != ERROR:
+            continue
+        waiting = waiting_outputs(n, topics)
+        severity = CRITICAL if (waiting or state == ERROR) else WARNING
+        n.status = severity
+        evidence = [f'lifecycle state: {state}']
+        evidence += [f'{t}: {topics[t].subscriber_count} subscriber(s) waiting'
+                     for t in waiting[:3]]
+        actions = []
+        cmd = suggested_transition(node_id, state)
+        if cmd:
+            actions.append(f'Transition it: {cmd}')
+        if state == 'finalized':
+            actions.append('The node was shut down; restart it')
+        actions.append('Check the lifecycle manager (e.g. Nav2 '
+                       'lifecycle_manager) log for a failed or missing transition')
+        issues.append(Issue(
+            id=counter.next('lifecycle'), severity=severity,
+            kind='lifecycle_not_active',
+            title=f'{n.name} is {state} (lifecycle)',
+            explanation=('A lifecycle node only processes and publishes data '
+                         'while active.'
+                         + (f' {len(waiting)} of its outputs have subscribers '
+                            'waiting on them.' if waiting else '')
+                         + (' A transition callback failed.'
+                            if state == ERROR else '')),
+            evidence=evidence, suggested_actions=actions,
+            related_nodes=[node_id], related_topics=waiting))
 
     # 12: slow callbacks (latency Tier C, from tracing).
     issues.extend(_slow_callbacks(callbacks, thresholds, counter))

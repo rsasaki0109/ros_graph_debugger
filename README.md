@@ -180,6 +180,13 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   its node and topic from the trace's own registration events (subscriptions,
   timers, services; needs `python3-bt2`); the `--demo` shows it synthetically.
   See [docs/tracing.md](docs/tracing.md).
+- **Lifecycle (managed) nodes** — every node serving `<node>/get_state` has
+  its state read with a non-blocking `GetState` query, so a Nav2 node stuck in
+  `inactive` / `unconfigured` stops being invisible: its graph node is dashed
+  with the state shown, and a `lifecycle_not_active` issue names the exact
+  `ros2 lifecycle set … activate` command — **critical** when its outputs have
+  subscribers waiting (the classic "nothing on `/cmd_vel`"). `--no-lifecycle`
+  turns the queries off.
 - **Node CPU / memory**, with honest node→process mapping confidence: layered
   matching (`__node:=` remap → `high`, executable name → `medium`, bare token →
   `low`) and component containers capped at `low` since per-node CPU can't be
@@ -460,7 +467,8 @@ node is modified.
   `rgd top`, and the Fleet wall with `rgd serve --demo --fleet N`.
 - **v0.5** *(in progress)* — `rgd assert` CI health gate, PyPI / Docker
   distribution, topic statistics (Tier B), and turn-key `ros2_tracing`
-  conversion (`rgd trace convert`, `agent --trace-file <session dir>`).
+  conversion (`rgd trace convert`, `agent --trace-file <session dir>`), and
+  lifecycle (managed) node states.
 
 See [CHANGELOG.md](CHANGELOG.md) for the full per-release list.
 

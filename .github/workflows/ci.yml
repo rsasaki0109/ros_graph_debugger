@@ -30,6 +30,7 @@ jobs:
             ros-${{ matrix.ros_distro }}-tf2-msgs \
             ros-${{ matrix.ros_distro }}-diagnostic-msgs \
             ros-${{ matrix.ros_distro }}-statistics-msgs \
+            ros-${{ matrix.ros_distro }}-lifecycle-msgs \
             python3-bt2
           # Web/API stack is pip-only. --break-system-packages is unknown to the
           # older pip on 22.04 (humble) and required on 24.04 (jazzy), so try it

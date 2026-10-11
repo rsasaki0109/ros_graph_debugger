@@ -14,6 +14,7 @@ RUN apt-get update \
       python3-pip python3-colcon-common-extensions python3-psutil python3-yaml \
       ros-${ROS_DISTRO}-std-msgs ros-${ROS_DISTRO}-tf2-msgs \
       ros-${ROS_DISTRO}-diagnostic-msgs ros-${ROS_DISTRO}-statistics-msgs \
+      ros-${ROS_DISTRO}-lifecycle-msgs \
  && rm -rf /var/lib/apt/lists/*
 # Same pip fallback as CI: --break-system-packages is required on 24.04 (jazzy)
 # and unknown to the older pip on 22.04 (humble).

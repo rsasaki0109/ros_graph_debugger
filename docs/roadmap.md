@@ -50,6 +50,9 @@ briefing + MCP server, and a demo pipeline.
   several agents' snapshots into one host-namespaced view, served by
   `FederatedStore` (background poller). `rgd federate robot1=URL robot2=URL`
   prints a fleet briefing; `--serve` shows the whole fleet live in the web UI.
+- Lifecycle (managed) node states — *done*: `GetState` per node serving
+  `<node>/get_state`, a `lifecycle_not_active` issue (critical when outputs
+  have waiting subscribers), dashed nodes in the graph, and a briefing section.
 - Richer node→process attribution — *done*: layered confidence (remap / exe
   name / token) with component-container capping (`procmap.py`). Live `/proc`
   coverage for anonymous and lifecycle nodes remains.

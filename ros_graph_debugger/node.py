@@ -24,12 +24,14 @@ from rclpy.qos import (
 )
 
 from diagnostic_msgs.msg import DiagnosticArray
+from lifecycle_msgs.srv import GetState
 from statistics_msgs.msg import MetricsMessage
 from tf2_msgs.msg import TFMessage
 
 from .analysis import analyze
 from .config import ProbeConfig, Thresholds
 from .graph_build import build_graph
+from .lifecycle import UNKNOWN as LIFECYCLE_UNKNOWN, is_lifecycle_node
 from .msgutil import header_stamp_age_ms
 from .procmap import match_nodes_to_processes
 from .statistics import StatisticsBuffer, parse_metrics
@@ -53,6 +55,9 @@ LARGE_TYPES = {
     'sensor_msgs/msg/PointCloud2',
     'sensor_msgs/msg/LaserScan',
 }
+
+# A get_state call that has not answered by then is abandoned (and retried).
+LIFECYCLE_TIMEOUT_S = 5.0
 
 # Internal / noisy topics we never auto-probe.
 SKIP_TOPICS = {'/parameter_events', '/rosout'}
@@ -104,7 +109,8 @@ def _percentile(values, pct: float):
 class DebuggerNode(Node):
     def __init__(self, store: RuntimeGraphStore, probe: ProbeConfig,
                  thresholds: Thresholds, profile_name: str | None,
-                 statistics_topics: dict[str, str | None] | None = None) -> None:
+                 statistics_topics: dict[str, str | None] | None = None,
+                 lifecycle: bool = True) -> None:
         super().__init__('ros_graph_debugger')
         self.store = store
         self.probe_cfg = probe
@@ -147,6 +153,15 @@ class DebuggerNode(Node):
                     self._statistics.ingest(parse_metrics(msg, _st, _dt)),
                 10)
 
+        # Lifecycle (managed) nodes: one GetState client per node, at most one
+        # request in flight each. Read-only and tiny, but it is a service call
+        # into the target, so --no-lifecycle turns it off.
+        self._lc_clients: dict[str, object] = {}
+        self._lc_pending: dict[str, tuple[object, float]] = {}
+        self._lc_states: dict[str, str] = {}
+        if lifecycle:
+            self.create_timer(2.0, self._poll_lifecycle)
+
         # Periodic work.
         self.create_timer(1.0, self._poll_graph)
         self.create_timer(2.0, self._poll_processes)
@@ -165,6 +180,53 @@ class DebuggerNode(Node):
         nodes, topics = build_graph(self)
         self.store.set_graph(nodes, topics)
         self._sync_probes(topics)
+
+    # ------------------------------------------------------------ lifecycle #
+    def _poll_lifecycle(self) -> None:
+        try:
+            self._query_lifecycle(time.time())
+        except Exception as exc:  # never let a poll kill the node
+            self.get_logger().warn(f'lifecycle poll failed: {exc}')
+
+    def _query_lifecycle(self, now: float) -> None:
+        nodes, _, _, _, _ = self.store.working_copy()
+        live = {nid for nid, n in nodes.items() if is_lifecycle_node(n)}
+        for nid in list(self._lc_clients):
+            if nid not in live:  # node went away
+                self.destroy_client(self._lc_clients.pop(nid))
+                self._lc_pending.pop(nid, None)
+                self._lc_states.pop(nid, None)
+        for nid in sorted(live):
+            pending = self._lc_pending.get(nid)
+            if pending is not None:
+                future, sent = pending
+                if not future.done():
+                    if now - sent < LIFECYCLE_TIMEOUT_S:
+                        continue
+                    future.cancel()
+                    self._lc_states[nid] = LIFECYCLE_UNKNOWN
+                del self._lc_pending[nid]
+            client = self._lc_clients.get(nid)
+            if client is None:
+                client = self.create_client(GetState, f'{nid}/get_state')
+                self._lc_clients[nid] = client
+            if not client.service_is_ready():
+                self._lc_states.setdefault(nid, LIFECYCLE_UNKNOWN)
+                continue
+            future = client.call_async(GetState.Request())
+            future.add_done_callback(
+                lambda f, _nid=nid: self._on_lifecycle_state(_nid, f))
+            self._lc_pending[nid] = (future, now)
+        for nid, state in self._lc_states.items():
+            self.store.update_node_process(nid, lifecycle_state=state)
+
+    def _on_lifecycle_state(self, node_id: str, future) -> None:
+        try:
+            label = future.result().current_state.label
+        except Exception:
+            return
+        self._lc_states[node_id] = label or LIFECYCLE_UNKNOWN
+        self.store.update_node_process(node_id, lifecycle_state=self._lc_states[node_id])
 
     # --------------------------------------------------------------- probes #
     def _wants_probe(self, name: str, ttype: str) -> bool:

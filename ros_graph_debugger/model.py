@@ -81,6 +81,9 @@ class NodeInfo:
     rss_bytes: Optional[int] = None
     # none | low | medium | high — be honest about node->process mapping.
     process_mapping_confidence: str = 'none'
+    # Managed-node state (lifecycle_msgs label, e.g. 'active', 'inactive');
+    # None for nodes that are not lifecycle nodes, 'unknown' until answered.
+    lifecycle_state: Optional[str] = None
 
     status: str = OK
 
@@ -207,6 +210,7 @@ class RuntimeGraphStore:
                     new.cpu_percent = old.cpu_percent
                     new.rss_bytes = old.rss_bytes
                     new.process_mapping_confidence = old.process_mapping_confidence
+                    new.lifecycle_state = old.lifecycle_state
             self._nodes = nodes
             self._topics = topics
             self._overlay_statistics_locked()
