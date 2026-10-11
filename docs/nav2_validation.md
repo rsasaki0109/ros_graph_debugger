@@ -54,7 +54,7 @@ independent subscriber, which requests reliable, transient-local QoS.
    publication. A separate heartbeat extends the bag to at least four seconds
    and 40 heartbeat messages. Require exactly one map and deserialize its full
    contents against the fixture. Analyze the bag with the Nav2 profile and
-   forbid `rate_drop` and `stale_topic` in an offline assertion. Both the bag
+   forbid `rate_drop` and `topic_stale` in an offline assertion. Both the bag
    and subscriber must still contain exactly one map.
 
 All readiness waits poll state, graph, message receipts or SQLite contents.

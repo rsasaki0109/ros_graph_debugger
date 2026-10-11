@@ -126,12 +126,16 @@ def validate_bag(directory):
         if name == '/map':
             maps.append(map_fields(deserialize_message(raw, OccupancyGrid)))
     assert maps == [EXPECTED_MAP], maps
+    validate_bag_recording(directory)
+
+
+def validate_bag_recording(directory):
     _, snapshots = read_recording(str(directory / 'bag.rgd.json'))
     assert len(snapshots) >= 3, snapshots
     for sample in snapshots:
         topic = next(t for t in sample['topics'] if t['name'] == '/map')
         assert topic['type'] == 'nav_msgs/msg/OccupancyGrid'
-        assert not any('/map' in i['related_topics'] and i['kind'] in ('rate_drop', 'stale_topic')
+        assert not any('/map' in i['related_topics'] and i['kind'] in ('rate_drop', 'topic_stale')
                        for i in sample['issues']), sample['issues']
     result = json.loads((directory / 'bag-assert.json').read_text())
     assert result['passed'] and result['samples'] >= 3, result
@@ -217,7 +221,7 @@ def scenario(output, port):
         run(cli('bag', 'analyze', output / 'bag', '--profile', 'nav2',
                 '--out', output / 'bag.rgd.json'), output, 'bag-analyze')
         run(cli('assert', output / 'bag.rgd.json', '--settle', '0', '--fail-on', 'never',
-                '--forbid', 'stale_topic', '--forbid', 'rate_drop', '--require-topic', '/map', '--json'),
+                '--forbid', 'topic_stale', '--forbid', 'rate_drop', '--require-topic', '/map', '--json'),
             output, 'bag-assert')
         validate_bag(output)
         receipt_ready(output / 'map-receipt.json')

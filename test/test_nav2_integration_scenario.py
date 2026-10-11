@@ -93,3 +93,16 @@ def test_diff_requires_resolved_lifecycle_issue_for_actual_server(tmp_path):
     (tmp_path / 'diff.json').write_text(json.dumps(result))
     with pytest.raises(AssertionError):
         scenario.validate_diff(tmp_path)
+
+
+def test_bag_analysis_cannot_hide_actual_topic_stale_kind(tmp_path):
+    samples = [{'timestamp': float(t), 'issues': [],
+                'topics': [{'name': '/map', 'type': 'nav_msgs/msg/OccupancyGrid'}]}
+               for t in range(3)]
+    (tmp_path / 'bag-assert.json').write_text(json.dumps({'passed': True, 'samples': 3}))
+    write_recording(str(tmp_path / 'bag.rgd.json'), make_header(0, 1), samples)
+    scenario.validate_bag_recording(tmp_path)
+    samples[1]['issues'] = [{'kind': 'topic_stale', 'related_topics': ['/map']}]
+    write_recording(str(tmp_path / 'bag.rgd.json'), make_header(0, 1), samples)
+    with pytest.raises(AssertionError):
+        scenario.validate_bag_recording(tmp_path)
