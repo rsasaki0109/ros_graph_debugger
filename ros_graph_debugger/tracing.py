@@ -3,15 +3,18 @@
 The richest latency signal in ROS 2 is how long each callback actually runs —
 that is what `ros2_tracing` / LTTng capture. A real adapter reads a CTF trace
 (or a live LTTng session) and aggregates `callback_start`/`callback_end` pairs
-into per-callback duration stats; that adapter is the remaining v0.3 work and
-needs an LTTng-enabled build, so it does not run in every environment.
+into per-callback duration stats. Recording needs an LTTng-enabled build, so
+it does not happen in every environment; converting a recorded trace only
+needs babeltrace2 (`rgd trace convert`).
 
-What lives here now is the **data shape and a synthetic source**, mirroring how
-`replay.py` lets the whole product work without DDS: `synthesize_callbacks`
-produces plausible `CallbackStat`s from the graph (one per subscription
-callback), with an optional hot node whose callback p95 spikes. The demo
-recording and the issue engine consume the same shape a real trace adapter will
-emit, so wiring LTTng later is a drop-in.
+The pure half of that adapter lives here: resolving callback owners from the
+trace's registration events, pairing `callback_start`/`callback_end` into
+durations, and aggregating them into `CallbackStat`s. Reading the CTF itself
+(babeltrace2) is in `trace_convert.py`. There is also a **synthetic source**,
+mirroring how `replay.py` lets the whole product work without DDS:
+`synthesize_callbacks` produces plausible `CallbackStat`s from the graph, with
+an optional hot node whose callback p95 spikes — the same shape a real trace
+yields.
 """
 
 from __future__ import annotations
@@ -102,6 +105,98 @@ def rows_with_owners(duration_rows, owners) -> list[dict]:
     return out
 
 
+def _fq(name: str, namespace: str) -> str:
+    ns = (namespace or '/').rstrip('/')
+    return f'{ns}/{name}' if name else ''
+
+
+def resolve_callback_owners(events) -> dict:
+    """Resolve callback handles to ``{node, callback, topic}`` from the
+    registration events of a ``ros2_tracing`` session.
+
+    ``events`` are ``{name, pid, fields}`` dicts (see ``trace_convert``). The
+    chains followed, as emitted by rclcpp:
+
+    - subscription: ``rcl_node_init`` ← ``rcl_subscription_init`` (topic) ←
+      ``rclcpp_subscription_init`` ← ``rclcpp_subscription_callback_added``
+    - timer: ``rcl_timer_init`` (period) + ``rclcpp_timer_link_node`` +
+      ``rclcpp_timer_callback_added``
+    - service: ``rcl_service_init`` (name) + ``rclcpp_service_callback_added``
+
+    Handles are pointers, unique only within a process, so every key is
+    ``(pid, handle)``. A callback whose chain does not reach a node is left
+    out — attribution is never guessed."""
+    nodes, rcl_subs, cpp_subs, sub_cbs = {}, {}, {}, {}
+    timers, timer_nodes, timer_cbs = {}, {}, {}
+    services, service_cbs = {}, {}
+    for e in events:
+        name = e.get('name', '').removeprefix('ros2:')
+        pid, f = e.get('pid'), e.get('fields', {})
+        if name == 'rcl_node_init':
+            nodes[(pid, f.get('node_handle'))] = _fq(f.get('node_name', ''),
+                                                     f.get('namespace', '/'))
+        elif name == 'rcl_subscription_init':
+            rcl_subs[(pid, f.get('subscription_handle'))] = (
+                f.get('node_handle'), f.get('topic_name', ''))
+        elif name == 'rclcpp_subscription_init':
+            cpp_subs[(pid, f.get('subscription'))] = f.get('subscription_handle')
+        elif name == 'rclcpp_subscription_callback_added':
+            sub_cbs[(pid, f.get('callback'))] = f.get('subscription')
+        elif name == 'rcl_timer_init':
+            timers[(pid, f.get('timer_handle'))] = f.get('period')
+        elif name == 'rclcpp_timer_link_node':
+            timer_nodes[(pid, f.get('timer_handle'))] = f.get('node_handle')
+        elif name == 'rclcpp_timer_callback_added':
+            timer_cbs[(pid, f.get('callback'))] = f.get('timer_handle')
+        elif name == 'rcl_service_init':
+            services[(pid, f.get('service_handle'))] = (
+                f.get('node_handle'), f.get('service_name', ''))
+        elif name == 'rclcpp_service_callback_added':
+            service_cbs[(pid, f.get('callback'))] = f.get('service_handle')
+
+    owners: dict = {}
+    for (pid, cb), sub in sub_cbs.items():
+        rcl = rcl_subs.get((pid, cpp_subs.get((pid, sub))))
+        node = rcl and nodes.get((pid, rcl[0]))
+        if node:
+            owners[(pid, cb)] = {'node': node, 'topic': rcl[1],
+                                 'callback': f'sub {rcl[1]}'}
+    for (pid, cb), timer in timer_cbs.items():
+        node = nodes.get((pid, timer_nodes.get((pid, timer))))
+        if node:
+            period = timers.get((pid, timer))
+            label = f'timer {period / 1e6:g} ms' \
+                if isinstance(period, (int, float)) else 'timer'
+            owners[(pid, cb)] = {'node': node, 'topic': '', 'callback': label}
+    for (pid, cb), srv in service_cbs.items():
+        rcl = services.get((pid, srv))
+        node = rcl and nodes.get((pid, rcl[0]))
+        if node:
+            owners[(pid, cb)] = {'node': node, 'topic': '',
+                                 'callback': f'srv {rcl[1]}'}
+    return owners
+
+
+def trace_events_to_rows(events) -> tuple[list[dict], dict]:
+    """Turn a session's ``{name, pid, t_ns, fields}`` events into per-invocation
+    ``{node, callback, topic, duration_ms}`` rows (the NDJSON interchange
+    format), plus counts that say how much of the trace was usable."""
+    events = sorted(events, key=lambda e: e.get('t_ns') or 0)
+    owners = resolve_callback_owners(events)
+    marks = []
+    for e in events:
+        name = e.get('name', '').removeprefix('ros2:')
+        if name in ('callback_start', 'callback_end'):
+            marks.append({'kind': 'start' if name == 'callback_start' else 'end',
+                          'handle': (e.get('pid'), e['fields'].get('callback')),
+                          't_ns': e.get('t_ns')})
+    paired = pair_callback_events(marks)
+    rows = rows_with_owners(paired, owners)
+    return rows, {'events': len(events), 'callbacks_resolved': len(owners),
+                  'invocations': len(paired), 'attributed': len(rows),
+                  'unattributed': len(paired) - len(rows)}
+
+
 def load_duration_rows(path: str) -> list[dict]:
     """Read NDJSON callback-duration rows, tolerating truncated/garbage lines
     (as a Ctrl-C'd export leaves). Each row is one callback invocation."""
@@ -121,12 +216,17 @@ def load_duration_rows(path: str) -> list[dict]:
 
 
 def callbacks_from_trace_file(path: str) -> list[CallbackStat]:
-    """Load and aggregate an NDJSON callback-duration trace into CallbackStats.
+    """Load and aggregate a callback trace into CallbackStats.
 
-    Produce the file from a real session with ``ros2 trace`` → babeltrace2,
-    emitting one ``{"node","callback","topic","duration_ms"}`` object per
-    ``callback_end``/``callback_start`` pair. ros_graph_debugger then treats it
-    exactly like the synthetic source."""
+    ``path`` is either a ``ros2 trace`` session directory (CTF, read with
+    babeltrace2 via ``trace_convert``) or an NDJSON file with one
+    ``{"node","callback","topic","duration_ms"}`` object per invocation (what
+    ``rgd trace convert`` writes). ros_graph_debugger then treats it exactly
+    like the synthetic source."""
+    import os
+    if os.path.isdir(path):
+        from .trace_convert import callbacks_from_trace_dir
+        return callbacks_from_trace_dir(path)
     return aggregate_callback_durations(load_duration_rows(path))
 
 

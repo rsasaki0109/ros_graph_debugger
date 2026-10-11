@@ -56,8 +56,11 @@ End-to-end latency is approximated in tiers, from cheap to accurate:
   message names the subscriber node only, so a node with several data
   subscriptions stays unattributed until its stats topic is mapped. Stats older
   than 10 s are dropped. App-specific pipeline-latency topics remain roadmap.
-- **Tier C (roadmap)** — `ros2_tracing` / LTTng for true callback and
-  publish→subscribe spans. Linux-only, opt-in recording.
+- **Tier C (implemented for callback durations)** — `ros2_tracing` / LTTng
+  traces, converted offline (`rgd trace convert`, or `agent --trace-file
+  <session dir>`) into per-callback count/mean/p95/max. Recording is
+  Linux-only and opt-in; reading needs `python3-bt2`. The agent never starts a
+  trace itself. Publish→subscribe spans remain roadmap.
 
 ## Failure isolation
 

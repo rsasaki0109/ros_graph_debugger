@@ -28,7 +28,7 @@ briefing + MCP server, and a demo pipeline.
   Inspector and briefing.
 
 ## v0.3 — explain it
-- **Tier C tracing** *(in progress)*: per-callback execution-time stats
+- **Tier C tracing** *(done for callback durations)*: per-callback execution-time stats
   (`/api/v1/callbacks`, `get_callbacks`, node Inspector + briefing) and a
   `slow_callback` issue when a callback blows its (stage-aware) budget. Real
   traces load via `agent --trace-file run.ndjson` —
@@ -36,8 +36,11 @@ briefing + MCP server, and a demo pipeline.
   count/mean/p95/max — and the synthetic source drives `--demo`. The capture →
   NDJSON workflow (with the unit-tested `pair_callback_events` /
   `rows_with_owners` building blocks) is documented in
-  [tracing.md](tracing.md). Remaining: a turn-key `ros2_tracing` → NDJSON
-  converter and a callback-duration timeline along the pipeline path.
+  [tracing.md](tracing.md). The turn-key converter is *done*:
+  `rgd trace convert <session>` (babeltrace2, `trace_convert.py`) resolves
+  subscription / timer / service callbacks per process, and
+  `agent --trace-file` takes the session directory directly. Remaining: a
+  callback-duration timeline along the pipeline path.
 - Tier B latency — *done for topic statistics*: rclcpp `/statistics`
   (`MetricsMessage`) feeds rate/age for unprobed topics with explicit
   node→topic attribution (`statistics.py`, `/api/v1/statistics`,

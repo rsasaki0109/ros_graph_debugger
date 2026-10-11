@@ -34,16 +34,68 @@ against the profile's `max_callback_ms` budget.
 ## Capturing a trace
 
 ```bash
-# 1. record (needs an LTTng-enabled tracetools build)
-ros2 trace -s rgd_session -e ros2:callback_start ros2:callback_end \
-  ros2:rclcpp_subscription_init ros2:rcl_node_init
-# ... run your system, then Ctrl-C the trace ...
+# needs an LTTng-enabled tracetools build (ros2_tracing)
+ros2 trace -s rgd_session        # default events include every ros2:* tracepoint
+# ... now launch your system, exercise it, then stop the trace (Enter / Ctrl-C)
 ```
 
-## Converting to NDJSON
+Start the trace **before** launching the nodes. Attribution comes from the
+registration events emitted while nodes start up (`rcl_node_init`,
+`rcl_subscription_init`, `rclcpp_subscription_init`,
+`rclcpp_*_callback_added`, …); a node that was already running when tracing
+began produces `callback_start`/`callback_end` pairs nobody can attribute. If
+you narrow the events with `-e`, keep all of those plus `ros2:callback_start`
+and `ros2:callback_end`.
 
-**Recommended — `tracetools_analysis`** (it resolves the
-callback→subscription→node/topic chain for you):
+## Converting — turn-key
+
+```bash
+sudo apt install python3-bt2      # babeltrace2 Python bindings (system python3)
+
+# either convert once and load the NDJSON...
+ros2 run ros_graph_debugger rgd trace convert ~/.ros/tracing/rgd_session --out run.ndjson
+ros2 run ros_graph_debugger agent --profile autoware --trace-file run.ndjson
+
+# ...or hand the session directory to the agent directly
+ros2 run ros_graph_debugger agent --profile autoware --trace-file ~/.ros/tracing/rgd_session
+```
+
+`rgd trace convert` reads the CTF with babeltrace2 (`trace_convert.py`),
+resolves every callback to its node and topic, pairs `callback_start` /
+`callback_end` into durations, writes one NDJSON row per invocation, and prints
+how much of the trace it could attribute plus the slowest callbacks, for
+example:
+
+```
+wrote 18342 callback invocations to run.ndjson (41 callbacks resolved, 0 invocations without a resolvable owner)
+slowest callbacks (p95):
+     212.4 ms  /perception/detector  sub /sensing/camera/image_raw  (n=903)
+      14.9 ms  /control/controller  timer 33.3333 ms  (n=2701)
+```
+
+What is resolved, per process (handles are pointers, so everything is keyed by
+`(vpid, handle)`):
+
+| callback | chain | label |
+|---|---|---|
+| subscription | `rcl_node_init` ← `rcl_subscription_init` ← `rclcpp_subscription_init` ← `rclcpp_subscription_callback_added` | `sub <topic>` |
+| timer | `rcl_timer_init` + `rclcpp_timer_link_node` + `rclcpp_timer_callback_added` | `timer <period> ms` |
+| service | `rcl_service_init` + `rclcpp_service_callback_added` | `srv <service>` |
+
+Invocations whose chain is incomplete are counted as *without a resolvable
+owner* and dropped, never guessed. These are the rclcpp tracepoints; callbacks
+from client libraries that don't emit them are dropped the same way.
+
+The pure half (owner resolution, pairing, aggregation) is in `tracing.py` and
+unit-tested without babeltrace2 (`test/test_trace_convert.py`); the same test
+file also writes a real CTF trace with babeltrace2's `sink.ctf.fs` and reads
+it back through `rgd trace convert` when `python3-bt2` is installed (as in CI).
+
+## Converting — other tools
+
+Anything that emits one `{"node", "topic", "callback"?, "duration_ms"}` object
+per invocation works with `--trace-file`. With `tracetools_analysis`, for
+example:
 
 ```python
 from tracetools_analysis.loading import load_file
@@ -67,35 +119,4 @@ with open('run.ndjson', 'w') as f:
 ```
 
 > API names vary across `tracetools_analysis` versions — adjust the owner /
-> duration accessors to yours. The point is to emit one `{node, topic,
-> duration_ms}` per invocation.
-
-**Lower level — raw babeltrace2.** If you read the CTF stream directly with the
-`bt2` bindings, the pairing and attribution logic is already in the package and
-unit-tested, so you only write the bt2 extraction:
-
-```python
-import bt2, json
-from ros_graph_debugger.tracing import pair_callback_events, rows_with_owners
-
-events, owners = [], {}   # owners: {callback_handle: {node, topic, callback}}
-for msg in bt2.TraceCollectionMessageIterator('~/.ros/tracing/rgd_session'):
-    if type(msg) is not bt2._EventMessageConst:
-        continue
-    ev, t_ns = msg.event, msg.default_clock_snapshot.ns_from_origin
-    if ev.name == 'ros2:callback_start':
-        events.append({'kind': 'start', 'handle': int(ev['callback']), 't_ns': t_ns})
-    elif ev.name == 'ros2:callback_end':
-        events.append({'kind': 'end', 'handle': int(ev['callback']), 't_ns': t_ns})
-    # ... populate `owners` from rclcpp_subscription_callback_added /
-    #     rcl_subscription_init / rcl_node_init (the callback->node/topic chain).
-
-rows = rows_with_owners(pair_callback_events(events), owners)
-with open('run.ndjson', 'w') as f:
-    for r in rows:
-        f.write(json.dumps(r) + '\n')
-```
-
-`pair_callback_events` matches `callback_start`/`callback_end` per handle (with a
-stack for reentrancy) and `rows_with_owners` attaches `{node, callback, topic}`,
-dropping handles with no resolved owner — see `test/test_tracing.py`.
+> duration accessors to yours.

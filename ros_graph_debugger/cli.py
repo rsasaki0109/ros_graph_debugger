@@ -270,6 +270,38 @@ def _cmd_assert(args) -> int:
     return 0 if result['passed'] else 1
 
 
+def _cmd_trace(args) -> int:
+    """Convert a `ros2 trace` CTF session into callback-duration NDJSON."""
+    from .trace_convert import TraceReaderUnavailable, convert_trace, write_rows
+    from .tracing import aggregate_callback_durations
+
+    try:
+        rows, counts = convert_trace(args.trace_dir)
+    except TraceReaderUnavailable as exc:
+        print(f'error: {exc}', file=sys.stderr)
+        return 2
+    except Exception as exc:  # bt2 raises its own types for unreadable traces
+        print(f'error: cannot read trace {args.trace_dir}: {exc}', file=sys.stderr)
+        return 2
+    write_rows(rows, args.out)
+    print(f'wrote {counts["attributed"]} callback invocations to {args.out} '
+          f'({counts["callbacks_resolved"]} callbacks resolved, '
+          f'{counts["unattributed"]} invocations without a resolvable owner)',
+          file=sys.stderr)
+    if not rows:
+        print('note: nothing attributed. Record with the registration events, '
+              'e.g. `ros2 trace -e ros2:*`, and start the trace before the '
+              'nodes so their init events are captured.', file=sys.stderr)
+        return 1
+    stats = sorted(aggregate_callback_durations(rows),
+                   key=lambda c: -(c.p95_ms or 0))
+    print('slowest callbacks (p95):', file=sys.stderr)
+    for c in stats[:args.top]:
+        print(f'  {c.p95_ms:8.1f} ms  {c.node}  {c.callback}  (n={c.count})',
+              file=sys.stderr)
+    return 0
+
+
 def _cmd_federate(args) -> int:
     """Merge snapshots from several agents — print a briefing or serve the UI."""
     from .federation import FederatedStore, merge_snapshots
@@ -446,6 +478,17 @@ def main(argv=None) -> int:
     asr.add_argument('--record', default=None, metavar='FILE',
                      help='live only: save the observed samples as a recording')
 
+    tr = sub.add_parser('trace', help='Tier C tracing helpers')
+    trs = tr.add_subparsers(dest='trace_cmd', required=True)
+    trc = trs.add_parser('convert',
+                         help='convert a `ros2 trace` session (CTF) into '
+                              'callback-duration NDJSON for `agent --trace-file`')
+    trc.add_argument('trace_dir', help='trace session directory, e.g. '
+                                       '~/.ros/tracing/my_session')
+    trc.add_argument('--out', required=True, help='output .ndjson file')
+    trc.add_argument('--top', type=int, default=10,
+                     help='how many of the slowest callbacks to print')
+
     sv = sub.add_parser('serve', help='replay a recording in the web UI (no ROS needed)')
     sv.add_argument('file', nargs='?', default=None, help='recording file')
     sv.add_argument('--demo', action='store_true', help='serve the built-in demo scenario')
@@ -506,6 +549,8 @@ def main(argv=None) -> int:
         return _cmd_diff(args)
     if args.cmd == 'assert':
         return _cmd_assert(args)
+    if args.cmd == 'trace':
+        return _cmd_trace(args)
     if args.cmd == 'serve':
         return _cmd_serve(args)
     if args.cmd == 'federate':
