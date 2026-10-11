@@ -21,6 +21,7 @@ EXPECTED = {
     ('GET', '/api/v1/tf'),
     ('GET', '/api/v1/diagnostics'),
     ('GET', '/api/v1/callbacks'),
+    ('GET', '/api/v1/statistics'),
     ('GET', '/api/v1/issues'),
     ('GET', '/api/v1/summary'),
     ('GET', '/api/v1/path'),

@@ -834,7 +834,7 @@ function topicDetail(t) {
     <dl class="kv">
       <dt>type</dt><dd>${escapeHtml(t.type || '—')}</dd>
       <dt>status</dt><dd><span class="pill ${t.status}">${t.status}</span></dd>
-      <dt>rate</dt><dd>${fmtRate(t.rate_hz) || (t.probed ? 'measuring…' : 'not probed')}</dd>
+      <dt>rate</dt><dd>${fmtRate(t.rate_hz) || (t.probed ? 'measuring…' : 'not probed')}${t.rate_source === 'statistics' ? ' <span class="pill" title="from rclcpp topic statistics (not probed by the agent)">stats</span>' : ''}</dd>
       <dt>bandwidth</dt><dd>${fmtBw(t.bandwidth_bps) || '—'}</dd>
       <dt>avg size</dt><dd>${fmtBytes(t.avg_msg_size_bytes)}</dd>
       <dt>p95 size</dt><dd>${fmtBytes(t.p95_msg_size_bytes)}</dd>
@@ -867,7 +867,7 @@ const NET_COLS = [
   { key: 'type', label: 'Type', cls: '', fmt: t => escapeHtml(shortType(t.type)) },
   { key: 'publisher_count', label: 'Pub', cls: 'num', fmt: t => t.publisher_count },
   { key: 'subscriber_count', label: 'Sub', cls: 'num', fmt: t => t.subscriber_count },
-  { key: 'rate_hz', label: 'Rate', cls: 'num', fmt: t => fmtRate(t.rate_hz) || (t.probed ? '…' : '') },
+  { key: 'rate_hz', label: 'Rate', cls: 'num', fmt: t => (fmtRate(t.rate_hz) || (t.probed ? '…' : '')) + (t.rate_source === 'statistics' && typeof t.rate_hz === 'number' ? ' <span class="net-badge" title="from rclcpp topic statistics">stats</span>' : '') },
   { key: 'header_age_p95_ms', label: 'Age p95', cls: 'num', fmt: t => (typeof t.header_age_p95_ms === 'number') ? `${t.header_age_p95_ms.toFixed(0)} ms` : '' },
   { key: 'bandwidth_bps', label: 'Bandwidth', cls: 'num', fmt: t => fmtBw(t.bandwidth_bps) || '' },
   { key: 'p95_msg_size_bytes', label: 'p95 size', cls: 'num', fmt: t => t.p95_msg_size_bytes ? fmtBytes(t.p95_msg_size_bytes) : '' },

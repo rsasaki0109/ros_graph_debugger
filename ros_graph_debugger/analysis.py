@@ -92,7 +92,7 @@ def analyze(store: RuntimeGraphStore, thresholds) -> list[Issue]:
 
         # 5: rate below profile expectation (exact topic or matching pattern).
         expected = thresholds.min_rate_for(name)
-        if expected and t.probed and t.rate_hz is not None \
+        if expected and _measured(t) and t.rate_hz is not None \
                 and t.rate_hz < expected:
             status = WARNING if status not in (CRITICAL,) else status
             issues.append(Issue(
@@ -101,15 +101,16 @@ def analyze(store: RuntimeGraphStore, thresholds) -> list[Issue]:
                 title=f'{name} rate below expectation',
                 explanation=f'Observed {t.rate_hz:.1f} Hz, expected '
                             f'>= {expected:.1f} Hz.',
-                evidence=[f'observed: {t.rate_hz:.1f} Hz',
+                evidence=[f'observed: {t.rate_hz:.1f} Hz{_via(t)}',
                           f'expected: {expected:.1f} Hz'],
                 suggested_actions=['Inspect the publishing node callback',
                                    'Check upstream topic freshness'],
                 related_topics=[name], related_nodes=list(t.publishers)))
 
-        # 5b: data older than the profile's max-age expectation (latency Tier A).
+        # 5b: data older than the profile's max-age expectation (latency
+        # Tier A from our probe, or Tier B from topic statistics).
         max_age = thresholds.max_age_for(name)
-        if max_age and t.probed and t.header_age_p95_ms is not None \
+        if max_age and _measured(t) and t.header_age_p95_ms is not None \
                 and t.header_age_p95_ms > max_age:
             if status != CRITICAL:
                 status = WARNING
@@ -120,7 +121,7 @@ def analyze(store: RuntimeGraphStore, thresholds) -> list[Issue]:
                 explanation=f'p95 message age {t.header_age_p95_ms:.0f} ms exceeds '
                             f'the expected {max_age:.0f} ms; consumers may act on '
                             'stale data.',
-                evidence=[f'p95 header age: {t.header_age_p95_ms:.0f} ms',
+                evidence=[f'p95 header age: {t.header_age_p95_ms:.0f} ms{_via(t)}',
                           f'expected within: {max_age:.0f} ms'],
                 suggested_actions=['Inspect the publishing pipeline latency',
                                    'Check upstream input freshness and CPU load'],
@@ -259,7 +260,7 @@ def _infer_bottlenecks(nodes, topics, thresholds) -> list[Issue]:
         slow_expected = None
         for pub in n.publishers:
             t = topics.get(pub)
-            if not t or not t.probed:
+            if not t or not _measured(t):
                 continue
             expected = thresholds.min_rate_for(pub)
             if expected and t.rate_hz is not None and t.rate_hz < expected:
@@ -272,7 +273,7 @@ def _infer_bottlenecks(nodes, topics, thresholds) -> list[Issue]:
         healthy_inputs = []
         for sub in n.subscribers:
             t = topics.get(sub)
-            if t and t.probed and t.rate_hz:
+            if t and _measured(t) and t.rate_hz:
                 healthy_inputs.append(f'{sub}: {t.rate_hz:.1f} Hz')
         evidence = [f'{slow_topic.name}: {slow_topic.rate_hz:.1f} Hz '
                     f'(expected >= {slow_expected:.1f})']
@@ -293,6 +294,16 @@ def _infer_bottlenecks(nodes, topics, thresholds) -> list[Issue]:
                                'Reduce input load (downsample) if applicable'],
             related_nodes=[node_id], related_topics=[slow_topic.name]))
     return out
+
+
+def _measured(topic) -> bool:
+    """Rate/age are measured, by our probe or by topic statistics."""
+    return bool(topic.probed or topic.rate_source)
+
+
+def _via(topic) -> str:
+    """Evidence suffix naming a measurement that is not our own probe."""
+    return ' (via topic statistics)' if topic.rate_source == 'statistics' else ''
 
 
 def _qos_evidence(topic) -> list[str]:

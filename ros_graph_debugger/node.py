@@ -24,6 +24,7 @@ from rclpy.qos import (
 )
 
 from diagnostic_msgs.msg import DiagnosticArray
+from statistics_msgs.msg import MetricsMessage
 from tf2_msgs.msg import TFMessage
 
 from .analysis import analyze
@@ -31,6 +32,7 @@ from .config import ProbeConfig, Thresholds
 from .graph_build import build_graph
 from .msgutil import header_stamp_age_ms
 from .procmap import match_nodes_to_processes
+from .statistics import StatisticsBuffer, parse_metrics
 from .model import (
     DiagnosticStatus,
     RuntimeGraphStore,
@@ -101,7 +103,8 @@ def _percentile(values, pct: float):
 
 class DebuggerNode(Node):
     def __init__(self, store: RuntimeGraphStore, probe: ProbeConfig,
-                 thresholds: Thresholds, profile_name: str | None) -> None:
+                 thresholds: Thresholds, profile_name: str | None,
+                 statistics_topics: dict[str, str | None] | None = None) -> None:
         super().__init__('ros_graph_debugger')
         self.store = store
         self.probe_cfg = probe
@@ -133,6 +136,16 @@ class DebuggerNode(Node):
                                  self._on_tf_static, static_qos)
         self.create_subscription(DiagnosticArray, '/diagnostics',
                                  self._on_diagnostics, 10)
+
+        # rclcpp topic statistics (latency Tier B): one small message per
+        # window per measured subscription — rate/age for topics we don't probe.
+        self._statistics = StatisticsBuffer()
+        for stats_topic, data_topic in (statistics_topics or {}).items():
+            self.create_subscription(
+                MetricsMessage, stats_topic,
+                lambda msg, _st=stats_topic, _dt=data_topic:
+                    self._statistics.ingest(parse_metrics(msg, _st, _dt)),
+                10)
 
         # Periodic work.
         self.create_timer(1.0, self._poll_graph)
@@ -289,6 +302,7 @@ class DebuggerNode(Node):
             self.store.update_topic_metrics(name, **probe.metrics())
         self.store.set_tf(self._tf_snapshot())
         self.store.set_diagnostics(dict(self._diagnostics))
+        self.store.set_statistics(self._statistics.rows())
         try:
             issues = analyze(self.store, self.thresholds)
             self.store.set_issues(issues)

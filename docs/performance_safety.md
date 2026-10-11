@@ -42,8 +42,20 @@ End-to-end latency is approximated in tiers, from cheap to accurate:
 
 - **Tier A (implemented)** — `header.stamp` age (p50/p95) of probed messages.
   Cheap, approximate, only meaningful for messages with a populated header.
-- **Tier B (roadmap)** — `/statistics` (ROS 2 topic statistics) and app-specific
-  pipeline-latency topics.
+- **Tier B (implemented)** — rclcpp topic statistics: subscriptions created
+  with topic statistics enabled publish `statistics_msgs/MetricsMessage`
+  (`message_period`, `message_age`, ms) once per window. The agent reads
+  `/statistics` (or `--statistics-topic STATS[=TOPIC]`, repeatable;
+  `--no-statistics` to disable) and overlays the rate (`1000 / avg period`, the
+  slowest subscriber) and age (avg, p95 ≈ avg + 1.645·stddev capped at the
+  window max — the message has no percentiles) on topics it does **not** probe.
+  A window with no samples reads as 0 Hz, so a dead sensor still trips its
+  expected rate.
+  This costs the agent one small subscription and lets large sensor topics be
+  measured without subscribing to them. Attribution is never guessed: the
+  message names the subscriber node only, so a node with several data
+  subscriptions stays unattributed until its stats topic is mapped. Stats older
+  than 10 s are dropped. App-specific pipeline-latency topics remain roadmap.
 - **Tier C (roadmap)** — `ros2_tracing` / LTTng for true callback and
   publish→subscribe spans. Linux-only, opt-in recording.
 

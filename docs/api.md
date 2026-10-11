@@ -21,6 +21,7 @@ unless noted. The same surface is served in replay mode (`rgd serve`), except
 | GET | `/api/v1/tf` | TF edges with staleness |
 | GET | `/api/v1/diagnostics` | latest `/diagnostics` statuses |
 | GET | `/api/v1/callbacks` | per-callback execution-time stats (Tier C tracing; `[]` when no trace source) |
+| GET | `/api/v1/statistics` | rclcpp topic statistics (Tier B) per subscriber node and metric, with the topic each was attributed to (`[]` when none) |
 | GET | `/api/v1/issues` | detected issues (sorted by severity) |
 | GET | `/api/v1/summary` | one-line health rollup (`{verdict: ok\|degraded\|critical, counts, headline, issue_count}`) |
 | GET | `/api/v1/path?target=TARGET` | the constraining source→sink pipeline path through a node/topic (`{target, pivot, nodes, hops, bottleneck_topic, cb_bottleneck_node}`; each hop carries `rate_hz` + the consumer's `cb_p95_ms`; 404 if no connected path) |
@@ -71,11 +72,14 @@ pattern.
                 "rss_bytes", "process_mapping_confidence", "status" }],
   "topics":  [{ "name", "type", "publisher_count", "subscriber_count",
                 "rate_hz", "bandwidth_bps", "p95_msg_size_bytes",
-                "header_age_p95_ms", "qos_status", "status" }],
+                "header_age_p95_ms", "rate_source", "qos_status", "status" }],
   "edges":   [{ "from_node", "to_node", "topic", "status" }],
   "tf_edges":[{ "parent", "child", "age_ms", "status" }],
   "callbacks":[{ "node", "callback", "topic", "count",
                  "mean_ms", "p95_ms", "max_ms" }],
+  "statistics":[{ "node", "source", "topic", "attribution", "metric", "unit",
+                  "stats_topic", "avg", "min", "max", "stddev", "count",
+                  "window_stop" }],
   "issues":  [{ "severity", "kind", "title", "explanation",
                 "evidence", "suggested_actions",
                 "related_nodes", "related_topics", "related_frames" }]
@@ -90,7 +94,8 @@ as tools. Read tools: `get_runtime_briefing` (`/snapshot.md`),
 for one node or topic in a large graph), `get_pipeline_path(target)`
 (`/path?target=TARGET` — the constraining source→sink route), `get_issues`,
 `get_graph`, `get_topics`,
-`get_nodes`, `get_tf`, `get_diagnostics`, `get_callbacks`, `get_config`, plus
+`get_nodes`, `get_tf`, `get_diagnostics`, `get_callbacks`, `get_statistics`,
+`get_config`, plus
 `health`. Write
 tool: `set_expected_rate(topic, min_hz)`
 posts to `/config` so an AI can set a topic's expected-rate floor at runtime.

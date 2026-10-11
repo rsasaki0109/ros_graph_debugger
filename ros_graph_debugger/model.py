@@ -58,6 +58,9 @@ class TopicInfo:
     # header.stamp based message age (latency Tier A), when the type has a header.
     header_age_ms: Optional[float] = None
     header_age_p95_ms: Optional[float] = None
+    # Where rate/age came from: 'probe' (our own subscription), 'statistics'
+    # (rclcpp topic statistics, latency Tier B), or None (not measured).
+    rate_source: Optional[str] = None
 
     qos_status: str = UNKNOWN  # ok | mismatch | risk | unknown
     status: str = UNKNOWN  # ok | warning | critical | unknown
@@ -152,6 +155,7 @@ class GraphSnapshot:
     tf_edges: list[dict] = field(default_factory=list)
     diagnostics: list[dict] = field(default_factory=list)
     callbacks: list[dict] = field(default_factory=list)
+    statistics: list[dict] = field(default_factory=list)
     issues: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -173,6 +177,7 @@ class RuntimeGraphStore:
         self._tf: dict[tuple[str, str], TfEdge] = {}
         self._diagnostics: dict[str, DiagnosticStatus] = {}
         self._callbacks: list[CallbackStat] = []
+        self._statistics: list[dict] = []  # raw rows, see statistics.py
         self._issues: list[Issue] = []
         self._profile: Optional[str] = None
 
@@ -185,6 +190,7 @@ class RuntimeGraphStore:
                 old = self._topics.get(name)
                 if old is not None and old.probed:
                     new.probed = old.probed
+                    new.rate_source = old.rate_source
                     new.rate_hz = old.rate_hz
                     new.bandwidth_bps = old.bandwidth_bps
                     new.avg_msg_size_bytes = old.avg_msg_size_bytes
@@ -203,6 +209,7 @@ class RuntimeGraphStore:
                     new.process_mapping_confidence = old.process_mapping_confidence
             self._nodes = nodes
             self._topics = topics
+            self._overlay_statistics_locked()
 
     def update_topic_metrics(self, name: str, **metrics) -> None:
         with self._lock:
@@ -210,6 +217,7 @@ class RuntimeGraphStore:
             if topic is None:
                 return
             topic.probed = True
+            topic.rate_source = 'probe'
             for key, value in metrics.items():
                 setattr(topic, key, value)
 
@@ -232,6 +240,33 @@ class RuntimeGraphStore:
     def set_callbacks(self, callbacks: list[CallbackStat]) -> None:
         with self._lock:
             self._callbacks = list(callbacks)
+
+    def set_statistics(self, rows: list[dict]) -> None:
+        """Raw topic-statistics rows (``statistics.parse_metrics``); they are
+        attributed to topics against the current graph and overlaid on topics
+        we do not probe ourselves."""
+        with self._lock:
+            self._statistics = list(rows)
+            self._overlay_statistics_locked()
+
+    def _overlay_statistics_locked(self) -> None:
+        from .statistics import attribute, topic_overlay
+        overlay = topic_overlay(attribute(self._statistics, self._nodes,
+                                          self._topics))
+        for name, topic in self._topics.items():
+            if topic.probed:
+                continue  # our own measurement wins
+            metrics = overlay.get(name)
+            if metrics:
+                topic.rate_source = 'statistics'
+                topic.rate_hz = metrics.get('rate_hz')
+                topic.header_age_ms = metrics.get('header_age_ms')
+                topic.header_age_p95_ms = metrics.get('header_age_p95_ms')
+            elif topic.rate_source == 'statistics':
+                topic.rate_source = None
+                topic.rate_hz = None
+                topic.header_age_ms = None
+                topic.header_age_p95_ms = None
 
     def set_issues(self, issues: list[Issue]) -> None:
         with self._lock:
@@ -257,7 +292,10 @@ class RuntimeGraphStore:
             return [(t.name, t.type) for t in self._topics.values()]
 
     def snapshot(self) -> GraphSnapshot:
+        from .statistics import attribute, public_row
         with self._lock:
+            stats = [public_row(r) for r in
+                     attribute(self._statistics, self._nodes, self._topics)]
             edges = _build_edges(self._nodes, self._topics)
             return GraphSnapshot(
                 timestamp=time.time(),
@@ -268,6 +306,7 @@ class RuntimeGraphStore:
                 tf_edges=[asdict(e) for e in self._tf.values()],
                 diagnostics=[asdict(d) for d in self._diagnostics.values()],
                 callbacks=[asdict(c) for c in self._callbacks],
+                statistics=stats,
                 issues=[asdict(i) for i in self._issues],
             )
 
