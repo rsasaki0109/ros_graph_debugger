@@ -28,6 +28,7 @@ from dataclasses import dataclass, field
 
 from .analysis import analyze
 from .model import DiagnosticStatus, RuntimeGraphStore, TfEdge, TopicInfo
+from .processing import ProcessingTimes, compile_patterns, matches, value_ms
 
 TF_TOPICS = ('/tf', '/tf_static')
 DIAGNOSTICS_TOPIC = '/diagnostics'
@@ -75,6 +76,7 @@ class BagAnalyzer:
         self._series: dict[str, _Series] = {name: _Series() for name in topic_types}
         self._tf: list[tuple[float, str, str, bool]] = []
         self._diag: list[tuple[float, DiagnosticStatus]] = []
+        self._proc: list[tuple[float, str, float]] = []
 
     # -- input -------------------------------------------------------------- #
     def add_message(self, topic: str, t: float, size: int,
@@ -89,6 +91,9 @@ class BagAnalyzer:
 
     def add_diagnostic(self, t: float, status: DiagnosticStatus) -> None:
         self._diag.append((t, status))
+
+    def add_processing_time(self, t: float, topic: str, value_ms: float) -> None:
+        self._proc.append((t, topic, value_ms))
 
     # -- output ------------------------------------------------------------- #
     def time_range(self) -> tuple[float, float] | None:
@@ -107,6 +112,7 @@ class BagAnalyzer:
                                      [s.age_ms[i] for i in order])
         self._tf.sort(key=lambda x: x[0])
         self._diag.sort(key=lambda x: x[0])
+        self._proc.sort(key=lambda x: x[0])
 
         out = []
         # The first window is a full one, so early rates are not underestimated.
@@ -147,6 +153,13 @@ class BagAnalyzer:
             store.update_topic_metrics(name, **m)
         store.set_tf(self._tf_at(e))
         store.set_diagnostics({st.name: st for t, st in self._diag if t <= e})
+        if self._proc:
+            window_proc = ProcessingTimes(window=10 ** 6)
+            for t, topic, v in self._proc:
+                if e - window < t <= e:
+                    window_proc.add(topic, v)
+            # No graph in a bag: the node comes from the ~/debug/ convention.
+            store.set_processing_times(window_proc.stats())
         store.set_issues(analyze(store, self.thresholds, now=e))
         snap = store.snapshot().to_dict()
         snap['timestamp'] = e
@@ -199,8 +212,10 @@ def _first_field_is_header(msg_type) -> bool:
     return bool(first) and first[0] == 'header' and first[1] == 'std_msgs/Header'
 
 
-def analyze_bag(path: str, thresholds, profile_name: str | None = None) -> BagAnalyzer:
-    """Read every message of the bag at ``path`` into a ``BagAnalyzer``."""
+def analyze_bag(path: str, thresholds, profile_name: str | None = None,
+                processing_time_patterns=None) -> BagAnalyzer:
+    """Read every message of the bag at ``path`` into a ``BagAnalyzer``.
+    Topics matching ``processing_time_patterns`` also feed processing time."""
     try:
         import rosbag2_py
         from rclpy.serialization import deserialize_message
@@ -217,6 +232,7 @@ def analyze_bag(path: str, thresholds, profile_name: str | None = None) -> BagAn
     types = {t.name: t.type for t in reader.get_all_topics_and_types()}
     analyzer = BagAnalyzer(types, thresholds, profile_name)
 
+    proc = compile_patterns(processing_time_patterns)
     msg_types, stamped = {}, {}
     for name, ttype in types.items():
         try:
@@ -234,7 +250,14 @@ def analyze_bag(path: str, thresholds, profile_name: str | None = None) -> BagAn
         mt = msg_types.get(topic)
         if mt is None:
             continue
-        if topic in TF_TOPICS:
+        if proc and matches(topic, proc):
+            try:
+                v = value_ms(deserialize_message(raw, mt))
+            except Exception:
+                v = None
+            if v is not None:
+                analyzer.add_processing_time(t, topic, v)
+        elif topic in TF_TOPICS:
             try:
                 msg = deserialize_message(raw, mt)
             except Exception:

@@ -31,6 +31,7 @@ from tf2_msgs.msg import TFMessage
 from .analysis import analyze
 from .config import ProbeConfig, Thresholds
 from .graph_build import build_graph
+from .processing import ProcessingTimes, compile_patterns, matches, value_ms
 from .lifecycle import UNKNOWN as LIFECYCLE_UNKNOWN, is_lifecycle_node
 from .msgutil import header_stamp_age_ms
 from .procmap import match_nodes_to_processes
@@ -55,6 +56,9 @@ LARGE_TYPES = {
     'sensor_msgs/msg/PointCloud2',
     'sensor_msgs/msg/LaserScan',
 }
+
+# Upper bound on processing-time subscriptions (Autoware has ~100 such topics).
+MAX_PROCESSING_TOPICS = 300
 
 # A get_state call that has not answered by then is abandoned (and retried).
 LIFECYCLE_TIMEOUT_S = 5.0
@@ -110,7 +114,8 @@ class DebuggerNode(Node):
     def __init__(self, store: RuntimeGraphStore, probe: ProbeConfig,
                  thresholds: Thresholds, profile_name: str | None,
                  statistics_topics: dict[str, str | None] | None = None,
-                 lifecycle: bool = True) -> None:
+                 lifecycle: bool = True,
+                 processing_time_patterns: list[str] | None = None) -> None:
         super().__init__('ros_graph_debugger')
         self.store = store
         self.probe_cfg = probe
@@ -153,6 +158,12 @@ class DebuggerNode(Node):
                     self._statistics.ingest(parse_metrics(msg, _st, _dt)),
                 10)
 
+        # App-reported processing time (e.g. Autoware ~/debug/processing_time_ms):
+        # tiny messages, subscribed as they appear, independent of probing.
+        self._proc_patterns = compile_patterns(processing_time_patterns)
+        self._proc_subs: dict[str, object] = {}
+        self._processing = ProcessingTimes()
+
         # Lifecycle (managed) nodes: one GetState client per node, at most one
         # request in flight each. Read-only and tiny, but it is a service call
         # into the target, so --no-lifecycle turns it off.
@@ -180,6 +191,27 @@ class DebuggerNode(Node):
         nodes, topics = build_graph(self)
         self.store.set_graph(nodes, topics)
         self._sync_probes(topics)
+        self._sync_processing(topics)
+
+    # ------------------------------------------------- processing time #
+    def _sync_processing(self, topics: dict[str, TopicInfo]) -> None:
+        if not self._proc_patterns:
+            return
+        self._proc_publishers = {n: list(t.publishers) for n, t in topics.items()}
+        for name, t in topics.items():
+            if name in self._proc_subs or not matches(name, self._proc_patterns):
+                continue
+            if len(self._proc_subs) >= MAX_PROCESSING_TOPICS:
+                break
+            try:
+                from rosidl_runtime_py.utilities import get_message
+                msg_type = get_message(t.type)
+                self._proc_subs[name] = self.create_subscription(
+                    msg_type, name,
+                    lambda msg, _n=name: self._processing.add(_n, value_ms(msg)),
+                    self._probe_qos)
+            except Exception as exc:
+                self.get_logger().debug(f'processing-time sub failed for {name}: {exc}')
 
     # ------------------------------------------------------------ lifecycle #
     def _poll_lifecycle(self) -> None:
@@ -365,6 +397,10 @@ class DebuggerNode(Node):
         self.store.set_tf(self._tf_snapshot())
         self.store.set_diagnostics(dict(self._diagnostics))
         self.store.set_statistics(self._statistics.rows())
+        if self._proc_patterns:
+            pubs = getattr(self, '_proc_publishers', {})
+            self.store.set_processing_times(
+                self._processing.stats(lambda t: pubs.get(t, ())))
         try:
             issues = analyze(self.store, self.thresholds)
             self.store.set_issues(issues)

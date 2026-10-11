@@ -861,7 +861,7 @@ window._copyBriefing = copyBriefing;
 
 function topicDetail(t) {
   const qos = t.qos_endpoints.map(e =>
-    `<span class="pill ${t.qos_status === 'mismatch' ? 'mismatch' : ''}">${e.endpoint_type}: ${e.reliability}/${e.durability} d${e.depth}</span>`).join('');
+    `<span class="pill ${t.qos_status === 'mismatch' ? 'mismatch' : ''}">${e.endpoint_type}: ${e.reliability}/${e.durability} d${e.depth}${typeof e.deadline_ms === 'number' ? ` deadline ${e.deadline_ms}ms` : ''}${e.liveliness === 'manual_by_topic' ? ' manual' : ''}${typeof e.liveliness_lease_ms === 'number' ? ` lease ${e.liveliness_lease_ms}ms` : ''}</span>`).join('');
   return `<h3>${escapeHtml(t.name)}</h3>
     <dl class="kv">
       <dt>type</dt><dd>${escapeHtml(t.type || '—')}</dd>

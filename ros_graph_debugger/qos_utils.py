@@ -1,6 +1,6 @@
-"""Helpers to turn rclpy QoS enums into JSON-friendly strings and to detect
-publisher/subscriber QoS incompatibilities (the classic "topic is connected in
-the graph but no data flows" trap)."""
+"""Helpers to turn rclpy QoS profiles into JSON-friendly ``QoSInfo``. The
+compatibility rules (the classic "connected in the graph but no data flows"
+trap) live in the ROS-free `qos_compat`."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from rclpy.qos import (
 )
 
 from .model import QoSInfo
+from .qos_compat import detect_qos_status  # noqa: F401  (re-exported)
 
 _RELIABILITY = {
     QoSReliabilityPolicy.RELIABLE: 'reliable',
@@ -35,6 +36,19 @@ _LIVELINESS = {
 }
 
 
+# rmw implementations encode "infinite" differently (about 2^31 s in Fast DDS,
+# about 2^63 ns in Cyclone); any period beyond ~3 years is treated as infinite.
+_INFINITE_NS = 10 ** 17
+
+
+def _duration_ms(duration) -> float | None:
+    """An rclpy Duration as ms; None for unset (0) or infinite."""
+    ns = getattr(duration, 'nanoseconds', None)
+    if not isinstance(ns, int) or ns <= 0 or ns >= _INFINITE_NS:
+        return None
+    return ns / 1e6
+
+
 def endpoint_to_qos_info(node: str, endpoint_type: str, qos) -> QoSInfo:
     return QoSInfo(
         node=node,
@@ -44,26 +58,7 @@ def endpoint_to_qos_info(node: str, endpoint_type: str, qos) -> QoSInfo:
         history=_HISTORY.get(qos.history, 'unknown'),
         depth=int(getattr(qos, 'depth', 0) or 0),
         liveliness=_LIVELINESS.get(qos.liveliness, 'unknown'),
+        deadline_ms=_duration_ms(getattr(qos, 'deadline', None)),
+        liveliness_lease_ms=_duration_ms(
+            getattr(qos, 'liveliness_lease_duration', None)),
     )
-
-
-def detect_qos_status(endpoints: list[QoSInfo]) -> str:
-    """Return 'ok' | 'mismatch' | 'risk' | 'unknown' for a topic's endpoints.
-
-    A request (subscriber) is incompatible with an offer (publisher) when the
-    subscriber demands a stronger guarantee than the publisher provides.
-    """
-    pubs = [e for e in endpoints if e.endpoint_type == 'publisher']
-    subs = [e for e in endpoints if e.endpoint_type == 'subscriber']
-    if not pubs or not subs:
-        return 'unknown'
-
-    for pub in pubs:
-        for sub in subs:
-            # Reliability: BEST_EFFORT publisher cannot satisfy RELIABLE sub.
-            if pub.reliability == 'best_effort' and sub.reliability == 'reliable':
-                return 'mismatch'
-            # Durability: VOLATILE publisher cannot satisfy TRANSIENT_LOCAL sub.
-            if pub.durability == 'volatile' and sub.durability == 'transient_local':
-                return 'mismatch'
-    return 'ok'

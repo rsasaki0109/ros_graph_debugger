@@ -35,6 +35,9 @@ class QoSInfo:
     history: str = UNKNOWN
     depth: int = 0
     liveliness: str = UNKNOWN
+    # Request/offer periods in ms; None = infinite / unset.
+    deadline_ms: Optional[float] = None
+    liveliness_lease_ms: Optional[float] = None
 
 
 @dataclass
@@ -183,6 +186,7 @@ class RuntimeGraphStore:
         self._tf: dict[tuple[str, str], TfEdge] = {}
         self._diagnostics: dict[str, DiagnosticStatus] = {}
         self._callbacks: list[CallbackStat] = []
+        self._processing: list[CallbackStat] = []  # app-reported (Tier B)
         self._statistics: list[dict] = []  # raw rows, see statistics.py
         self._issues: list[Issue] = []
         self._profile: Optional[str] = None
@@ -244,6 +248,12 @@ class RuntimeGraphStore:
         with self._lock:
             self._diagnostics = diags
 
+    def set_processing_times(self, stats: list[CallbackStat]) -> None:
+        """Processing times nodes report themselves (`processing.py`); kept
+        apart from traced callbacks and merged into every read."""
+        with self._lock:
+            self._processing = list(stats)
+
     def set_callbacks(self, callbacks: list[CallbackStat]) -> None:
         with self._lock:
             self._callbacks = list(callbacks)
@@ -292,7 +302,7 @@ class RuntimeGraphStore:
         with self._lock:
             return (dict(self._nodes), dict(self._topics),
                     dict(self._tf), dict(self._diagnostics),
-                    list(self._callbacks))
+                    list(self._callbacks) + list(self._processing))
 
     def probe_candidates(self) -> list[tuple[str, str]]:
         with self._lock:
@@ -314,7 +324,7 @@ class RuntimeGraphStore:
                 edges=[asdict(e) for e in edges],
                 tf_edges=[asdict(e) for e in self._tf.values()],
                 diagnostics=[asdict(d) for d in self._diagnostics.values()],
-                callbacks=[asdict(c) for c in self._callbacks],
+                callbacks=[asdict(c) for c in self._callbacks + self._processing],
                 statistics=stats,
                 services=svc['services'],
                 actions=svc['actions'],

@@ -48,6 +48,12 @@ expectations:
 # exact expectations above). Useful because real systems have many topics.
 # Callback budgets differ wildly by stage: control must be fast, planning can
 # afford more.
+# Topics where nodes report their own per-cycle processing time in ms (numeric
+# `data`) — Autoware's ~/debug/processing_time_ms. Read as each node's
+# execution time and checked against the stage budgets below.
+processing_time_patterns:
+  - '/debug/processing_time_ms$'
+
 expectation_patterns:
   - pattern: '^/localization/.*pose.*'
     min_rate_hz: 10

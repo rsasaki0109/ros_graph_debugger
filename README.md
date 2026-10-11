@@ -156,7 +156,12 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   size, QoS, status), like a Chrome DevTools Network tab for ROS — and
   dedicated **TF tree** and **Diagnostics** views.
 - **Topic metrics**: rate, bandwidth, avg / p95 message size (opt-in probing).
-- **QoS mismatch detection** — the classic "connected but no data flows" trap.
+- **QoS mismatch detection** — the classic "connected but no data flows" trap,
+  across every request/offer policy DDS checks: reliability, durability,
+  deadline, liveliness kind and lease duration. The issue names the failing
+  pair and policy (e.g. `/lidar → /fusion: deadline: publisher offers 200 ms,
+  subscriber requests 100 ms`) — the same thing rmw's incompatible-QoS events
+  report, found from the graph alone.
 - **Message latency (Tier A)** — `header.stamp` age (p50/p95) on probed topics,
   with a freshness issue when it exceeds a profile's `max_age_ms` (e.g. stale
   localization). Cheap approximation now; tracing-based tiers below.
@@ -169,6 +174,12 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   stats topic yourself (`agent --statistics-topic /stats/image=/camera/image_raw`).
   Marked `stats` in the UI and briefing; unattributed stats are listed, not
   guessed.
+- **Reported processing time (Tier B)** — nodes that publish their own
+  per-cycle processing time (Autoware's `~/debug/processing_time_ms`, enabled
+  by `--profile autoware`; any topic via `--processing-time-topic REGEX`)
+  count as that node's execution time without tracing: checked against the
+  stage budgets (`slow_callback`), shown on the pipeline path, and read from
+  bags by `rgd bag analyze` too.
 - **Callback execution time (Tier C)** — per-callback p95/mean/max duration, a
   `slow_callback` issue when a callback blows its budget, and the stat surfaced
   in the node Inspector and AI briefing. Budgets are **stage-aware** — the
