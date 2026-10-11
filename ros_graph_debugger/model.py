@@ -73,7 +73,8 @@ class NodeInfo:
     namespace: str = '/'
     publishers: list[str] = field(default_factory=list)
     subscribers: list[str] = field(default_factory=list)
-    services: list[str] = field(default_factory=list)
+    services: list[str] = field(default_factory=list)  # served
+    service_clients: list[str] = field(default_factory=list)  # called
 
     pid: Optional[int] = None
     process_name: Optional[str] = None
@@ -159,6 +160,8 @@ class GraphSnapshot:
     diagnostics: list[dict] = field(default_factory=list)
     callbacks: list[dict] = field(default_factory=list)
     statistics: list[dict] = field(default_factory=list)
+    services: list[dict] = field(default_factory=list)
+    actions: list[dict] = field(default_factory=list)
     issues: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -296,8 +299,10 @@ class RuntimeGraphStore:
             return [(t.name, t.type) for t in self._topics.values()]
 
     def snapshot(self) -> GraphSnapshot:
+        from .services import service_graph
         from .statistics import attribute, public_row
         with self._lock:
+            svc = service_graph(self._nodes)
             stats = [public_row(r) for r in
                      attribute(self._statistics, self._nodes, self._topics)]
             edges = _build_edges(self._nodes, self._topics)
@@ -311,6 +316,8 @@ class RuntimeGraphStore:
                 diagnostics=[asdict(d) for d in self._diagnostics.values()],
                 callbacks=[asdict(c) for c in self._callbacks],
                 statistics=stats,
+                services=svc['services'],
+                actions=svc['actions'],
                 issues=[asdict(i) for i in self._issues],
             )
 

@@ -73,10 +73,12 @@ briefing + MCP server, and a demo pipeline.
 - Lifecycle (managed) node states and a `lifecycle_not_active` issue.
 
 ## Next
-- Offline rosbag2 / MCAP analysis (`report` / `diff` / `assert` without a live
-  system).
-- A callback-duration timeline along the pipeline path; app-specific
-  pipeline-latency topics (the rest of Tier B).
+- *Done, unreleased:* offline rosbag2 / MCAP analysis (`rgd bag analyze` →
+  `report` / `diff` / `assert` / `serve` without a live system); the pipeline
+  path over time (rate + callback p95 per hop) in `rgd report`; services and
+  actions with `no_service_server` / `no_action_server` issues.
+- QoS events (deadline missed, liveliness lost, message lost).
+- App-specific pipeline-latency topics (the rest of Tier B).
 
 Scope is intentionally driven by "does this reduce a ROS 2 developer's daily
 debugging time" rather than feature breadth.

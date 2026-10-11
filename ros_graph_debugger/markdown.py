@@ -191,6 +191,16 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
                          f'{n["process_mapping_confidence"]} |')
         lines.append('')
 
+    # --- Services / actions whose clients have no server. ---
+    orphans = [(kind, e) for kind in ('action', 'service')
+               for e in d.get(kind + 's', []) if e['clients'] and not e['servers']]
+    if orphans:
+        lines.append('## Clients without a server')
+        for kind, e in orphans:
+            lines.append(f'- {kind} {e["name"]}: called by '
+                         f'{", ".join(e["clients"])}')
+        lines.append('')
+
     # --- Lifecycle (managed) nodes: list the ones not active. ---
     managed = [n for n in d['nodes'] if n.get('lifecycle_state')]
     if managed:

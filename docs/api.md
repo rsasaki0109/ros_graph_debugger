@@ -68,7 +68,8 @@ pattern.
 {
   "timestamp": 1234567890.1,
   "profile": "autoware",
-  "nodes":   [{ "id", "name", "publishers", "subscribers", "cpu_percent",
+  "nodes":   [{ "id", "name", "publishers", "subscribers", "services",
+                "service_clients", "cpu_percent",
                 "rss_bytes", "process_mapping_confidence", "lifecycle_state",
                 "status" }],
   "topics":  [{ "name", "type", "publisher_count", "subscriber_count",
@@ -78,6 +79,8 @@ pattern.
   "tf_edges":[{ "parent", "child", "age_ms", "status" }],
   "callbacks":[{ "node", "callback", "topic", "count",
                  "mean_ms", "p95_ms", "max_ms" }],
+  "services":[{ "name", "servers", "clients" }],   // parameter services omitted
+  "actions": [{ "name", "servers", "clients" }],   // from <action>/_action/send_goal
   "statistics":[{ "node", "source", "topic", "attribution", "metric", "unit",
                   "stats_topic", "avg", "min", "max", "stddev", "count",
                   "window_stop" }],

@@ -10,6 +10,7 @@ from __future__ import annotations
 import time
 
 from .lifecycle import ERROR, NOT_ACTIVE, suggested_transition, waiting_outputs
+from .services import missing_servers, service_graph
 from .model import (
     CRITICAL,
     INFO,
@@ -21,10 +22,13 @@ from .model import (
 _SEVERITY_ORDER = {CRITICAL: 0, WARNING: 1, INFO: 2}
 
 
-def analyze(store: RuntimeGraphStore, thresholds) -> list[Issue]:
+def analyze(store: RuntimeGraphStore, thresholds,
+            now: float | None = None) -> list[Issue]:
+    """Run every rule over the store. ``now`` is the analysis clock (epoch
+    seconds) — wall time live, the bag's own time when replaying a bag."""
     nodes, topics, tf, diagnostics, callbacks = store.working_copy()
     issues: list[Issue] = []
-    now = time.time()
+    now = time.time() if now is None else now
     counter = _Counter()
 
     # Recompute per-topic status while we walk the rules so the graph edges
@@ -238,6 +242,24 @@ def analyze(store: RuntimeGraphStore, thresholds) -> list[Issue]:
                             if state == ERROR else '')),
             evidence=evidence, suggested_actions=actions,
             related_nodes=[node_id], related_topics=waiting))
+
+    # 15: service / action clients with no server anywhere.
+    for e in missing_servers(service_graph(nodes)):
+        action = e['kind'] == 'action'
+        issues.append(Issue(
+            id=counter.next('no_server'), severity=WARNING,
+            kind='no_action_server' if action else 'no_service_server',
+            title=f'{e["name"]} has {"action " if action else ""}clients but '
+                  'no server',
+            explanation=('Goals sent to this action are never accepted; the '
+                         'client waits (or times out).' if action else
+                         'Requests to this service are never answered; the '
+                         'client blocks or times out.'),
+            evidence=[f'clients: {", ".join(e["clients"][:3])}', 'servers: 0'],
+            suggested_actions=['Start the node that serves it',
+                               'Check remapping and namespaces',
+                               'If it is a lifecycle node, check it is active'],
+            related_nodes=list(e['clients'])))
 
     # 12: slow callbacks (latency Tier C, from tracing).
     issues.extend(_slow_callbacks(callbacks, thresholds, counter))
