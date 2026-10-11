@@ -16,6 +16,14 @@ Rate / bandwidth / size / latency come from lightweight **raw** subscriptions
 read best-effort only for typed-headered messages (the probe learns headerless
 types and stops deserializing them).
 
+Rate uses the middleware's local receive timestamps when the complete sample
+window has valid, nondecreasing timestamps. This excludes time spent waiting
+for graph collection or analysis in the agent's executor. Missing, unset, or
+backward timestamps fall back to monotonic callback times for the whole window;
+publisher timestamps and different clock domains are never mixed. Jazzy passes
+message information to callbacks natively; the agent's executor preserves that
+information for raw probes on Humble, whose standard executor discards it.
+
 Guards:
 
 - **Large sensor types are never auto-probed**: `sensor_msgs/Image`,
