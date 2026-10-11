@@ -14,6 +14,13 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
   server raises `no_service_server` / `no_action_server`, unless the name is
   advertised by a node the graph could not list. Shown in the node Inspector
   and as a "Clients without a server" briefing section.
+- **Pipeline path over time** — `rgd report` follows one pipeline path across
+  the recording: for each hop, the topic rate and the consuming node's
+  callback p95 per sample, with the samples where the focus was blamed marked
+  (sparklines in Markdown, small-multiple SVGs in HTML). The focus defaults to
+  the node most often named by bottleneck / slow-callback issues;
+  `rgd report --path TARGET` picks another. The path is traced once and held
+  fixed so the series compare like with like.
 
 ## [0.5.0] — measure it — 2026-10-11
 

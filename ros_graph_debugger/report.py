@@ -11,6 +11,8 @@ from __future__ import annotations
 import html
 import re
 
+from .pipeline import pipeline_timeline, spark
+
 _SEV_RANK = {'critical': 3, 'warning': 2, 'info': 1}
 _STATUS_RANK = {'critical': 3, 'warning': 2, 'ok': 1, 'unknown': 0}
 _BOTTLENECK_KINDS = {'bottleneck', 'rate_drop', 'topic_stale', 'qos_mismatch',
@@ -20,7 +22,10 @@ _BOTTLENECK_KINDS = {'bottleneck', 'rate_drop', 'topic_stale', 'qos_mismatch',
 # --------------------------------------------------------------------------- #
 # Aggregation
 # --------------------------------------------------------------------------- #
-def build_report(header: dict, snapshots: list[dict]) -> dict:
+def build_report(header: dict, snapshots: list[dict],
+                 path_focus: str | None = None) -> dict:
+    """Summarize a recording. ``path_focus`` picks the node/topic whose
+    pipeline path is followed over time (default: the most-blamed node)."""
     profile = header.get('profile') or None
     compiled = _compile_stages(profile)
 
@@ -196,7 +201,16 @@ def build_report(header: dict, snapshots: list[dict]) -> dict:
         'callbacks': callback_list,
         'bandwidth_top': bandwidth_top,
         'readiness': readiness,
+        'pipeline': pipeline_timeline(snapshots, path_focus),
     }
+
+
+def _range(values) -> str:
+    known = [v for v in values if isinstance(v, (int, float))]
+    if not known:
+        return '—'
+    lo, hi = min(known), max(known)
+    return f'{lo:.0f}' if round(lo) == round(hi) else f'{lo:.0f}–{hi:.0f}'
 
 
 def _compile_stages(profile: dict | None) -> dict[str, list]:
@@ -288,6 +302,27 @@ def render_markdown(summary: dict) -> str:
             out.append(f'| {t["name"]} | {_fmt_bw(t["max_bandwidth_bps"])} | {p95} |')
         out.append('')
 
+    p = summary.get('pipeline')
+    if p:
+        out.append(f'## Pipeline path over time (focus: {p["target"]})')
+        out.append(' → '.join(p['nodes']))
+        out.append('')
+        out.append('`!` marks samples where the focus was blamed; each sparkline '
+                   'has its own scale.')
+        out.append('')
+        out.append('| hop | rate (Hz) | rate over time | consumer cb p95 (ms) '
+                   '| cb p95 over time |')
+        out.append('|---|---|---|---|---|')
+        width = 40
+        out.append('| *blamed* | | `' + spark([1 if b else 0 for b in p['blamed']],
+                                              width).replace('▁', '·')
+                   .replace('█', '!') + '` | | |')
+        for h in p['hops']:
+            out.append(f'| {h["topic"]} → {h["to"]} | {_range(h["rate_hz"])} | '
+                       f'`{spark(h["rate_hz"], width)}` | {_range(h["cb_p95_ms"])} | '
+                       f'`{spark(h["cb_p95_ms"], width)}` |')
+        out.append('')
+
     if summary.get('callbacks'):
         out.append('## Slowest callbacks (max p95 over the recording)')
         out.append('| node | callback | max p95 | max mean |')
@@ -340,6 +375,43 @@ def _timeline_svg(timeline: list[dict]) -> str:
             f'preserveAspectRatio="none">{"".join(bars)}</svg>')
 
 
+def _series_svg(values: list, color: str, blamed: list, width=400, height=34) -> str:
+    """One hop's series as a polyline (own scale; a flat series sits mid-height
+    so it does not read as zero), blamed samples shaded. Scales to its cell."""
+    n = len(values)
+    if n < 2:
+        return ''
+    step = width / (n - 1)
+    shade = ''.join(
+        f'<rect x="{max(0.0, i * step - step / 2):.1f}" y="0" width="{step:.1f}" '
+        f'height="{height}" fill="#f85149" opacity="0.12"/>'
+        for i, b in enumerate(blamed) if b)
+    known = [v for v in values if isinstance(v, (int, float))]
+    if not known:
+        return _svg_frame(width, height, shade)
+    lo, hi = min(known), max(known)
+    segs, cur = [], []
+    for i, v in enumerate(values):
+        if isinstance(v, (int, float)):
+            y = (height / 2 if hi <= lo
+                 else height - 3 - (v - lo) / (hi - lo) * (height - 6))
+            cur.append(f'{i * step:.1f},{y:.1f}')
+        elif cur:
+            segs.append(cur)
+            cur = []
+    if cur:
+        segs.append(cur)
+    lines = ''.join(f'<polyline points="{" ".join(sg)}" fill="none" '
+                    f'stroke="{color}" stroke-width="1.5" '
+                    'vector-effect="non-scaling-stroke"/>' for sg in segs)
+    return _svg_frame(width, height, shade + lines)
+
+
+def _svg_frame(width, height, body: str) -> str:
+    return (f'<svg viewBox="0 0 {width} {height}" width="100%" height="{height}" '
+            f'preserveAspectRatio="none">{body}</svg>')
+
+
 def render_html(summary: dict) -> str:
     m = summary['meta']
     e = html.escape
@@ -390,6 +462,25 @@ def render_html(summary: dict) -> str:
                 f'<span class="muted">over the recording — critical {h["critical_pct"]}% '
                 f'· degraded {h["degraded_pct"]}% · ok {h["ok_pct"]}% '
                 f'(ended {e(h["final"].upper())})</span></div>')
+
+    def pipeline_section():
+        p = summary.get('pipeline')
+        if not p:
+            return ''
+        rows = ''.join(
+            f'<tr><td>{e(h["topic"])} → {e(h["to"])}</td>'
+            f'<td>{_range(h["rate_hz"])} Hz<br>'
+            f'{_series_svg(h["rate_hz"], "#58a6ff", p["blamed"])}</td>'
+            f'<td>{_range(h["cb_p95_ms"])} ms<br>'
+            f'{_series_svg(h["cb_p95_ms"], "#d29922", p["blamed"])}</td></tr>'
+            for h in p['hops'])
+        return (f'<h2>Pipeline path over time <span class="muted">— focus: '
+                f'{e(p["target"])}</span></h2>'
+                f'<p class="muted">{" → ".join(e(n) for n in p["nodes"])}. '
+                'Red bands: samples where the focus was blamed; each series has '
+                'its own scale.</p>'
+                '<table><tr><th>hop</th><th>rate</th><th>consumer callback p95</th>'
+                f'</tr>{rows}</table>')
 
     def callback_section():
         if not summary.get('callbacks'):
@@ -451,6 +542,7 @@ th{{color:#8b949e;font-weight:600}}
 {bottleneck_rows()}
 <h2>Highest bandwidth topics</h2>
 <table><tr><th>topic</th><th>max bandwidth</th><th>max p95 size</th></tr>{bandwidth_rows()}</table>
+{pipeline_section()}
 {callback_section()}
 {tf_rows()}
 <h2>Topic rate summary</h2>

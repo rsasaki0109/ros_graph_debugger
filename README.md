@@ -407,7 +407,10 @@ compared with `rgd diff`.
 The report leads with a **system-health rollup** (what share of the recording
 was critical / degraded / ok, and how it ended — a one-line CI gate), ranks
 bottlenecks by severity and frequency (now including slow callbacks), lists the
-**slowest callbacks** by max p95, summarizes per-topic rate/bandwidth, lists
+**slowest callbacks** by max p95, follows the **pipeline path over time**
+(per hop: topic rate and the consumer's callback p95 across the recording,
+with the samples where the focus was blamed marked — `--path TARGET` to pick
+the focus, default the most-blamed node), summarizes per-topic rate/bandwidth, lists
 stale transforms, draws an issue timeline, and (with a profile) shows per-stage
 engage-readiness as a share of the recording.
 

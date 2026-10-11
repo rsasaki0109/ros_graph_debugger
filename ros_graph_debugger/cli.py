@@ -120,7 +120,7 @@ def _cmd_report(args) -> int:
     if not snapshots:
         print(f'error: no snapshots in {args.file}', file=sys.stderr)
         return 1
-    summary = build_report(header, snapshots)
+    summary = build_report(header, snapshots, path_focus=args.path)
 
     wrote_any = False
     if args.html:
@@ -432,6 +432,9 @@ def main(argv=None) -> int:
     rep.add_argument('file', help='recording file from `rgd record`')
     rep.add_argument('--html', default=None, help='write a self-contained HTML report')
     rep.add_argument('--md', default=None, help='write a Markdown report')
+    rep.add_argument('--path', default=None, metavar='TARGET',
+                     help='node/topic whose pipeline path to follow over time '
+                          '(default: the node most often blamed)')
 
     df = sub.add_parser('diff', help='compare two recordings and report regressions')
     df.add_argument('baseline', help='baseline recording (the "before")')
