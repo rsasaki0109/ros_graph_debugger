@@ -73,6 +73,9 @@ pattern.
                 "rss_bytes", "process_mapping_confidence", "lifecycle_state",
                 "status" }],
   "topics":  [{ "name", "type", "publisher_count", "subscriber_count",
+                "qos_endpoints": [{ "node", "endpoint_type", "reliability",
+                  "durability", "history", "depth", "liveliness",
+                  "deadline_ms", "liveliness_lease_ms" }],   // ms; null = infinite
                 "rate_hz", "bandwidth_bps", "p95_msg_size_bytes",
                 "header_age_p95_ms", "rate_source", "qos_status", "status" }],
   "edges":   [{ "from_node", "to_node", "topic", "status" }],

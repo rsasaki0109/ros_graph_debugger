@@ -7,6 +7,13 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 ## [Unreleased]
 
 ### Added
+- **Full QoS compatibility** — `qos_mismatch` now covers every request/offer
+  policy DDS checks: reliability, durability, **deadline**, **liveliness kind**
+  and **liveliness lease duration** (the cases rmw reports as
+  incompatible-QoS events), from the graph alone. Endpoints carry
+  `deadline_ms` / `liveliness_lease_ms`, and the issue evidence names the
+  failing pair and policy instead of listing raw profiles. The rules live in
+  the ROS-free `qos_compat.py`.
 - **Services & actions** — nodes now carry the services they call
   (`service_clients`) as well as serve; the snapshot gains `services` and
   `actions` (`{name, servers, clients}`, actions found via

@@ -10,6 +10,7 @@ from __future__ import annotations
 import time
 
 from .lifecycle import ERROR, NOT_ACTIVE, suggested_transition, waiting_outputs
+from .qos_compat import topic_incompatibilities
 from .services import missing_servers, service_graph
 from .model import (
     CRITICAL,
@@ -69,11 +70,14 @@ def analyze(store: RuntimeGraphStore, thresholds,
                 kind='qos_mismatch',
                 title=f'QoS mismatch on {name}',
                 explanation='A subscriber requests a stronger guarantee than '
-                            'the publisher offers, so messages will not be '
-                            'delivered.',
+                            'the publisher offers, so DDS does not match the '
+                            'pair and messages will not be delivered.',
                 evidence=_qos_evidence(t),
-                suggested_actions=['Align reliability (reliable vs best_effort)',
-                                   'Align durability (volatile vs transient_local)'],
+                suggested_actions=['Make the publisher offer at least what the '
+                                   'subscriber requests for the policy named '
+                                   'in the evidence',
+                                   'Or relax the subscriber request (e.g. '
+                                   'best_effort, volatile, a longer deadline)'],
                 related_topics=[name],
                 related_nodes=list(t.publishers) + list(t.subscribers)))
 
@@ -362,11 +366,12 @@ def _via(topic) -> str:
 
 
 def _qos_evidence(topic) -> list[str]:
-    lines = []
-    for ep in topic.qos_endpoints:
-        lines.append(f'{ep.endpoint_type} {ep.node}: '
-                     f'{ep.reliability}/{ep.durability}')
-    return lines
+    """The failing policy per incompatible pair, else the raw endpoints."""
+    reasons = topic_incompatibilities(topic.qos_endpoints)
+    if reasons:
+        return reasons[:6]
+    return [f'{ep.endpoint_type} {ep.node}: {ep.reliability}/{ep.durability}'
+            for ep in topic.qos_endpoints]
 
 
 class _Counter:

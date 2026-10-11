@@ -156,7 +156,12 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   size, QoS, status), like a Chrome DevTools Network tab for ROS — and
   dedicated **TF tree** and **Diagnostics** views.
 - **Topic metrics**: rate, bandwidth, avg / p95 message size (opt-in probing).
-- **QoS mismatch detection** — the classic "connected but no data flows" trap.
+- **QoS mismatch detection** — the classic "connected but no data flows" trap,
+  across every request/offer policy DDS checks: reliability, durability,
+  deadline, liveliness kind and lease duration. The issue names the failing
+  pair and policy (e.g. `/lidar → /fusion: deadline: publisher offers 200 ms,
+  subscriber requests 100 ms`) — the same thing rmw's incompatible-QoS events
+  report, found from the graph alone.
 - **Message latency (Tier A)** — `header.stamp` age (p50/p95) on probed topics,
   with a freshness issue when it exceeds a profile's `max_age_ms` (e.g. stale
   localization). Cheap approximation now; tracing-based tiers below.

@@ -35,6 +35,9 @@ class QoSInfo:
     history: str = UNKNOWN
     depth: int = 0
     liveliness: str = UNKNOWN
+    # Request/offer periods in ms; None = infinite / unset.
+    deadline_ms: Optional[float] = None
+    liveliness_lease_ms: Optional[float] = None
 
 
 @dataclass
