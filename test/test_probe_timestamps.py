@@ -10,6 +10,51 @@ from rclpy.executors import MultiThreadedExecutor
 
 from ros_graph_debugger.node import _TopicProbe
 from ros_graph_debugger import probe_executor
+from ros_graph_debugger.analysis import analyze
+from ros_graph_debugger.config import Thresholds
+from ros_graph_debugger.model import RuntimeGraphStore, TopicInfo
+
+
+def test_unobserved_probe_has_no_receipt_time():
+    assert _TopicProbe(window=3).metrics()['last_seen_time'] is None
+
+
+def test_polling_stopped_probe_preserves_receipt_time(monkeypatch):
+    wall = [1000.0]
+    monkeypatch.setattr('ros_graph_debugger.node.time.time', lambda: wall[0])
+    probe = _TopicProbe(window=3)
+    probe.add(100)
+    store = RuntimeGraphStore()
+    store.set_graph({}, {'/scan': TopicInfo(name='/scan', publisher_count=1,
+                                          subscriber_count=1, probed=True)})
+    for now in (1001.0, 1003.0, 1010.0):
+        wall[0] = now
+        metrics = probe.metrics()
+        assert metrics['last_seen_time'] == 1000.0
+        store.update_topic_metrics('/scan', **metrics)
+        issues = analyze(store, Thresholds(), now=now)
+        stale = [i for i in issues if i.kind == 'topic_stale']
+        assert bool(stale) == (now > 1002.0)
+        if stale:
+            assert stale[0].related_topics == ['/scan']
+            assert stale[0].evidence == [f'last message: {(now - 1000) * 1000:.0f} ms ago',
+                                         'expected within: 2000 ms']
+
+
+def test_new_receipt_clears_stale_probe(monkeypatch):
+    wall = [1000.0]
+    monkeypatch.setattr('ros_graph_debugger.node.time.time', lambda: wall[0])
+    probe = _TopicProbe(window=3)
+    probe.add(100)
+    wall[0] = 1010.0
+    assert probe.metrics()['last_seen_time'] == 1000.0
+    probe.add(100)
+    assert probe.metrics()['last_seen_time'] == 1010.0
+    store = RuntimeGraphStore()
+    store.set_graph({}, {'/scan': TopicInfo(name='/scan', publisher_count=1,
+                                          subscriber_count=1, probed=True)})
+    store.update_topic_metrics('/scan', **probe.metrics())
+    assert not any(i.kind == 'topic_stale' for i in analyze(store, Thresholds(), now=1010.0))
 
 
 def test_delayed_callback_uses_middleware_receipt_for_rate(monkeypatch):

@@ -31,6 +31,11 @@ ros2 run ros_graph_debugger rgd serve --demo # no-ROS demo replay
 The suite is designed to run without a live ROS graph (no DDS required) — pure
 logic, in-process rclpy endpoint checks, and a uvicorn-in-thread server.
 
+The separate [real Nav2 planner/controller scenario](docs/navigation_validation.md)
+checks moving goals, stopped DDS, recovery, an actual bag and real C++ tracing
+on Jazzy. Run complete suites in shared-network containers sequentially: the
+HTTP tests use fixed ports.
+
 ```bash
 python3 -m pytest test/ -v
 node --check ros_graph_debugger/web/app.js

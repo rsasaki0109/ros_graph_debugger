@@ -8,6 +8,7 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ### Added
 - **Multiprocess ROS integration CI** — Humble/Jazzy exercise real DDS, slow/healthy pipelines, lifecycle, missing services/actions, deadline QoS, processing time, and recorded rosbag analysis, with failure artifacts.
+- **Real Nav2 navigation evidence** — Jazzy verifies actual planner/controller goals, stopped TF and topic delivery, recovery, matching live recordings and real bag analysis, plus C++ LTTng callback attribution with explicit coverage counts.
 - **Full QoS compatibility** — `qos_mismatch` now covers every request/offer
   policy DDS checks: reliability, durability, **deadline**, **liveliness kind**
   and **liveliness lease duration** (the cases rmw reports as
@@ -51,6 +52,7 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
   profile → thresholds merge is shared as `profile.apply_profile()`.
 
 ### Fixed
+- Live probe receipt times no longer refresh when metrics are polled, so stopped publishers raise `topic_stale`; report/diff JSON retain `related_frames` for structured TF recovery checks.
 - **Live probe rate** — use middleware receive timestamps rather than delayed Python callback execution times, preserving raw message information on Humble and native callbacks on Jazzy; invalid timestamps fall back to a complete monotonic window without mixing clocks.
 - **Healthy demo contrast** — target 12.5 Hz for the detector while retaining the minimum 10 Hz contract and the original slow/toggle cadence, so nominal timer jitter does not invalidate the healthy fixture.
 
