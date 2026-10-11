@@ -91,6 +91,15 @@ unit-tested without babeltrace2 (`test/test_trace_convert.py`); the same test
 file also writes a real CTF trace with babeltrace2's `sink.ctf.fs` and reads
 it back through `rgd trace convert` when `python3-bt2` is installed (as in CI).
 
+The separate `trace-integration` CI job also captures real LTTng events from
+subscription, timer and service callbacks in a C++ fixture on Humble and Jazzy.
+It checks attribution and both slow/healthy diagnosis through the CLI and live
+agent, without synthetic CTF events. Humble needs a test overlay of its official
+`tracetools` 4.1.2 source because the distro binary has no LTTng backend; Jazzy
+uses the distro library. See [CONTRIBUTING.md](../CONTRIBUTING.md#real-lttng-integration)
+for the commands and diagnostic artifacts. This does not validate callbacks
+from rclpy or constitute an Autoware/Nav2 system test.
+
 ## Converting — other tools
 
 Anything that emits one `{"node", "topic", "callback"?, "duration_ms"}` object
