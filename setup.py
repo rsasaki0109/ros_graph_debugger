@@ -42,7 +42,7 @@ data_files += data_tree('share/' + package_name + '/web', 'ros_graph_debugger/we
 
 setup(
     name=package_name,
-    version='0.4.0',
+    version='0.5.0',
     packages=find_packages(exclude=['test']),
     data_files=data_files,
     # Kept minimal so colcon/rosdep builds stay unaffected: the offline CLI

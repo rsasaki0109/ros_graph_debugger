@@ -7,6 +7,11 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 ## [Unreleased]
 
 ### Added
+- Nothing yet.
+
+## [0.5.0] — measure it — 2026-10-11
+
+### Added
 - **Lifecycle (managed) node states** — nodes serving `<node>/get_state` are
   detected from the graph's service list and their state is read with a
   non-blocking `lifecycle_msgs/srv/GetState` query every 2 s

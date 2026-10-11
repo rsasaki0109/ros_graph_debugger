@@ -57,5 +57,26 @@ briefing + MCP server, and a demo pipeline.
   name / token) with component-container capping (`procmap.py`). Live `/proc`
   coverage for anonymous and lifecycle nodes remains.
 
+## v0.4 — show it
+- EKG sparklines on graph edges, Incident Theater replay with WebM export.
+- `rgd diff --image` and a composite GitHub Action for PR graph-diff comments.
+- `rgd top` terminal dashboard and the Fleet wall (`rgd serve --demo --fleet N`).
+
+## v0.5 — measure it
+- `rgd assert` — a CI health gate over a window of snapshots, no baseline
+  recording needed (Markdown / JSON / JUnit, exit codes for CI).
+- Distribution — PyPI packaging, a Docker image for the live agent, and a
+  tag-triggered release workflow ([releasing.md](releasing.md)).
+- Tier B latency from rclcpp topic statistics, with explicit node→topic
+  attribution.
+- Turn-key Tier C: `rgd trace convert` / `agent --trace-file <session dir>`.
+- Lifecycle (managed) node states and a `lifecycle_not_active` issue.
+
+## Next
+- Offline rosbag2 / MCAP analysis (`report` / `diff` / `assert` without a live
+  system).
+- A callback-duration timeline along the pipeline path; app-specific
+  pipeline-latency topics (the rest of Tier B).
+
 Scope is intentionally driven by "does this reduce a ROS 2 developer's daily
 debugging time" rather than feature breadth.
