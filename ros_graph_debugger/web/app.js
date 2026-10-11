@@ -152,6 +152,7 @@ const cy = cytoscape({
         'text-max-width': 200, 'color': '#8b949e',
     }},
     { selector: 'node.ok', style: { 'border-color': '#3fb950' }},
+    { selector: 'node.lc-idle', style: { 'border-style': 'dashed', 'background-opacity': 0.55 }},
     { selector: 'node.warning', style: { 'border-color': '#d29922' }},
     { selector: 'node.critical', style: { 'border-color': '#f85149', 'border-width': 3 }},
     { selector: 'node.selected', style: { 'border-color': '#58a6ff', 'border-width': 3 }},
@@ -256,8 +257,10 @@ function buildElements(snap) {
       label += `\nCPU ${n.cpu_percent.toFixed(0)}%`;
       if (typeof n.rss_bytes === 'number') label += `  ${fmtBytes(n.rss_bytes)}`;
     }
+    const idle = n.lifecycle_state && n.lifecycle_state !== 'active';
+    if (idle) label += `\n⏸ ${n.lifecycle_state}`;
     els.push({ data: { id: 'N:' + n.id, label, kind: 'node', ref: n.id, stage: stageOfNode(n) },
-               classes: 'rosnode ' + (n.status || 'ok') });
+               classes: 'rosnode ' + (n.status || 'ok') + (idle ? ' lc-idle' : '') });
   });
 
   snap.topics.forEach(t => {
@@ -598,6 +601,7 @@ function nodeDetail(n) {
       <dt>pid</dt><dd>${n.pid ?? '—'}</dd>
       <dt>cpu</dt><dd>${cpu}</dd>
       <dt>memory</dt><dd>${fmtBytes(n.rss_bytes)}</dd>
+      ${n.lifecycle_state ? `<dt>lifecycle</dt><dd><span class="pill ${n.lifecycle_state === 'active' ? 'ok' : 'warning'}">${escapeHtml(n.lifecycle_state)}</span></dd>` : ''}
     </dl>
     ${relatedIssues(i => (i.related_nodes || []).includes(n.id))}
     <div class="section-title">Publishers (${n.publishers.length})</div>

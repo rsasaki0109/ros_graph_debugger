@@ -62,6 +62,15 @@ End-to-end latency is approximated in tiers, from cheap to accurate:
   Linux-only and opt-in; reading needs `python3-bt2`. The agent never starts a
   trace itself. Publish→subscribe spans remain roadmap.
 
+## Lifecycle state queries
+
+The one place the agent talks *to* target nodes: for each lifecycle node
+(detected passively from its `<node>/get_state` service) it calls the
+standard, read-only `lifecycle_msgs/srv/GetState` every 2 s — asynchronously,
+at most one request in flight per node, abandoned after 5 s. It never calls
+`change_state`; the issue only *suggests* the `ros2 lifecycle set` command.
+Disable with `agent --no-lifecycle`.
+
 ## Failure isolation
 
 A failing collector never takes down the node: graph polls, probes, and the

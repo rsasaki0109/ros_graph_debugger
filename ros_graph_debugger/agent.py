@@ -51,6 +51,8 @@ def _parse_args(argv=None):
                         'Repeatable; replaces the default /statistics')
     p.add_argument('--no-statistics', action='store_true',
                    help='do not read topic statistics')
+    p.add_argument('--no-lifecycle', action='store_true',
+                   help='do not query lifecycle (managed) node states')
     p.add_argument('--trace-file', default=None, metavar='PATH',
                    help='callback-duration trace (Tier C) to load as callback '
                         'stats: a `ros2 trace` session directory (needs '
@@ -113,7 +115,8 @@ def main(argv=None) -> None:
 
     rclpy.init()
     node = DebuggerNode(store, probe, thresholds, profile_name,
-                        statistics_topics=statistics_topics)
+                        statistics_topics=statistics_topics,
+                        lifecycle=not args.no_lifecycle)
     executor = MultiThreadedExecutor()
     executor.add_node(node)
 

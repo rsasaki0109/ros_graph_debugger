@@ -191,6 +191,17 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
                          f'{n["process_mapping_confidence"]} |')
         lines.append('')
 
+    # --- Lifecycle (managed) nodes: list the ones not active. ---
+    managed = [n for n in d['nodes'] if n.get('lifecycle_state')]
+    if managed:
+        idle = sorted((n for n in managed if n['lifecycle_state'] != 'active'),
+                      key=lambda n: n['id'])
+        lines.append(f'## Lifecycle nodes ({len(managed) - len(idle)} of '
+                     f'{len(managed)} active)')
+        for n in idle:
+            lines.append(f'- {n["id"]}: **{n["lifecycle_state"]}**')
+        lines.append('')
+
     # --- Callbacks (Tier C tracing), slowest first. ---
     callbacks = [c for c in d.get('callbacks', [])
                  if isinstance(c.get('p95_ms'), (int, float))]
