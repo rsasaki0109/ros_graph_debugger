@@ -38,6 +38,27 @@ node --check ros_graph_debugger/web/app.js
 
 CI runs the same on Humble and Jazzy (`.github/workflows/ci.yml`).
 
+### Real Nav2 lifecycle recovery
+
+The `Nav2 Integration` workflow runs the distribution's actual Nav2 map_server
+on Humble and Jazzy. With the workspace built and sourced as above:
+
+```bash
+sudo apt-get install ros-$ROS_DISTRO-nav2-map-server ros-$ROS_DISTRO-nav-msgs \
+  ros-$ROS_DISTRO-rosbag2-storage-default-plugins
+python3 test/integration/run_nav2_scenario.py --output /tmp/rgd-nav2
+```
+
+Use a fresh output directory. This scenario fixes `ROS_DOMAIN_ID=93` and uses
+loopback port 3952 (`--port` overrides it); run one scenario at a time on this
+domain. It verifies an inactive server's diagnosis, actual map delivery after
+activation, the same assertion passing after recovery, and a recorder receiving
+the retained map after activation. See [the validation contract and artifact
+guide](docs/nav2_validation.md). It runs separately from `pytest test/`, polls
+readiness, stops its child process groups, and has a 120-second runner budget
+within the five-minute CI job. CI saves logs, recordings, reports, the structured
+diff and real bag even on failure as `nav2-humble` / `nav2-jazzy`.
+
 ### Multiprocess ROS integration
 
 The separate `integration` CI job runs real DDS discovery and message delivery

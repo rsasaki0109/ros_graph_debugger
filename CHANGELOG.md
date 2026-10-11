@@ -46,6 +46,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
   bag's clock with the profile / `--expect` expectations. One-shot topics
   (a static TF, a latched map) are never reported stale.
 
+- **Real Nav2 recovery CI** — Humble/Jazzy verify map_server's inactive diagnosis, activation, actual map delivery, before/after reports and diff, and a late recorder receiving the retained map in a real bag.
+
 ### Changed
 - `analysis.analyze()` takes an optional `now` (the analysis clock), and the
   profile → thresholds merge is shared as `profile.apply_profile()`.
