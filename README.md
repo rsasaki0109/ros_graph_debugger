@@ -174,6 +174,12 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   stats topic yourself (`agent --statistics-topic /stats/image=/camera/image_raw`).
   Marked `stats` in the UI and briefing; unattributed stats are listed, not
   guessed.
+- **Reported processing time (Tier B)** — nodes that publish their own
+  per-cycle processing time (Autoware's `~/debug/processing_time_ms`, enabled
+  by `--profile autoware`; any topic via `--processing-time-topic REGEX`)
+  count as that node's execution time without tracing: checked against the
+  stage budgets (`slow_callback`), shown on the pipeline path, and read from
+  bags by `rgd bag analyze` too.
 - **Callback execution time (Tier C)** — per-callback p95/mean/max duration, a
   `slow_callback` issue when a callback blows its budget, and the stat surfaced
   in the node Inspector and AI briefing. Budgets are **stage-aware** — the

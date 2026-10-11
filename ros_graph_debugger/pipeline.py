@@ -80,6 +80,21 @@ def _walk(nodes_by_id, topics_by_name, start: str, downstream: bool):
     return hops
 
 
+def callback_lookup(callbacks) -> 'callable':
+    """``(node, topic) -> p95 ms``: the node's callback for that subscription,
+    else the node's own reported processing time (Tier B), else None."""
+    per_sub, per_node = {}, {}
+    for c in callbacks or []:
+        p95 = c.get('p95_ms')
+        if not isinstance(p95, (int, float)):
+            continue
+        if c.get('callback') == 'processing_time':
+            per_node[c['node']] = max(p95, per_node.get(c['node'], p95))
+        else:
+            per_sub[(c['node'], c.get('topic'))] = p95
+    return lambda node, topic: per_sub.get((node, topic), per_node.get(node))
+
+
 def trace_pipeline_path(d: dict, focus: str):
     """Trace the constraining path through ``focus`` (a node or topic).
 
@@ -112,11 +127,9 @@ def trace_pipeline_path(d: dict, focus: str):
 
     # Annotate each hop with the consuming node's callback p95 for that topic —
     # the measured execution-time counterpart to the rate-based bottleneck.
-    cb_p95 = {(c['node'], c.get('topic')): c.get('p95_ms')
-              for c in d.get('callbacks', [])
-              if isinstance(c.get('p95_ms'), (int, float))}
+    cb_p95 = callback_lookup(d.get('callbacks'))
     for h in hops:
-        h['cb_p95_ms'] = cb_p95.get((h['to'], h['topic']))
+        h['cb_p95_ms'] = cb_p95(h['to'], h['topic'])
 
     nodes_seq = [hops[0]['from']] + [h['to'] for h in hops]
     rated = [h for h in hops if isinstance(h['rate_hz'], (int, float))]
@@ -174,11 +187,10 @@ def pipeline_timeline(snapshots: list[dict], focus: str | None = None) -> dict |
         times.append(round((s.get('timestamp') or t0) - t0, 2))
         blamed.append(path['pivot'] in _blamed(s))
         rates = {t['name']: t.get('rate_hz') for t in s.get('topics', [])}
-        cbs = {(c['node'], c.get('topic')): c.get('p95_ms')
-               for c in s.get('callbacks', [])}
+        cbs = callback_lookup(s.get('callbacks'))
         for h in hops:
             h['rate_hz'].append(rates.get(h['topic']))
-            h['cb_p95_ms'].append(cbs.get((h['to'], h['topic'])))
+            h['cb_p95_ms'].append(cbs(h['to'], h['topic']))
     return {'target': path['target'], 'pivot': path['pivot'],
             'nodes': path['nodes'], 't': times, 'hops': hops, 'blamed': blamed}
 

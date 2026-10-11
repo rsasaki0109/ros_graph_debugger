@@ -330,10 +330,14 @@ def _cmd_bag(args) -> int:
         data, profile_name = load_profile(path)
         apply_profile(thresholds, data)
         profile_public = {'name': data.get('name'), 'groups': data.get('groups', {})}
+        proc_patterns = list(data.get('processing_time_patterns') or [])
+    else:
+        proc_patterns = []
+    proc_patterns += args.processing_time_topic
     thresholds.expected_min_rate.update(expect_rates)
 
     try:
-        analyzer = analyze_bag(args.bag, thresholds, profile_name)
+        analyzer = analyze_bag(args.bag, thresholds, profile_name, proc_patterns)
     except BagReaderUnavailable as exc:
         print(f'error: {exc}', file=sys.stderr)
         return 2
@@ -552,6 +556,10 @@ def main(argv=None) -> int:
                      help='profile pack (autoware | nav2 | moveit | path)')
     bga.add_argument('--expect', action='append', default=[], metavar='TOPIC=HZ',
                      help='expected minimum rate (repeatable)')
+    bga.add_argument('--processing-time-topic', action='append', default=[],
+                     metavar='REGEX',
+                     help='topics carrying a node\'s own processing time in ms '
+                          '(adds to the profile\'s processing_time_patterns)')
     bga.add_argument('--interval', type=float, default=1.0,
                      help='seconds of bag time between snapshots')
     bga.add_argument('--window', type=float, default=2.0,

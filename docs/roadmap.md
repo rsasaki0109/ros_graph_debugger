@@ -77,8 +77,10 @@ briefing + MCP server, and a demo pipeline.
   `report` / `diff` / `assert` / `serve` without a live system); the pipeline
   path over time (rate + callback p95 per hop) in `rgd report`; services and
   actions with `no_service_server` / `no_action_server` issues.
-- QoS events (deadline missed, liveliness lost, message lost).
-- App-specific pipeline-latency topics (the rest of Tier B).
+- *Done, unreleased:* full QoS compatibility (deadline, liveliness, lease) and
+  app-reported processing time (`~/debug/processing_time_ms`) as Tier B.
+- Runtime QoS *events* as seen by the real consumers (the agent only sees its
+  own probes', so this needs an in-node hook rather than the agent).
 
 Scope is intentionally driven by "does this reduce a ROS 2 developer's daily
 debugging time" rather than feature breadth.

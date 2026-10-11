@@ -51,6 +51,11 @@ def _parse_args(argv=None):
                         'Repeatable; replaces the default /statistics')
     p.add_argument('--no-statistics', action='store_true',
                    help='do not read topic statistics')
+    p.add_argument('--processing-time-topic', action='append', default=[],
+                   metavar='REGEX',
+                   help='topics carrying a node\'s own processing time in ms '
+                        '(numeric `data`), e.g. \'/debug/processing_time_ms$\'; '
+                        'adds to the profile\'s processing_time_patterns')
     p.add_argument('--no-lifecycle', action='store_true',
                    help='do not query lifecycle (managed) node states')
     p.add_argument('--trace-file', default=None, metavar='PATH',
@@ -107,7 +112,10 @@ def main(argv=None) -> None:
     rclpy.init()
     node = DebuggerNode(store, probe, thresholds, profile_name,
                         statistics_topics=statistics_topics,
-                        lifecycle=not args.no_lifecycle)
+                        lifecycle=not args.no_lifecycle,
+                        processing_time_patterns=(
+                            list((profile_data or {}).get('processing_time_patterns') or [])
+                            + list(args.processing_time_topic)))
     executor = MultiThreadedExecutor()
     executor.add_node(node)
 

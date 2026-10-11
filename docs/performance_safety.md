@@ -55,7 +55,11 @@ End-to-end latency is approximated in tiers, from cheap to accurate:
   measured without subscribing to them. Attribution is never guessed: the
   message names the subscriber node only, so a node with several data
   subscriptions stays unattributed until its stats topic is mapped. Stats older
-  than 10 s are dropped. App-specific pipeline-latency topics remain roadmap.
+  than 10 s are dropped. Nodes' own processing-time topics (e.g. Autoware's
+  `~/debug/processing_time_ms`, matched by the profile's
+  `processing_time_patterns` or `--processing-time-topic`) are subscribed
+  best-effort — tiny messages, at most 300 topics — and read as the node's
+  execution time.
 - **Tier C (implemented for callback durations)** — `ros2_tracing` / LTTng
   traces, converted offline (`rgd trace convert`, or `agent --trace-file
   <session dir>`) into per-callback count/mean/p95/max. Recording is
