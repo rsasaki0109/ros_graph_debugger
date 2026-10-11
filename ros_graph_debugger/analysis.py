@@ -244,7 +244,7 @@ def analyze(store: RuntimeGraphStore, thresholds,
             related_nodes=[node_id], related_topics=waiting))
 
     # 15: service / action clients with no server anywhere.
-    for e in missing_servers(service_graph(nodes), store.service_names()):
+    for e in missing_servers(service_graph(nodes)):
         action = e['kind'] == 'action'
         issues.append(Issue(
             id=counter.next('no_server'), severity=WARNING,

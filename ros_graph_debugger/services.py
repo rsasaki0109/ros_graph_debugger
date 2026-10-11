@@ -60,18 +60,13 @@ def service_graph(nodes) -> dict:
     return out
 
 
-def missing_servers(graph: dict, known_services=()) -> list[dict]:
-    """Entries that have clients but no server among the known nodes — unless
-    the service name is advertised anyway (``known_services``, the global
-    service list: its server may just be a node we could not list)."""
-    known = set(known_services)
-    out = []
-    for kind in ('service', 'action'):
-        for e in graph.get(kind + 's', []):
-            if e['servers'] or not e['clients']:
-                continue
-            advertised = e['name'] + ACTION_GOAL if kind == 'action' else e['name']
-            if advertised in known:
-                continue
-            out.append({'kind': kind, **e})
-    return out
+def missing_servers(graph: dict) -> list[dict]:
+    """Entries that have clients but no server among the graph's nodes.
+
+    Only per-node server lists count: the global service-name list cannot
+    tell a server from a client (rmw lists a name as soon as either side
+    exists), so it would hide exactly the missing servers we look for."""
+    return [{'kind': kind, **e}
+            for kind in ('service', 'action')
+            for e in graph.get(kind + 's', [])
+            if e['clients'] and not e['servers']]

@@ -177,9 +177,8 @@ class DebuggerNode(Node):
             self.get_logger().warn(f'graph poll failed: {exc}')
 
     def _collect_graph(self) -> None:
-        service_names: set[str] = set()
-        nodes, topics = build_graph(self, service_names)
-        self.store.set_graph(nodes, topics, service_names)
+        nodes, topics = build_graph(self)
+        self.store.set_graph(nodes, topics)
         self._sync_probes(topics)
 
     # ------------------------------------------------------------ lifecycle #

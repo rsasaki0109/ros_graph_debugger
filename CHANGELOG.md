@@ -11,8 +11,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
   (`service_clients`) as well as serve; the snapshot gains `services` and
   `actions` (`{name, servers, clients}`, actions found via
   `<action>/_action/send_goal`, parameter services omitted). A client with no
-  server raises `no_service_server` / `no_action_server`, unless the name is
-  advertised by a node the graph could not list. Shown in the node Inspector
+  server among the graph's nodes raises `no_service_server` /
+  `no_action_server`. Shown in the node Inspector
   and as a "Clients without a server" briefing section.
 - **Pipeline path over time** — `rgd report` follows one pipeline path across
   the recording: for each hop, the topic rate and the consuming node's

@@ -186,15 +186,11 @@ class RuntimeGraphStore:
         self._statistics: list[dict] = []  # raw rows, see statistics.py
         self._issues: list[Issue] = []
         self._profile: Optional[str] = None
-        self._service_names: set[str] = set()
 
     # -- writers (called from the rclpy spin thread) ------------------------ #
     def set_graph(self, nodes: dict[str, NodeInfo],
-                  topics: dict[str, TopicInfo],
-                  service_names: set[str] | None = None) -> None:
+                  topics: dict[str, TopicInfo]) -> None:
         with self._lock:
-            if service_names is not None:
-                self._service_names = set(service_names)
             # Preserve already-collected metrics across graph re-polls.
             for name, new in topics.items():
                 old = self._topics.get(name)
@@ -297,11 +293,6 @@ class RuntimeGraphStore:
             return (dict(self._nodes), dict(self._topics),
                     dict(self._tf), dict(self._diagnostics),
                     list(self._callbacks))
-
-    def service_names(self) -> set[str]:
-        """Every advertised service name from the last graph poll."""
-        with self._lock:
-            return set(self._service_names)
 
     def probe_candidates(self) -> list[tuple[str, str]]:
         with self._lock:

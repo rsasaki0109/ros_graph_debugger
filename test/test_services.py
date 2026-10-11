@@ -54,21 +54,18 @@ def test_service_graph_groups_servers_and_clients_and_drops_housekeeping():
     ]
 
 
-def test_missing_servers_respects_globally_advertised_names():
+def test_missing_servers():
     g = service_graph(_nav_nodes())
     assert [(e['kind'], e['name']) for e in missing_servers(g)] == [
         ('service', '/clear_entirely_global_costmap'), ('action', '/follow_path')]
-    # Advertised by a node we could not list -> not reported.
-    assert [e['name'] for e in missing_servers(
-        g, {'/follow_path/_action/send_goal', '/clear_entirely_global_costmap'})] == []
 
 
 def test_issues_and_snapshot():
     store = RuntimeGraphStore()
-    store.set_graph(_nav_nodes(), {}, service_names={'/clear_entirely_global_costmap'})
+    store.set_graph(_nav_nodes(), {})
     issues = {i.kind: i for i in analyze(store, Thresholds())
               if i.kind in ('no_action_server', 'no_service_server')}
-    assert set(issues) == {'no_action_server'}  # the service is advertised
+    assert set(issues) == {'no_action_server', 'no_service_server'}
     issue = issues['no_action_server']
     assert issue.title == '/follow_path has action clients but no server'
     assert issue.severity == 'warning'
@@ -110,11 +107,10 @@ def test_build_graph_live_services_and_clients():
         node.create_client(ListParameters, '/rgd_svc_test/missing')
         # The node shows up via its default /rosout and /parameter_events
         # publishers; its service endpoints take a moment to register.
-        nodes, names = {}, set()
+        nodes = {}
         for _ in range(15):
             time.sleep(0.3)
-            names = set()
-            nodes, _ = build_graph(node, names)
+            nodes, _ = build_graph(node)
             me = nodes.get('/rgd_svc_test')
             if me and '/rgd_svc_test/missing' in me.service_clients:
                 break
@@ -123,8 +119,7 @@ def test_build_graph_live_services_and_clients():
             node.destroy_node()
             pytest.skip('local graph introspection unavailable in this env')
         assert '/rgd_svc_test/present' in me.services
-        assert '/rgd_svc_test/present' in names
-        missing = missing_servers(service_graph(nodes), names)
+        missing = missing_servers(service_graph(nodes))
         assert [e['name'] for e in missing] == ['/rgd_svc_test/missing']
         node.destroy_node()
     finally:
