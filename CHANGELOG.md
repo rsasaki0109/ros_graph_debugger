@@ -7,6 +7,7 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 ## [Unreleased]
 
 ### Added
+- **Multiprocess ROS integration CI** — Humble/Jazzy exercise real DDS, slow/healthy pipelines, lifecycle, missing services/actions, deadline QoS, processing time, and recorded rosbag analysis, with failure artifacts.
 - **Full QoS compatibility** — `qos_mismatch` now covers every request/offer
   policy DDS checks: reliability, durability, **deadline**, **liveliness kind**
   and **liveliness lease duration** (the cases rmw reports as

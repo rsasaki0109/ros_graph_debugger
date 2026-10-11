@@ -57,6 +57,52 @@ jobs:
           source install/setup.bash
           python3 -m pytest test/ -v
 
+  integration:
+    name: multiprocess integration (ROS 2 ${{ matrix.ros_distro }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        ros_distro: [humble, jazzy]
+    container:
+      image: ros:${{ matrix.ros_distro }}-ros-base
+    env:
+      ROS_DOMAIN_ID: '91'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install integration dependencies
+        shell: bash
+        run: |
+          set -e
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            python3-pip python3-colcon-common-extensions \
+            ros-${{ matrix.ros_distro }}-std-msgs \
+            ros-${{ matrix.ros_distro }}-tf2-msgs \
+            ros-${{ matrix.ros_distro }}-diagnostic-msgs \
+            ros-${{ matrix.ros_distro }}-statistics-msgs \
+            ros-${{ matrix.ros_distro }}-lifecycle-msgs \
+            ros-${{ matrix.ros_distro }}-std-srvs \
+            ros-${{ matrix.ros_distro }}-rosbag2-storage-default-plugins
+          pip3 install --break-system-packages fastapi uvicorn websockets pydantic psutil pyyaml \
+            || pip3 install fastapi uvicorn websockets pydantic psutil pyyaml
+      - name: Build and run real ROS scenarios
+        shell: bash
+        run: |
+          set -e
+          source /opt/ros/${{ matrix.ros_distro }}/setup.bash
+          colcon build --packages-select ros_graph_debugger --executor sequential
+          source install/setup.bash
+          python3 test/integration/run_scenario.py --output integration-artifacts
+      - name: Save integration diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-${{ matrix.ros_distro }}
+          path: integration-artifacts/
+          if-no-files-found: warn
+
   web-check:
     name: web assets
     runs-on: ubuntu-latest
