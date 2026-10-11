@@ -50,6 +50,10 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 - `analysis.analyze()` takes an optional `now` (the analysis clock), and the
   profile → thresholds merge is shared as `profile.apply_profile()`.
 
+### Fixed
+- **Live probe rate** — use middleware receive timestamps rather than delayed Python callback execution times, preserving raw message information on Humble and native callbacks on Jazzy; invalid timestamps fall back to a complete monotonic window without mixing clocks.
+- **Healthy demo contrast** — target 12.5 Hz for the detector while retaining the minimum 10 Hz contract and the original slow/toggle cadence, so nominal timer jitter does not invalidate the healthy fixture.
+
 ## [0.5.0] — measure it — 2026-10-11
 
 ### Added

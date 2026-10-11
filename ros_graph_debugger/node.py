@@ -35,6 +35,7 @@ from .processing import ProcessingTimes, compile_patterns, matches, value_ms
 from .lifecycle import UNKNOWN as LIFECYCLE_UNKNOWN, is_lifecycle_node
 from .msgutil import header_stamp_age_ms
 from .procmap import match_nodes_to_processes
+from .probe_executor import with_message_info
 from .statistics import StatisticsBuffer, parse_metrics
 from .model import (
     DiagnosticStatus,
@@ -72,13 +73,16 @@ class _TopicProbe:
 
     def __init__(self, window: int) -> None:
         self.stamps: deque[float] = deque(maxlen=window)
+        self.received_stamps: deque[int] = deque(maxlen=window)
         self.sizes: deque[int] = deque(maxlen=window)
         self.ages: deque[float] = deque(maxlen=window)  # header.stamp ages (ms)
         # None=unknown, True=has header, False=headerless (stop deserializing).
         self.has_header = None
 
-    def add(self, size: int, age_ms: float | None = None) -> None:
+    def add(self, size: int, age_ms: float | None = None,
+            received_timestamp_ns: int = 0) -> None:
         self.stamps.append(time.monotonic())
+        self.received_stamps.append(received_timestamp_ns)
         self.sizes.append(size)
         if age_ms is not None:
             self.ages.append(age_ms)
@@ -87,6 +91,15 @@ class _TopicProbe:
         rate = None
         if len(self.stamps) >= 2:
             span = self.stamps[-1] - self.stamps[0]
+            # RMW stamps receipt before the executor runs our callback. Avoid
+            # interpreting graph/analysis work in the observer as a slow publisher.
+            received = tuple(self.received_stamps)
+            if all(s > 0 for s in received) and all(
+                    a <= b for a, b in zip(received, received[1:])) \
+                    and received[-1] > received[0]:
+                span = (received[-1] - received[0]) / 1e9
+            # Missing or non-monotonic RMW timestamps fall back to the complete
+            # monotonic callback window; never mix these two clock domains.
             if span > 0:
                 rate = (len(self.stamps) - 1) / span
         avg = sum(self.sizes) / len(self.sizes) if self.sizes else None
@@ -300,7 +313,7 @@ class DebuggerNode(Node):
         probe = _TopicProbe(self.probe_cfg.window)
         self._probes[name] = probe
 
-        def _cb(raw: bytes, _name=name, _probe=probe, _mt=msg_type) -> None:
+        def _cb(raw: bytes, info, _probe=probe, _mt=msg_type) -> None:
             try:
                 size = len(raw) if isinstance(raw, (bytes, bytearray)) \
                     else len(bytes(raw))
@@ -317,11 +330,12 @@ class DebuggerNode(Node):
                     _probe.has_header = hasattr(msg, 'header')
                 except Exception:
                     _probe.has_header = False
-            _probe.add(size, age)
+            received = (info or {}).get('received_timestamp', 0) or 0
+            _probe.add(size, age, received_timestamp_ns=received)
 
         try:
             sub = self.create_subscription(
-                msg_type, name, _cb, self._probe_qos, raw=True)
+                msg_type, name, with_message_info(_cb), self._probe_qos, raw=True)
             self._subs[name] = sub
             self.get_logger().info(f'probing {name} ({ttype})')
         except Exception as exc:

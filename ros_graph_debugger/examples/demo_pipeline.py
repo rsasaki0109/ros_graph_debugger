@@ -58,7 +58,10 @@ class Detector(Node):
         self.mode = mode  # 'toggle' | 'slow' | 'healthy'
         self.sub = self.create_subscription(String, CAMERA_TOPIC, self._on_img, 10)
         self.pub = self.create_publisher(String, OBJECTS_TOPIC, 10)
-        self.create_timer(0.1, self._tick)  # nominally 10 Hz
+        # Healthy is a contrast for a minimum 10 Hz contract, so give its
+        # publisher headroom for real scheduling/DDS jitter. Slow and toggle
+        # retain their existing cadence and simulated inference work.
+        self.create_timer(0.08 if mode == 'healthy' else 0.1, self._tick)
         self.last_img = None
         self.t0 = time.monotonic()
 

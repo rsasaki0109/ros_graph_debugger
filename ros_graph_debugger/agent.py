@@ -13,13 +13,13 @@ import threading
 import webbrowser
 
 import rclpy
-from rclpy.executors import MultiThreadedExecutor
 
 from .config import ProbeConfig, Thresholds
 from .node import DebuggerNode
 from .model import RuntimeGraphStore
 from .paths import find_profile, find_web_dir
 from .profile import apply_profile, load_profile
+from .probe_executor import ProbeExecutor
 from .server import create_app
 
 
@@ -116,7 +116,7 @@ def main(argv=None) -> None:
                         processing_time_patterns=(
                             list((profile_data or {}).get('processing_time_patterns') or [])
                             + list(args.processing_time_topic)))
-    executor = MultiThreadedExecutor()
+    executor = ProbeExecutor()
     executor.add_node(node)
 
     spin_thread = threading.Thread(target=executor.spin, daemon=True)

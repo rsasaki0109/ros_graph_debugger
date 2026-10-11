@@ -72,11 +72,12 @@ DDS subscription-matching window does not count as steady-state delivery.
 These helpers are test-only and are not installed in the package.
 
 The healthy live contract remains at least 10 Hz, as specified by the Autoware
-profile. The current demo uses a nominal 100 ms timer; scheduling and delivery
-jitter can put measured windows below 10 Hz and fail this contrast. Inspect the
-recording's numeric `rate_hz` and the bag timestamps when this happens. The
-scenario deliberately preserves this failure rather than adding tolerance,
-lowering the contract, or skipping the assertion.
+profile. The healthy detector targets 12.5 Hz to provide scheduling headroom;
+slow and toggle keep their original cadence. Live rates use DDS receive
+timestamps so work in the observer does not appear as a slow publisher. If a
+healthy run fails, inspect the recording's numeric `rate_hz` and the bag
+timestamps. The scenario preserves genuine failures
+without adding tolerance, lowering the contract, or skipping the assertion.
 
 Child process groups are stopped on completion, failure, or termination. Logs,
 assertion JSON, snapshots, recordings, bags, and Markdown/HTML reports are left
