@@ -28,7 +28,10 @@ def fq_node(name: str, namespace: str) -> str:
     return namespace.rstrip('/') + '/' + name
 
 
-def build_graph(ros_node) -> tuple[dict[str, NodeInfo], dict[str, TopicInfo]]:
+def build_graph(ros_node, service_names: set | None = None
+                ) -> tuple[dict[str, NodeInfo], dict[str, TopicInfo]]:
+    """``service_names``, when given, is filled with every advertised service
+    name — a server may belong to a node the node-name API failed to list."""
     nodes: dict[str, NodeInfo] = {}
     topics: dict[str, TopicInfo] = {}
 
@@ -81,12 +84,23 @@ def build_graph(ros_node) -> tuple[dict[str, NodeInfo], dict[str, TopicInfo]]:
         t.qos_status = detect_qos_status(endpoints)
         topics[tname] = t
 
-    # Best-effort services for known nodes (cosmetic; skip on failure).
+    # Best-effort services served and called by known nodes (skip on failure).
     for fq, n in nodes.items():
         try:
             n.services = [s for s, _ in
                           ros_node.get_service_names_and_types_by_node(
                               n.name, n.namespace)]
+        except Exception:
+            pass
+        try:
+            n.service_clients = [s for s, _ in
+                                 ros_node.get_client_names_and_types_by_node(
+                                     n.name, n.namespace)]
+        except Exception:
+            pass
+    if service_names is not None:
+        try:
+            service_names.update(s for s, _ in ros_node.get_service_names_and_types())
         except Exception:
             pass
 

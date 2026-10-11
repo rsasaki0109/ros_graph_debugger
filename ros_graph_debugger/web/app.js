@@ -592,6 +592,33 @@ function relatedIssues(match) {
   return `<div class="section-title">Issues (${issues.length})</div>${rows}`;
 }
 
+// Services / actions a node serves and calls (parameter services and
+// action-internal services left out, as in services.py).
+const ACTION_GOAL = '/_action/send_goal';
+const INFRA_SVC = ['/describe_parameters', '/get_parameters', '/get_parameter_types',
+  '/list_parameters', '/set_parameters', '/set_parameters_atomically', '/get_type_description'];
+function splitServices(names) {
+  const out = { services: [], actions: [] };
+  (names || []).forEach(s => {
+    if (s.endsWith(ACTION_GOAL)) out.actions.push(s.slice(0, -ACTION_GOAL.length));
+    else if (!s.includes('/_action/') && !INFRA_SVC.some(x => s.endsWith(x))) out.services.push(s);
+  });
+  return out;
+}
+function nodeServices(n) {
+  const served = splitServices(n.services), called = splitServices(n.service_clients);
+  const snap = state.last || {};
+  const orphan = new Set([...(snap.services || []), ...(snap.actions || [])]
+    .filter(e => e.clients.length && !e.servers.length).map(e => e.name));
+  const pills = list => list.map(s =>
+    `<span class="pill ${orphan.has(s) ? 'critical' : ''}" title="${orphan.has(s) ? 'no server' : ''}">${escapeHtml(s)}</span>`).join('');
+  const rows = [['Actions served', served.actions], ['Services served', served.services],
+                ['Actions called', called.actions], ['Services called', called.services]]
+    .filter(([, list]) => list.length);
+  return rows.map(([title, list]) =>
+    `<div class="section-title">${title} (${list.length})</div>${pills(list)}`).join('');
+}
+
 function nodeDetail(n) {
   const cpu = typeof n.cpu_percent === 'number'
     ? `${n.cpu_percent.toFixed(0)}% (${n.process_mapping_confidence})` : 'unknown';
@@ -608,6 +635,7 @@ function nodeDetail(n) {
     ${n.publishers.map(p => `<span class="pill" onclick="window._sel('T:${p}')">${p}</span>`).join('') || '<span class="hint">none</span>'}
     <div class="section-title">Subscribers (${n.subscribers.length})</div>
     ${n.subscribers.map(s => `<span class="pill" onclick="window._sel('T:${s}')">${s}</span>`).join('') || '<span class="hint">none</span>'}
+    ${nodeServices(n)}
     ${nodeCallbacks(n.id)}
     <div class="section-title">Pipeline path <span class="hint">— lit up on the graph</span></div>
     <div id="node-path" class="node-path hint">tracing…</div>

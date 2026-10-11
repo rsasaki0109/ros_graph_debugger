@@ -187,6 +187,12 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   `ros2 lifecycle set … activate` command — **critical** when its outputs have
   subscribers waiting (the classic "nothing on `/cmd_vel`"). `--no-lifecycle`
   turns the queries off.
+- **Services & actions** — who serves and who calls each service and action
+  (an action is found by its `<action>/_action/send_goal` service), in the
+  node Inspector and the snapshot. A client with no server anywhere — e.g.
+  `bt_navigator` calling `follow_path` with no controller up — raises a
+  `no_action_server` / `no_service_server` issue; parameter services are left
+  out.
 - **Node CPU / memory**, with honest node→process mapping confidence: layered
   matching (`__node:=` remap → `high`, executable name → `medium`, bare token →
   `low`) and component containers capped at `low` since per-node CPU can't be

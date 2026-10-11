@@ -73,7 +73,8 @@ class NodeInfo:
     namespace: str = '/'
     publishers: list[str] = field(default_factory=list)
     subscribers: list[str] = field(default_factory=list)
-    services: list[str] = field(default_factory=list)
+    services: list[str] = field(default_factory=list)  # served
+    service_clients: list[str] = field(default_factory=list)  # called
 
     pid: Optional[int] = None
     process_name: Optional[str] = None
@@ -159,6 +160,8 @@ class GraphSnapshot:
     diagnostics: list[dict] = field(default_factory=list)
     callbacks: list[dict] = field(default_factory=list)
     statistics: list[dict] = field(default_factory=list)
+    services: list[dict] = field(default_factory=list)
+    actions: list[dict] = field(default_factory=list)
     issues: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -183,11 +186,15 @@ class RuntimeGraphStore:
         self._statistics: list[dict] = []  # raw rows, see statistics.py
         self._issues: list[Issue] = []
         self._profile: Optional[str] = None
+        self._service_names: set[str] = set()
 
     # -- writers (called from the rclpy spin thread) ------------------------ #
     def set_graph(self, nodes: dict[str, NodeInfo],
-                  topics: dict[str, TopicInfo]) -> None:
+                  topics: dict[str, TopicInfo],
+                  service_names: set[str] | None = None) -> None:
         with self._lock:
+            if service_names is not None:
+                self._service_names = set(service_names)
             # Preserve already-collected metrics across graph re-polls.
             for name, new in topics.items():
                 old = self._topics.get(name)
@@ -291,13 +298,20 @@ class RuntimeGraphStore:
                     dict(self._tf), dict(self._diagnostics),
                     list(self._callbacks))
 
+    def service_names(self) -> set[str]:
+        """Every advertised service name from the last graph poll."""
+        with self._lock:
+            return set(self._service_names)
+
     def probe_candidates(self) -> list[tuple[str, str]]:
         with self._lock:
             return [(t.name, t.type) for t in self._topics.values()]
 
     def snapshot(self) -> GraphSnapshot:
+        from .services import service_graph
         from .statistics import attribute, public_row
         with self._lock:
+            svc = service_graph(self._nodes)
             stats = [public_row(r) for r in
                      attribute(self._statistics, self._nodes, self._topics)]
             edges = _build_edges(self._nodes, self._topics)
@@ -311,6 +325,8 @@ class RuntimeGraphStore:
                 diagnostics=[asdict(d) for d in self._diagnostics.values()],
                 callbacks=[asdict(c) for c in self._callbacks],
                 statistics=stats,
+                services=svc['services'],
+                actions=svc['actions'],
                 issues=[asdict(i) for i in self._issues],
             )
 
