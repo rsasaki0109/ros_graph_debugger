@@ -82,6 +82,10 @@ def _assert_drive_findings(snaps):
     assert pose[6.0]['rate_hz'] == pytest.approx(2.0, abs=0.6)
     assert 'rate_drop' not in _kinds(at[3.0])
     assert 'rate_drop' in _kinds(at[6.0])
+    assert pose[6.0]['rate_measurement_scope'] == 'bag_recording'
+    rate = next(i for i in at[6.0]['issues'] if i['kind'] == 'rate_drop')
+    assert 'rate measurement scope: bag_recording' in rate['evidence']
+    assert 'delivery completeness: unknown' in rate['evidence']
     assert 'tf_stale' not in _kinds(at[5.0])
     assert 'tf_stale' in _kinds(at[9.0])
     assert 'diagnostics_error' not in _kinds(at[7.0])

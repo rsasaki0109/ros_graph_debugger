@@ -232,3 +232,5 @@ tracepoints; this test validates C++ callback tracing specifically.
 Keep PRs focused, describe the user-facing change, and make sure
 `pytest test/` and the web check pass. Be kind — see
 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+For interpreting low-rate failures, see [rate measurement and delivery evidence](docs/probe-reception-evidence.md).

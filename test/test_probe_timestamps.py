@@ -69,6 +69,7 @@ def test_delayed_callback_uses_middleware_receipt_for_rate(monkeypatch):
         probe.add(100, age_ms=12, received_timestamp_ns=1_700_000_000_000_000_000 + i * 100_000_000)
     metrics = probe.metrics()
     assert metrics['rate_hz'] == 10
+    assert metrics['rate_measurement_scope'] == 'probe_receipt'
     assert metrics['bandwidth_bps'] == 1000
     assert metrics['avg_msg_size_bytes'] == 100
     assert metrics['header_age_p95_ms'] == 12

@@ -1,5 +1,7 @@
 """Issue engine / bottleneck analyzer tests — fully synthetic, no ROS needed."""
 
+import pytest
+
 from ros_graph_debugger.analysis import analyze
 from ros_graph_debugger.config import Thresholds as Thr
 from ros_graph_debugger.model import (
@@ -130,3 +132,31 @@ def test_clean_system_has_no_issues():
     store.set_graph({'/p': NodeInfo(id='/p', name='p'),
                      '/s': NodeInfo(id='/s', name='s')}, {'/t': t})
     assert analyze(store, Thr()) == []
+
+
+@pytest.mark.parametrize('scope', [
+    'probe_receipt', 'bag_recording', 'subscriber_statistics', None,
+])
+def test_rate_evidence_keeps_failure_without_claiming_publisher_slowdown(scope):
+    store = RuntimeGraphStore()
+    topic = TopicInfo(name='/output', publisher_count=1, subscriber_count=1,
+                      publishers=['/worker'], subscribers=['/consumer'])
+    worker = NodeInfo(id='/worker', name='worker', publishers=['/output'],
+                      cpu_percent=95)
+    store.set_graph({'/worker': worker}, {'/output': topic})
+    store.update_topic_metrics('/output', rate_hz=4, rate_measurement_scope=scope)
+    threshold = Thr(expected_min_rate={'/output': 10})
+    issues = analyze(store, threshold)
+    rate = next(i for i in issues if i.kind == 'rate_drop')
+    bottleneck = next(i for i in issues if i.kind == 'bottleneck')
+    assert rate.severity == 'warning'
+    assert bottleneck.severity == 'critical'
+    for issue in (rate, bottleneck):
+        assert f'rate measurement scope: {scope or "unknown"}' in issue.evidence
+        assert 'delivery completeness: unknown' in issue.evidence
+        assert issue.related_topics == ['/output']
+    assert 'inputs look healthy' not in bottleneck.explanation
+    assert 'does not establish a slow publishing callback' in bottleneck.explanation
+    # Identical minimum-rate contract: healthy observations still pass.
+    store.update_topic_metrics('/output', rate_hz=12.5, rate_measurement_scope=scope)
+    assert not {'rate_drop', 'bottleneck'} & _kinds(analyze(store, threshold))
