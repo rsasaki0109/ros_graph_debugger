@@ -83,7 +83,8 @@ def build_report(header: dict, snapshots: list[dict],
                 'last_index': idx, 'evidence': issue.get('evidence', []),
                 'suggested_actions': issue.get('suggested_actions', []),
                 'related_nodes': issue.get('related_nodes', []),
-                'related_topics': issue.get('related_topics', [])})
+                'related_topics': issue.get('related_topics', []),
+                'related_frames': issue.get('related_frames', [])})
             cat['count'] += 1
             cat['last_index'] = idx
             if _SEV_RANK.get(sev, 0) > _SEV_RANK.get(cat['max_severity'], 0):

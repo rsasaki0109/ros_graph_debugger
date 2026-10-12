@@ -1,0 +1,49 @@
+name: Nav2 Navigation Evidence
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  navigation-integration:
+    name: Nav2 planner/controller evidence (ROS 2 jazzy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    container:
+      image: ros:jazzy-ros-base
+    env:
+      ROS_DOMAIN_ID: '94'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install actual Nav2 and tracing dependencies
+        shell: bash
+        run: |
+          set -e
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            python3-pip python3-colcon-common-extensions python3-bt2 lttng-tools \
+            ros-jazzy-nav2-map-server ros-jazzy-nav2-planner ros-jazzy-nav2-controller \
+            ros-jazzy-nav2-navfn-planner ros-jazzy-nav2-regulated-pure-pursuit-controller \
+            ros-jazzy-nav2-loopback-sim ros-jazzy-nav-msgs ros-jazzy-std-msgs \
+            ros-jazzy-tf2-msgs ros-jazzy-diagnostic-msgs ros-jazzy-statistics-msgs \
+            ros-jazzy-lifecycle-msgs ros-jazzy-rosbag2-storage-default-plugins
+          pip3 install --break-system-packages fastapi uvicorn websockets pydantic psutil pyyaml
+      - name: Verify actual navigation fault and recovery evidence
+        shell: bash
+        run: |
+          set -e
+          source /opt/ros/jazzy/setup.bash
+          ros2 run tracetools status
+          dpkg-query -W ros-jazzy-nav2-{map-server,planner,controller,loopback-sim}
+          colcon build --packages-select ros_graph_debugger --executor sequential
+          source install/setup.bash
+          python3 test/integration/run_navigation_scenario.py --output navigation-artifacts
+      - name: Save live recordings, bag, trace and navigation ground truth
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: navigation-jazzy
+          path: navigation-artifacts/
+          if-no-files-found: warn
