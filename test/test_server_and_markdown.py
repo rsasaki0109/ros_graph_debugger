@@ -218,3 +218,23 @@ def test_path_endpoint_unknown_target_404(base_url):
         assert False, 'expected 404'
     except urllib.error.HTTPError as e:
         assert e.code == 404
+
+
+@pytest.mark.parametrize('scope,label', [
+    ('probe_receipt', 'probe receipts'),
+    ('subscriber_statistics', 'subscriber statistics'),
+    ('bag_recording', 'bag recording'),
+    (None, 'unknown'),
+    ('future_scope', 'unknown'),
+    (['invalid'], 'unknown'),
+])
+def test_briefing_names_rate_location_even_without_issues(scope, label):
+    store = _store()
+    store.set_issues([])
+    store.update_topic_metrics('/objects', rate_measurement_scope=scope)
+    md = snapshot_to_markdown(store.snapshot(), focus='/objects')
+    assert 'No issues detected.' in md
+    assert '| rate scope |' in md
+    assert f'| 4.2 Hz | {label} |' in md
+    assert 'Delivery completeness and publisher-side throughput are unknown' in md
+    assert 'low rate alone does not prove a slow publishing callback' in md

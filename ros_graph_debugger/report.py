@@ -11,6 +11,7 @@ from __future__ import annotations
 import html
 import re
 
+from .measurement import RATE_DELIVERY_NOTE, RATE_SCOPE_LABELS, rate_measurement_scope
 from .pipeline import pipeline_timeline, spark
 from .recording import header_age_clock_note
 
@@ -53,7 +54,8 @@ def build_report(header: dict, snapshots: list[dict],
             rec = topics.setdefault(name, {
                 'type': t.get('type', ''), 'rate_min': None, 'rate_max': None,
                 'rate_sum': 0.0, 'rate_n': 0, 'stale_count': 0,
-                'max_bandwidth_bps': 0.0, 'max_p95_bytes': 0.0, 'seen': 0})
+                'max_bandwidth_bps': 0.0, 'max_p95_bytes': 0.0, 'seen': 0,
+                'rate_measurement_scope_counts': {k: 0 for k in RATE_SCOPE_LABELS}})
             rec['seen'] += 1
             r = t.get('rate_hz')
             if isinstance(r, (int, float)):
@@ -61,6 +63,7 @@ def build_report(header: dict, snapshots: list[dict],
                 rec['rate_max'] = r if rec['rate_max'] is None else max(rec['rate_max'], r)
                 rec['rate_sum'] += r
                 rec['rate_n'] += 1
+                rec['rate_measurement_scope_counts'][rate_measurement_scope(t)] += 1
             bw = t.get('bandwidth_bps')
             if isinstance(bw, (int, float)):
                 rec['max_bandwidth_bps'] = max(rec['max_bandwidth_bps'], bw)
@@ -138,7 +141,9 @@ def build_report(header: dict, snapshots: list[dict],
             'stale_count': rec['stale_count'],
             'stale_pct': round(100.0 * rec['stale_count'] / n, 1) if n else 0.0,
             'max_bandwidth_bps': rec['max_bandwidth_bps'],
-            'max_p95_bytes': rec['max_p95_bytes']})
+            'max_p95_bytes': rec['max_p95_bytes'],
+            'rate_measurement_scope_counts': rec['rate_measurement_scope_counts'],
+            'rate_unmeasured_count': rec['seen'] - rec['rate_n']})
 
     bottlenecks = sorted(
         ({**v, 'pct': round(100.0 * v['count'] / n, 1) if n else 0.0}
@@ -278,6 +283,19 @@ def render_markdown(summary: dict) -> str:
 
     out += ['## Header age clock', '', header_age_clock_note(m), '']
 
+    if summary['topics']:
+        out += ['## Rate measurement sources', '', RATE_DELIVERY_NOTE, '',
+                'Counts are snapshots in which the topic appears, not message counts. '
+                'Unmeasured means no numeric rate; absent topics are not counted.', '',
+                '| topic | probe receipts | subscriber statistics | bag recording | unknown | unmeasured |',
+                '|---|---|---|---|---|---|']
+        for t in sorted(summary['topics'], key=lambda t: t['name']):
+            counts = t.get('rate_measurement_scope_counts', {})
+            cells = [str(counts.get(k, '—')) for k in RATE_SCOPE_LABELS]
+            cells.append(str(t.get('rate_unmeasured_count', '—')))
+            out.append('| ' + t['name'] + ' | ' + ' | '.join(cells) + ' |')
+        out.append('')
+
     if summary['readiness']:
         out.append('## Engage readiness (share of samples)')
         out.append('| stage | worst | ok% | warn% | error% |')
@@ -295,7 +313,7 @@ def render_markdown(summary: dict) -> str:
             out.append(f'- **[{b["max_severity"].upper()}]** {b["title"]} '
                        f'— seen in {b["pct"]}% of samples')
             if b['evidence']:
-                out.append(f'  - e.g. {"; ".join(b["evidence"][:3])}')
+                out.append(f'  - e.g. {"; ".join(b["evidence"])}')
     out.append('')
 
     if summary['bandwidth_top']:
@@ -434,13 +452,30 @@ def render_html(summary: dict) -> str:
                 f'<div class="spct">ok {r["ok_pct"]}% · err {r["error_pct"]}%</div></div>')
         return f'<div class="readiness">{"".join(cells)}</div>'
 
+    def rate_sources_section():
+        if not summary['topics']:
+            return ''
+        rows = []
+        for t in sorted(summary['topics'], key=lambda t: t['name']):
+            counts = t.get('rate_measurement_scope_counts', {})
+            cells = [str(counts.get(k, '—')) for k in RATE_SCOPE_LABELS]
+            cells.append(str(t.get('rate_unmeasured_count', '—')))
+            rows.append('<tr><td>' + e(t['name']) + '</td>'
+                        + ''.join('<td>' + e(c) + '</td>' for c in cells) + '</tr>')
+        return ('<h2>Rate measurement sources</h2><p>' + e(RATE_DELIVERY_NOTE) + '</p>'
+                '<p class="muted">Counts are snapshots in which the topic appears, '
+                'not message counts. Unmeasured means no numeric rate; absent topics '
+                'are not counted.</p><table><tr><th>topic</th><th>probe receipts</th>'
+                '<th>subscriber statistics</th><th>bag recording</th><th>unknown</th>'
+                '<th>unmeasured</th></tr>' + ''.join(rows) + '</table>')
+
     def bottleneck_rows():
         if not summary['bottlenecks']:
             return '<p class="muted">None observed. 🎉</p>'
         rows = []
         for b in summary['bottlenecks'][:15]:
             c = _COLORS.get(b['max_severity'], '#6e7681')
-            ev = e('; '.join(b['evidence'][:3]))
+            ev = e('; '.join(b['evidence']))
             rows.append(
                 f'<div class="issue" style="border-left-color:{c}">'
                 f'<b style="color:{c}">[{b["max_severity"].upper()}]</b> {e(b["title"])}'
@@ -543,6 +578,7 @@ th{{color:#8b949e;font-weight:600}}
 <h2>Header age clock</h2>
 <p>{e(header_age_clock_note(m))}</p>
 {readiness_html()}
+{rate_sources_section()}
 <h2>Issue timeline</h2>
 <div class="tl">{_timeline_svg(summary['timeline'])}</div>
 <h2>Top bottlenecks</h2>

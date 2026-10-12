@@ -7,6 +7,7 @@ terse graph/metrics table. Kept small on purpose so it fits a prompt."""
 from __future__ import annotations
 
 from .health import health_line
+from .measurement import RATE_DELIVERY_NOTE, RATE_SCOPE_LABELS, rate_measurement_scope
 from .pipeline import resolve_focus, trace_pipeline_path
 
 
@@ -160,11 +161,11 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
 
     # --- Topic table. ---
     lines.append('## Topics')
-    lines.append('| topic | type | pub | sub | rate | age p95 | bandwidth | qos | status |')
-    lines.append('|---|---|---|---|---|---|---|---|---|')
+    lines.append('| topic | type | pub | sub | rate | rate scope | age p95 | bandwidth | qos | status |')
+    lines.append('|---|---|---|---|---|---|---|---|---|---|')
     for t in sorted(d['topics'], key=lambda x: x['name']):
         age = t.get('header_age_p95_ms')
-        lines.append('| {name} | {type} | {p} | {s} | {rate} | {age} | {bw} | {qos} | '
+        lines.append('| {name} | {type} | {p} | {s} | {rate} | {scope} | {age} | {bw} | {qos} | '
                      '{status} |'.format(
                          name=t['name'],
                          type=t['type'].split('/')[-1] if t['type'] else '—',
@@ -172,11 +173,15 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
                          rate=_fmt_rate(t.get('rate_hz'))
                          + (' (stats)' if t.get('rate_source') == 'statistics'
                             and t.get('rate_hz') is not None else ''),
+                         scope=RATE_SCOPE_LABELS[rate_measurement_scope(t)],
                          age=f'{age:.0f} ms' if isinstance(age, (int, float)) else '—',
                          bw=_fmt_bw(t.get('bandwidth_bps')),
                          qos=t.get('qos_status', 'unknown'),
                          status=t.get('status', 'unknown')))
     lines.append('')
+
+    if any(isinstance(t.get('rate_hz'), (int, float)) for t in d['topics']):
+        lines += [RATE_DELIVERY_NOTE, '']
 
     # --- Nodes with process metrics, when known. ---
     metric_nodes = [n for n in d['nodes'] if n.get('cpu_percent') is not None]
