@@ -13,6 +13,7 @@ import threading
 import webbrowser
 
 import rclpy
+from rclpy.utilities import remove_ros_args
 
 from .config import ProbeConfig, Thresholds
 from .node import DebuggerNode
@@ -62,7 +63,8 @@ def _parse_args(argv=None):
                    help='callback-duration trace (Tier C) to load as callback '
                         'stats: a `ros2 trace` session directory (needs '
                         'python3-bt2) or NDJSON from `rgd trace convert`')
-    return p.parse_args(argv)
+    ros_argv = None if argv is None else ['ros_graph_debugger', *argv]
+    return p.parse_args(remove_ros_args(args=ros_argv)[1:])
 
 
 def main(argv=None) -> None:
@@ -109,7 +111,7 @@ def main(argv=None) -> None:
     statistics_topics = {} if args.no_statistics \
         else parse_statistics_topics(args.statistics_topic)
 
-    rclpy.init()
+    rclpy.init(args=None if argv is None else ['ros_graph_debugger', *argv])
     node = DebuggerNode(store, probe, thresholds, profile_name,
                         statistics_topics=statistics_topics,
                         lifecycle=not args.no_lifecycle,

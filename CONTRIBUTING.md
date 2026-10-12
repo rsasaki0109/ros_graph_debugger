@@ -38,6 +38,22 @@ node --check ros_graph_debugger/web/app.js
 
 CI runs the same on Humble and Jazzy (`.github/workflows/ci.yml`).
 
+The multiprocess job also checks `/clock` startup and message-age recovery:
+
+```bash
+python3 test/integration/run_clock_scenario.py --output /tmp/rgd-clock
+```
+
+It uses domain 91 and port 3959, so run it sequentially with other integration
+cases. The publisher and agent run separately. Before `/clock` starts, header
+age must be unavailable; 20 ms stamps pass the unchanged Autoware contract,
+300 ms stamps produce `stale_data` and exit 1, and recovery passes again.
+The fault/recovery checks repeat with `/clock` stopped and message delivery
+continuing, proving analysis keeps updating independently of simulation time.
+Recordings, JSON evidence and reports are saved under the output directory;
+CI includes them in `integration-humble` / `integration-jazzy` artifacts.
+Readiness is polled, and child process groups are stopped on completion/failure.
+
 ### Real Nav2 lifecycle recovery
 
 The `Nav2 Integration` workflow runs the distribution's actual Nav2 map_server
