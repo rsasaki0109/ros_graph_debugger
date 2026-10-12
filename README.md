@@ -388,6 +388,26 @@ the bag's own clock, with the same profile expectations. A bag records topics,
 not the graph, so nodes, CPU and callback times stay empty. Needs a sourced
 ROS 2 (`rosbag2_py`; MCAP on Humble also needs `ros-humble-rosbag2-storage-mcap`).
 
+### Live observation during bag replay or simulation
+
+Use the same ROS clock as the publishers when their header stamps use simulation
+time. For a bag replay, start the agent with `use_sim_time` and publish `/clock`:
+
+```bash
+ros2 run ros_graph_debugger agent --no-browser --profile autoware \
+  --probe-regex '^/localization/kinematic_state$' \
+  --ros-args -p use_sim_time:=true
+ros2 bag play /path/to/bag --clock
+```
+
+Header age follows the agent's ROS clock. Before the first `/clock` message,
+header age is unavailable. Collection timers continue before `/clock` starts
+and while it is paused. Topic arrival rate and receipt freshness still use
+real time, so slowing or pausing playback can violate rate/freshness contracts.
+Offline `rgd bag analyze` uses recorded bag time directly. These two observations
+answer different questions: the original recording's behavior and the live
+replay's behavior. ROS parameters and remappings use standard `--ros-args` syntax.
+
 ### CI graph diff comments
 
 Use the bundled composite action to upload the diff image as a workflow artifact

@@ -8,7 +8,10 @@ from __future__ import annotations
 
 
 def header_stamp_age_ms(msg, now_epoch: float):
-    """Age in milliseconds of a message's header.stamp relative to ``now_epoch``.
+    """Age of header.stamp relative to a current time in the same clock domain.
+
+    ``now_epoch`` may be wall time or ROS simulation time; callers must align
+    it with the message's header clock.
 
     Returns None when the message has no usable ``header.stamp`` (no header,
     field missing, or an unset zero stamp). A slightly negative age (clock skew)
