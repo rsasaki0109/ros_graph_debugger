@@ -22,13 +22,14 @@ from fastapi.staticfiles import StaticFiles
 from . import __version__
 from .markdown import snapshot_to_markdown
 from .model import RuntimeGraphStore
+from .recording import header_age_clock_note
 
 
 def create_app(store, web_dir: str,
                profile_data: dict | None = None,
                stream_period: float = 1.0,
                replay=None, replay_interval: float = 0.5,
-               thresholds=None) -> FastAPI:
+               thresholds=None, recording_header: dict | None = None) -> FastAPI:
     app = FastAPI(title='ros_graph_debugger', version=__version__)
 
     # A single background task advances the replay cursor, so playback speed is
@@ -60,6 +61,11 @@ def create_app(store, web_dir: str,
     def profile():
         return profile_public or {}
 
+    @app.get('/api/v1/recording')
+    def recording_metadata():
+        return {'mode': 'replay' if replay is not None else 'live',
+                'recording_header': recording_header if replay is not None else None}
+
     # ------------------------------------------------------- replay control #
     @app.get('/api/v1/replay')
     def replay_state():
@@ -85,7 +91,11 @@ def create_app(store, web_dir: str,
 
     @app.get('/api/v1/snapshot.md', response_class=PlainTextResponse)
     def snapshot_md(focus: str | None = None):
-        return snapshot_to_markdown(store.snapshot(), focus=focus)
+        text = snapshot_to_markdown(store.snapshot(), focus=focus)
+        if replay is not None:
+            text += ('\n\n## Header age clock\n\n'
+                     + header_age_clock_note(recording_header or {}) + '\n')
+        return text
 
     @app.get('/api/v1/graph')
     def graph():

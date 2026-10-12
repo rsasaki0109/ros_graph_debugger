@@ -13,6 +13,7 @@ from ros_graph_debugger.server import create_app
 # The canonical HTTP surface. Keep in lockstep with docs/api.md.
 EXPECTED = {
     ('GET', '/api/v1/health'),
+    ('GET', '/api/v1/recording'),
     ('GET', '/api/v1/snapshot'),
     ('GET', '/api/v1/snapshot.md'),
     ('GET', '/api/v1/graph'),

@@ -12,6 +12,7 @@ import html
 import re
 
 from .pipeline import pipeline_timeline, spark
+from .recording import header_age_clock_note
 
 _SEV_RANK = {'critical': 3, 'warning': 2, 'info': 1}
 _STATUS_RANK = {'critical': 3, 'warning': 2, 'ok': 1, 'unknown': 0}
@@ -192,7 +193,8 @@ def build_report(header: dict, snapshots: list[dict],
     return {
         'meta': {
             'samples': n, 'duration_s': round(duration, 1),
-            'profile': (profile or {}).get('name') if profile else None},
+            'profile': (profile or {}).get('name') if profile else None,
+            'header_age_clock': header.get('header_age_clock')},
         'topics': sorted(topic_list, key=lambda x: x['name']),
         'health': health,
         'bottlenecks': bottlenecks,
@@ -273,6 +275,8 @@ def render_markdown(summary: dict) -> str:
                    f'critical {h["critical_pct"]}% · degraded {h["degraded_pct"]}% · '
                    f'ok {h["ok_pct"]}% (ended {h["final"].upper()})')
         out.append('')
+
+    out += ['## Header age clock', '', header_age_clock_note(m), '']
 
     if summary['readiness']:
         out.append('## Engage readiness (share of samples)')
@@ -536,6 +540,8 @@ th{{color:#8b949e;font-weight:600}}
 <h1>◇ ROS Graph Debugger — Recording Report</h1>
 <p class="muted">{m['samples']} samples over {m['duration_s']} s{profile_line}</p>
 {health_banner()}
+<h2>Header age clock</h2>
+<p>{e(header_age_clock_note(m))}</p>
 {readiness_html()}
 <h2>Issue timeline</h2>
 <div class="tl">{_timeline_svg(summary['timeline'])}</div>

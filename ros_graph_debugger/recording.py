@@ -19,6 +19,26 @@ from typing import Iterable, Iterator, TextIO
 RECORDING_VERSION = '1'
 
 
+def header_age_clock_note(header: dict) -> str:
+    """Explain recorded age provenance without guessing from observed values."""
+    clock = header.get('header_age_clock')
+    if not isinstance(clock, dict) or clock.get('selected') not in ('ros', 'bag'):
+        return 'Unknown: this recording does not identify the header-age clock.'
+    selected = ('recorded ROS clock (/clock)' if clock['selected'] == 'ros'
+                else 'bag receive time')
+    requested = clock.get('requested')
+    if requested not in ('auto', 'bag', 'ros'):
+        requested = 'unknown'
+    note = f'Header age uses {selected}; requested mode: {requested}.'
+    if clock['selected'] == 'ros':
+        def count(key):
+            value = clock.get(key)
+            return value if type(value) is int and value >= 0 else 'unknown'
+        note += (f' Clock messages: {count("clock_messages")}; '
+                 f'unreadable: {count("unreadable_clock_messages")}.')
+    return note + ' Arrival windows and receipt freshness use bag receive time.'
+
+
 def make_header(started: float, interval: float,
                 profile: dict | None = None) -> dict:
     return {

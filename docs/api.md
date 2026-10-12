@@ -2,7 +2,8 @@
 
 The agent serves on `http://127.0.0.1:3939` by default. All payloads are JSON
 unless noted. The same surface is served in replay mode (`rgd serve`), except
-`/api/v1/config` returns `{}` and `/api/v1/replay/*` becomes active.
+`/api/v1/config` returns `{}`, `/api/v1/replay/*` becomes active, and
+`/api/v1/recording` exposes the saved recording header.
 
 > This list is kept in sync with the code by `test/test_docs_api.py`, which
 > fails if a route is added/removed without updating this file.
@@ -12,6 +13,7 @@ unless noted. The same surface is served in replay mode (`rgd serve`), except
 | Method | Path | Description |
 |---|---|---|
 | GET | `/api/v1/health` | liveness + version |
+| GET | `/api/v1/recording` | `{mode, recording_header}`: original replay header, including header-age clock provenance; header is `null` in live mode |
 | GET | `/api/v1/snapshot` | full `GraphSnapshot` (nodes, topics, edges, tf_edges, diagnostics, issues) |
 | GET | `/api/v1/snapshot.md` | the same snapshot as an AI-friendly Markdown briefing (text/plain) |
 | GET | `/api/v1/snapshot.md?focus=TARGET` | a briefing sliced to one node or topic + its 1-hop neighbourhood (`TARGET` = node id/name, topic name, or suffix) |
@@ -37,6 +39,42 @@ unless noted. The same surface is served in replay mode (`rgd serve`), except
 | Path | Description |
 |---|---|
 | `/api/v1/stream` | pushes a full `GraphSnapshot` JSON every ~1s (every ~0.25s in replay) |
+
+## Recording provenance
+
+`GET /api/v1/recording` returns the recording header used by `rgd serve`.
+For a bag analysis this includes, for example:
+
+```json
+{
+  "mode": "replay",
+  "recording_header": {
+    "rgd_recording": "1",
+    "started": 1690184194.0,
+    "interval": 1.0,
+    "profile": null,
+    "header_age_clock": {
+      "requested": "auto",
+      "selected": "ros",
+      "clock_messages": 8809,
+      "unreadable_clock_messages": 0
+    }
+  }
+}
+```
+
+`selected: "ros"` means header ages use recorded ROS clock values; `"bag"`
+means bag receive time. Arrival windows and receipt freshness still use bag
+receive time. The message counts cover the analysis of the entire recording,
+not the current replay frame; `clock_messages` includes the unreadable messages
+counted separately by `unreadable_clock_messages`. Seeking or pausing does not
+change provenance.
+This endpoint exposes the original header, preserving extension fields.
+
+Old and headerless recordings may lack `header_age_clock`; that means **unknown**,
+not a receive-time default. Reports and replay briefings say so explicitly.
+Live mode returns `{"mode":"live","recording_header":null}`; this endpoint
+does not infer the live node's clock. Snapshot and WebSocket fields are unchanged.
 
 ## POST /api/v1/config
 
@@ -96,7 +134,9 @@ pattern.
 ## MCP
 
 `python -m ros_graph_debugger.mcp_server` exposes the same data to AI assistants
-as tools. Read tools: `get_runtime_briefing` (`/snapshot.md`),
+as tools. Read tools: `get_recording_metadata` (`/recording` — read alongside
+`get_runtime_snapshot` to identify the recording's header-age clock),
+`get_runtime_snapshot` (`/snapshot`), `get_runtime_briefing` (`/snapshot.md`),
 `get_node_briefing(target)` (`/snapshot.md?focus=TARGET` — a focused briefing
 for one node or topic in a large graph), `get_pipeline_path(target)`
 (`/path?target=TARGET` — the constraining source→sink route), `get_issues`,

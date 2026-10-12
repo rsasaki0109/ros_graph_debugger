@@ -27,6 +27,12 @@ BASE = os.environ.get('RGD_BASE', 'http://127.0.0.1:3939')
 # Read-only proxy tools: (tool_name, path, description). main() registers each
 # one with the MCP SDK; tests iterate this table to verify every path is live.
 READ_TOOLS = [
+    ('get_recording_metadata', '/api/v1/recording',
+     'Get replay recording-header provenance, including header_age_clock '
+     'requested/selected basis and clock-message counts. Read this alongside '
+     'get_runtime_snapshot when interpreting recorded header ages. Missing '
+     'clock metadata means unknown, not bag time. In live mode the header '
+     'is null; this tool does not infer the live node clock.'),
     ('get_runtime_snapshot', '/api/v1/snapshot',
      'Get one complete JSON snapshot with its timestamp, nodes, topics, TF, '
      'diagnostics, callbacks and issue kinds/evidence. Use this when evidence '
