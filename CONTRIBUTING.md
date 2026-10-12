@@ -103,6 +103,61 @@ under the output directory. CI uploads them even on failure as
 job has a five-minute timeout; the runner allows 180 seconds for the scenarios
 and then cleans up. It does not run as part of ordinary `pytest test/`.
 
+### Real LTTng integration
+
+The `trace-integration` CI job records actual rclcpp subscription, timer and
+service callbacks on Humble and Jazzy using userspace LTTng. It needs no kernel
+tracing or privileged container. Install `build-essential`, `cmake`,
+`pkg-config`, `lttng-tools`, `liblttng-ust-dev`, `python3-bt2` and
+`ros-$ROS_DISTRO-std-srvs`, in addition to the agent's dependencies above.
+
+Humble's released `tracetools` library has tracing wrapper symbols but no
+LTTng backend. For this test, build an overlay of the same official 4.1.2
+source, pinned to commit `3c159b382d2d565e26eaa91e39c9ec06a5c6fe88`:
+
+```bash
+# Humble only; stop if the installed tracetools version differs from 4.1.2.
+git clone https://github.com/ros2/ros2_tracing.git /tmp/rgd-tracetools-src
+git -C /tmp/rgd-tracetools-src checkout 3c159b382d2d565e26eaa91e39c9ec06a5c6fe88
+colcon build --base-paths /tmp/rgd-tracetools-src/tracetools \
+  --build-base /tmp/rgd-tracetools-build --install-base /tmp/rgd-tracetools \
+  --packages-select tracetools --executor sequential --cmake-args -DBUILD_TESTING=OFF
+source /tmp/rgd-tracetools/setup.bash
+```
+
+After building and sourcing the ROS workspace, run:
+
+```bash
+ros2 run tracetools status
+cmake -S test/integration/trace_fixture -B /tmp/rgd-trace-fixture
+cmake --build /tmp/rgd-trace-fixture --parallel 2
+python3 test/integration/run_trace_scenario.py \
+  --output /tmp/rgd-trace-test --fixture /tmp/rgd-trace-fixture/trace_fixture
+```
+
+Use a fresh output directory and a container without another session daemon.
+The script owns its foreground `lttng-sessiond`, sessions and child process
+groups, and polls daemon readiness and completed callback counts. It fixes
+domain 92 and loopback port 3951 (`--port` overrides it), with a 150-second
+runner budget inside a five-minute CI job. Do not run concurrently on this
+domain. Infrastructure parameter events are completed before the fixture
+starts; the fixture disables its own parameter notifications so the recorded
+invocations cover exactly the three controlled callback types.
+
+Each callback must have at least eight real invocations. The slow fixture does
+150 ms of intentional work in each callback; the healthy fixture does none.
+Both use the unchanged default 100 ms callback budget. The test verifies CTF
+process IDs, node/topic attribution, zero unattributed invocations, CLI output,
+and the agent's direct-CTF and NDJSON input paths. `rgd assert` must fail for
+slow callbacks and pass for healthy callbacks, with the recorded `kind` and
+numeric evidence checked as well. Missing tracing support is a failure.
+
+CI always uploads `trace-humble` / `trace-jazzy`, including raw CTF, callback
+NDJSON, conversion counts, agent/fixture/daemon logs, assertion JSON, the
+recording and reports. These fixtures and tools are test-only and do not add
+installed-package dependencies. rclpy does not emit the rclcpp callback
+tracepoints; this test validates C++ callback tracing specifically.
+
 ## Guidelines
 
 - **Keep the agent safe by default**: no auto-subscribing to large topics, bound
