@@ -14,6 +14,8 @@ from ros_graph_debugger.recording import make_header, read_recording, write_reco
 
 OBJECTS = '/perception/object_recognition/objects'
 IMAGE = '/sensing/camera/front/image'
+PROCESSING_NODE = '/control/integration/processing'
+DURATION_SOURCES = ('trace', 'application_report', 'synthetic')
 TOPIC_LIMITS = {
     'publisher_execution_from_rate_or_header_age': 'collect_publisher_callback_trace',
     'network_latency_from_dds_stamp_gap': 'check_capture_points_and_clock_sync',
@@ -77,7 +79,39 @@ def field_claim(evidence, ident, path, numeric=False, allowed=None):
 def rubric_for(case_id, evidence, family, target):
     snapshot = evidence['snapshot']
     claims = []
-    if family == 'cpu':
+    if family == 'duration':
+        callbacks = snapshot.get('callbacks')
+        indexes = [i for i, c in enumerate(callbacks) if isinstance(c, dict) and c.get('node') == target] \
+            if isinstance(callbacks, list) else []
+        claims.append({'id': 'duration_observation_count',
+                       'status': 'observed' if isinstance(callbacks, list) else 'unknown',
+                       'value': len(indexes) if isinstance(callbacks, list) else None,
+                       'evidence': ['/snapshot/callbacks' if isinstance(callbacks, list) else '/snapshot']})
+        limits = {'end_to_end_p95_from_duration_percentiles': 'collect_paired_per_message_timings'}
+        if not indexes:
+            limits['no_callback_work_from_missing_observations'] = 'collect_attributed_callback_trace'
+        for index in indexes:
+            root = f'/snapshot/callbacks/{index}'
+            prefix = f'duration_{index}'
+            for key in ('node', 'callback', 'topic'):
+                claims.append(field_claim(evidence, prefix + '_' + key, root + '/' + key))
+            for key in ('count', 'mean_ms', 'p95_ms', 'max_ms'):
+                claims.append(field_claim(evidence, prefix + '_' + key, root + '/' + key, numeric=True))
+            declared = field_claim(evidence, prefix + '_declared_source', root + '/source',
+                                   allowed=DURATION_SOURCES)
+            claims.append(declared)
+            limits[prefix + '_authenticated_provenance_from_source_field'] = 'verify_original_duration_source'
+            limits[prefix + '_downstream_rate_cause_from_p95'] = 'collect_paired_pipeline_measurements'
+            source = declared['value']
+            if source == 'application_report':
+                limits[prefix + '_callback_start_end_from_application_report'] = 'collect_paired_callback_start_end'
+            elif source == 'trace':
+                limits[prefix + '_application_cycle_time_from_callback_trace'] = 'inspect_application_cycle_boundaries'
+            elif source == 'synthetic':
+                limits[prefix + '_measured_runtime_duration_from_synthetic_stats'] = 'collect_real_duration_measurements'
+            else:
+                limits[prefix + '_callback_start_end_from_unknown_source'] = 'establish_duration_measurement_method'
+    elif family == 'cpu':
         index = next(i for i, n in enumerate(snapshot['nodes']) if n['id'] == target)
         root = f'/snapshot/nodes/{index}'
         for key in ('pid', 'cpu_percent'):
@@ -175,6 +209,27 @@ def negative_controls(answer):
     bad = copy.deepcopy(answer); bad['claims'][0]['value'] = 'fabricated'; cases['invented_value'] = bad
     bad = copy.deepcopy(answer); bad['limitations'][0]['status'] = 'established'; cases['unsupported_cause'] = bad
     bad = copy.deepcopy(answer); bad['limitations'][0]['next_check'] = 'lower_rate_threshold'; cases['irrelevant_next_check'] = bad
+    sources = [c for c in answer['claims'] if c['id'].endswith('_declared_source')]
+    if sources:
+        source = sources[0]
+        bad = copy.deepcopy(answer)
+        next(c for c in bad['claims'] if c['id'] == source['id']).update(
+            status='observed', value='application_report' if source['value'] == 'trace' else 'trace')
+        cases['duration_source_confusion'] = bad
+        prefix = source['id'].removesuffix('_declared_source')
+        bad = copy.deepcopy(answer)
+        value = next(c for c in bad['claims'] if c['id'] == prefix + '_p95_ms')
+        value['evidence'] = source['evidence']
+        # Even equal values must be cited from the matching metric, not its source.
+        if value['evidence'] == next(c for c in answer['claims'] if c['id'] == value['id'])['evidence']:
+            value['evidence'] = ['/snapshot/issues']
+        cases['duration_value_source_pair'] = bad
+        bad = copy.deepcopy(answer)
+        limitation = next(c for c in bad['limitations'] if c['id'].startswith(prefix + '_')
+                          and not c['id'].endswith(('_authenticated_provenance_from_source_field',
+                                                   '_downstream_rate_cause_from_p95')))
+        limitation['status'] = 'established'
+        cases['duration_semantics_overclaim'] = bad
     return cases
 
 
@@ -182,7 +237,7 @@ def save(path, value):
     path.write_text(json.dumps(value, indent=2, allow_nan=False) + '\n')
 
 
-def export_case(output, ident, snapshot, header, family, target, source, index):
+def export_case(output, ident, snapshot, header, family, target, source, index, source_kind='provided_source'):
     participant, evaluator = output / 'participant' / ident, output / 'evaluator' / ident
     participant.mkdir(parents=True); evaluator.mkdir(parents=True)
     evidence = {'snapshot': snapshot, 'recording_metadata': {'mode': 'replay', 'recording_header': header}}
@@ -195,6 +250,11 @@ def export_case(output, ident, snapshot, header, family, target, source, index):
     prompt += 'For an unavailable fact use null and cite its parent object; never turn missing data into zero. '
     prompt += 'Limitations need id, status (established/not_established) and next_check. Reasoning text may be included but is not automatically scored.\n\n'
     prompt += 'Requested observations:\n' + '\n'.join('- ' + c['id'] for c in rubric['claims'])
+    if family == 'duration':
+        prompt += '\n\nDeclared source is metadata, not authenticated provenance. '
+        prompt += 'Report each duration and its source from the same callback row; '
+        prompt += 'a label or filename does not establish a missing measurement method. '
+        prompt += 'An application report need not time a single callback; synthetic data is not measured runtime evidence.\n'
     prompt += '\n\nDoes the evidence establish each of these conclusions?\n' + '\n'.join('- ' + c['id'] for c in rubric['limitations'])
     prompt += '\n\nChoose next_check from: ' + ', '.join(sorted({c['next_check'] for c in rubric['limitations']})) + '.\n'
     prompt += '\nUse only participant inputs. Evaluator files contain reference answers and provenance; do not expose them to a model.\n'
@@ -202,6 +262,7 @@ def export_case(output, ident, snapshot, header, family, target, source, index):
     save(evaluator / 'rubric.json', rubric)
     save(evaluator / 'provenance.json', {'source': str(source.resolve()), 'source_sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
                                        'snapshot_index': index, 'family': family, 'target': target,
+                                       'source_kind': source_kind,
                                        'original_recording_header_available': 'evaluation_wrapper' not in header})
 
 
@@ -225,6 +286,17 @@ def prepare(args):
             assert choices, f'{phase}: original rate contracts not met'
             index, snapshot = choices[0]
             cases.append((snapshot, header, 'topic', OBJECTS, source, index))
+            index, snapshot = next((i, s) for i, s in enumerate(rows)
+                                   if s['timestamp'] - rows[0]['timestamp'] >= 5
+                                   and any(c.get('node') == PROCESSING_NODE
+                                           and c.get('source') == 'application_report'
+                                           and c.get('p95_ms') == 120
+                                           for c in s.get('callbacks', []))
+                                   and any(issue['kind'] == 'slow_callback'
+                                           and PROCESSING_NODE in issue['related_nodes']
+                                           and 'duration source: application-reported processing time' in issue['evidence']
+                                           for issue in s['issues']))
+            cases.append((snapshot, header, 'duration', PROCESSING_NODE, source, index))
         for phase in ('warmup', 'loaded', 'recovered'):
             source = args.integration / 'cpu' / (phase + '.json')
             snapshot = json.loads(source.read_text())
@@ -248,6 +320,35 @@ def prepare(args):
             source = args.nav_recordings / phase / 'run.rgd.json'
             header, rows = read_recording(str(source))
             cases.append((rows[len(rows)//2], header, 'nav2', '/controller_server', source, len(rows)//2))
+    if args.trace_recordings:
+        for phase in ('slow', 'healthy'):
+            source = args.trace_recordings / phase / 'run.rgd.json'
+            header, rows = read_recording(str(source))
+            target = '/trace_' + phase
+            choices = []
+            for index, snapshot in enumerate(rows):
+                callbacks = [c for c in snapshot.get('callbacks', []) if c.get('node') == target]
+                issues = [i for i in snapshot['issues'] if i['kind'] == 'slow_callback']
+                if snapshot['timestamp'] - rows[0]['timestamp'] < 1 or len(callbacks) != 3:
+                    continue
+                if not all(c.get('source') == 'trace' and number(c.get('count')) and c['count'] >= 8
+                           and number(c.get('p95_ms')) for c in callbacks):
+                    continue
+                faulty = all(c['p95_ms'] >= 150 for c in callbacks) and len(issues) == 3 \
+                    and all(target in i['related_nodes']
+                            and 'duration source: paired callback trace' in i['evidence'] for i in issues)
+                healthy = all(c['p95_ms'] < 100 for c in callbacks) and not issues
+                if (phase == 'slow' and faulty) or (phase == 'healthy' and healthy):
+                    choices.append((index, snapshot))
+            assert choices, f'{phase}: original trace contracts not met'
+            index, snapshot = choices[0]
+            cases.append((snapshot, header, 'duration', target, source, index))
+    if args.duration_recording:
+        assert args.duration_target, '--duration-recording requires --duration-target'
+        header, rows = read_recording(str(args.duration_recording))
+        index, snapshot = next((i, s) for i, s in enumerate(rows)
+                               if any(c.get('node') == args.duration_target for c in s.get('callbacks', [])))
+        cases.append((snapshot, header, 'duration', args.duration_target, args.duration_recording, index))
     for source in (args.public_live, args.public_legacy):
         if source:
             rows = json.loads(source.read_text())
@@ -257,6 +358,14 @@ def prepare(args):
         header, rows = read_recording(str(args.public_bag))
         index, snapshot = next((i, s) for i, s in enumerate(rows) if any(t['name'] == IMAGE and number(t.get('rate_hz')) for t in s['topics']))
         cases.append((snapshot, header, 'topic', IMAGE, args.public_bag, index))
+    source_cases = len(cases)
+    if args.synthetic_demo:
+        from ros_graph_debugger.replay import build_demo_recording
+        header, rows = build_demo_recording()
+        controls = args.output / 'controls'; controls.mkdir()
+        source = controls / 'synthetic-demo.rgd.json'
+        write_recording(str(source), header, rows)
+        cases.append((rows[18], header, 'duration', '/detector', source, 18))
     assert cases, 'provide at least one source family'
     manifest = []
     for index, (snapshot, header, family, target, source, source_index) in enumerate(cases):
@@ -264,10 +373,11 @@ def prepare(args):
             header = make_header(snapshot['timestamp'], 1)
             header['evaluation_wrapper'] = 'Frozen original snapshot; original recording header unavailable'
         ident = f'case-{index + 1:03d}'
-        export_case(args.output, ident, snapshot, header, family, target, source, source_index)
+        kind = 'provided_source' if index < source_cases else 'synthetic_control'
+        export_case(args.output, ident, snapshot, header, family, target, source, source_index, kind)
         manifest.append({'case_id': ident, 'target': target})
     save(args.output / 'manifest.json', manifest)
-    print(f'Prepared {len(cases)} real-source cases; no model invoked.')
+    print(f'Prepared {source_cases} source cases and {len(cases) - source_cases} synthetic control cases; no model invoked.')
 
 
 def main():
@@ -275,8 +385,11 @@ def main():
     sub = parser.add_subparsers(dest='command', required=True)
     p = sub.add_parser('prepare')
     p.add_argument('--output', type=Path, required=True)
-    for name in ('integration', 'nav-recordings', 'public-live', 'public-legacy', 'public-bag'):
+    for name in ('integration', 'nav-recordings', 'trace-recordings', 'duration-recording',
+                 'public-live', 'public-legacy', 'public-bag'):
         p.add_argument('--' + name, type=Path)
+    p.add_argument('--duration-target')
+    p.add_argument('--synthetic-demo', action='store_true', help='Add an explicitly synthetic duration control')
     p = sub.add_parser('score')
     p.add_argument('--bundle', type=Path, required=True)
     p.add_argument('--answers', type=Path, required=True)

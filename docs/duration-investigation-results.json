@@ -1,0 +1,184 @@
+{
+  "source_base": "0c77465ad296a02323833badd2e0f787669f2a0e",
+  "date": "2026-10-12 UTC",
+  "scope": "structured rubric calibration and transport fidelity; no model accuracy measurement",
+  "model_invoked": false,
+  "source_cases": 11,
+  "explicit_synthetic_controls": 1,
+  "completed_cases": 12,
+  "invalid_answers_rejected": 102,
+  "cases": [
+    {
+      "case_id": "case-001",
+      "family": "topic",
+      "source_kind": "provided_source",
+      "source_sha256": "fca14b86eb589c855c70b886068e7cb00a879f92a58ad8e18f5ba58427937ed2",
+      "snapshot_index": 6,
+      "evidence_sha256": "b3ba5b50731feac1993c789ec3be02883fc40b1eadaea2e8caf0f7082854f908",
+      "callback_declared_sources": [],
+      "claims": 7,
+      "invalid_answers_rejected": 7,
+      "cli_mcp_exact": true,
+      "replay_group_reaped": true
+    },
+    {
+      "case_id": "case-002",
+      "family": "duration",
+      "source_kind": "provided_source",
+      "source_sha256": "fca14b86eb589c855c70b886068e7cb00a879f92a58ad8e18f5ba58427937ed2",
+      "snapshot_index": 6,
+      "evidence_sha256": "b3ba5b50731feac1993c789ec3be02883fc40b1eadaea2e8caf0f7082854f908",
+      "callback_declared_sources": [
+        "application_report"
+      ],
+      "claims": 10,
+      "invalid_answers_rejected": 10,
+      "cli_mcp_exact": true,
+      "replay_group_reaped": true
+    },
+    {
+      "case_id": "case-003",
+      "family": "topic",
+      "source_kind": "provided_source",
+      "source_sha256": "77e932c58e8bf7356d2c041c2fb64164b8f0b0efaa2cbec254747d5432c7c3c4",
+      "snapshot_index": 6,
+      "evidence_sha256": "3f3ef97f449e6e4512b9e5f41f24a22fe1e897789525c3870c5269092481d6dd",
+      "callback_declared_sources": [],
+      "claims": 7,
+      "invalid_answers_rejected": 7,
+      "cli_mcp_exact": true,
+      "replay_group_reaped": true
+    },
+    {
+      "case_id": "case-004",
+      "family": "duration",
+      "source_kind": "provided_source",
+      "source_sha256": "77e932c58e8bf7356d2c041c2fb64164b8f0b0efaa2cbec254747d5432c7c3c4",
+      "snapshot_index": 6,
+      "evidence_sha256": "3f3ef97f449e6e4512b9e5f41f24a22fe1e897789525c3870c5269092481d6dd",
+      "callback_declared_sources": [
+        "application_report"
+      ],
+      "claims": 10,
+      "invalid_answers_rejected": 10,
+      "cli_mcp_exact": true,
+      "replay_group_reaped": true
+    },
+    {
+      "case_id": "case-005",
+      "family": "cpu",
+      "source_kind": "provided_source",
+      "source_sha256": "0e70db3019274894c6846887e4e60e777519703b6d75d4cdacf7e2ed03ad792b",
+      "snapshot_index": 0,
+      "evidence_sha256": "82e238c3d58f492a4590a7a828bd14024017464504d83ea0bd3ad1cb958053d2",
+      "callback_declared_sources": [],
+      "claims": 4,
+      "invalid_answers_rejected": 7,
+      "cli_mcp_exact": true,
+      "replay_group_reaped": true
+    },
+    {
+      "case_id": "case-006",
+      "family": "cpu",
+      "source_kind": "provided_source",
+      "source_sha256": "9aadaaf7fc59abe4e878fb2d25a66fe1bd007e68135a309441dcfed29bebdffd",
+      "snapshot_index": 0,
+      "evidence_sha256": "ba58f996f3653b723398c9f3f583dda160c40981e4328358fb6fcb57e28265f5",
+      "callback_declared_sources": [],
+      "claims": 4,
+      "invalid_answers_rejected": 7,
+      "cli_mcp_exact": true,
+      "replay_group_reaped": true
+    },
+    {
+      "case_id": "case-007",
+      "family": "cpu",
+      "source_kind": "provided_source",
+      "source_sha256": "17dc6b56f870167b1b1b29f008261c4222570d45de0a8bff7d805f946325b5c7",
+      "snapshot_index": 0,
+      "evidence_sha256": "81eac5339c9c01cd215af7f98a0fca7c1ba6bf9d0e6df548f81f755de8f58154",
+      "callback_declared_sources": [],
+      "claims": 4,
+      "invalid_answers_rejected": 7,
+      "cli_mcp_exact": true,
+      "replay_group_reaped": true
+    },
+    {
+      "case_id": "case-008",
+      "family": "topic",
+      "source_kind": "provided_source",
+      "source_sha256": "3fa3a10edc9a77c64e655eea0d5430ca669d55205ddc1d6dbf196574eca8a039",
+      "snapshot_index": 0,
+      "evidence_sha256": "5f9e8ebd9e94ccb19071e8fafd147789f539e146522fc27e617bd7b3ed5213b0",
+      "callback_declared_sources": [],
+      "claims": 7,
+      "invalid_answers_rejected": 7,
+      "cli_mcp_exact": true,
+      "replay_group_reaped": true
+    },
+    {
+      "case_id": "case-009",
+      "family": "duration",
+      "source_kind": "provided_source",
+      "source_sha256": "2a1a21a794ce8f846cdda80a678beb9fd86083c5dbedbb246c7cba3f69436500",
+      "snapshot_index": 2,
+      "evidence_sha256": "b4877ce8dfb382b80455ad7dfa63c7c311af65426145e6dc095ff68e0539a5f2",
+      "callback_declared_sources": [
+        "trace"
+      ],
+      "claims": 26,
+      "invalid_answers_rejected": 10,
+      "cli_mcp_exact": true,
+      "replay_group_reaped": true
+    },
+    {
+      "case_id": "case-010",
+      "family": "duration",
+      "source_kind": "provided_source",
+      "source_sha256": "c1a3c1b064ab69f992a6e1e8edd4e7d007248478ef8e64606a9b47146c371a93",
+      "snapshot_index": 2,
+      "evidence_sha256": "1517ba0ef5b945ee155939b3cea8f306dc38cbf277d7b228ebc108a97fa36dab",
+      "callback_declared_sources": [
+        "trace"
+      ],
+      "claims": 26,
+      "invalid_answers_rejected": 10,
+      "cli_mcp_exact": true,
+      "replay_group_reaped": true
+    },
+    {
+      "case_id": "case-011",
+      "family": "duration",
+      "source_kind": "provided_source",
+      "source_sha256": "799069eb315570aefc7f684833bcafa727564f8eb365c35d77047cd83940643a",
+      "snapshot_index": 0,
+      "evidence_sha256": "e4b6119f3dd36e01ebb21b506ed435c6f7e7c8b5bc119907cf8c1cc4c3d3e0d0",
+      "callback_declared_sources": [
+        "unknown"
+      ],
+      "claims": 26,
+      "invalid_answers_rejected": 10,
+      "cli_mcp_exact": true,
+      "replay_group_reaped": true
+    },
+    {
+      "case_id": "case-012",
+      "family": "duration",
+      "source_kind": "synthetic_control",
+      "source_sha256": "3219a5cfc4d912fb36bd7ec0cddda03c66f0b9c7307a2eb73e27650b562e0a4c",
+      "snapshot_index": 18,
+      "evidence_sha256": "1d3119262d2fd794f53f9020f51d25598f5f58c93a95757ce2cf6c4c3bc27711",
+      "callback_declared_sources": [
+        "synthetic"
+      ],
+      "claims": 10,
+      "invalid_answers_rejected": 10,
+      "cli_mcp_exact": true,
+      "replay_group_reaped": true
+    }
+  ],
+  "code_sha256": {
+    "test/benchmarks/investigation_cases.py": "8584bc7a9cd8bb9a396807b4a67f1ecbfc7009ca02ad1e153e9b0ae8ce1132e7",
+    "test/benchmarks/validate_investigation.py": "a0479de62e66f20874295204edcd2d82a87bd18216587ddd28afa8f75cd32e28"
+  }
+}
