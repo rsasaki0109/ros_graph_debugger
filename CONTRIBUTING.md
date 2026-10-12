@@ -59,6 +59,12 @@ Recordings, JSON evidence and reports are saved under the output directory;
 CI includes them in `integration-humble` / `integration-jazzy` artifacts.
 Readiness is polled, and child process groups are stopped on completion/failure.
 
+For a separate public-bag observer-cost comparison, see
+[the benchmark protocol and reproduction steps](docs/observer-cost.md). It
+records agent/player/receiver CPU and RSS and checks delivery and the unchanged
+30 Hz / 100 ms contract. This optional data-heavy experiment is separate from
+the mandatory Humble/Jazzy integration tests.
+
 ### Real Nav2 lifecycle recovery
 
 The `Nav2 Integration` workflow runs the distribution's actual Nav2 map_server

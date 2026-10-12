@@ -1,12 +1,14 @@
 """Observer work must not appear as a publisher rate regression."""
 
 from types import SimpleNamespace
+import threading
 from unittest.mock import MagicMock
 
 import pytest
 import rclpy
 from rclpy.context import Context
-from rclpy.executors import MultiThreadedExecutor
+from rclpy.executors import Executor
+from rclpy.node import Node
 
 from ros_graph_debugger.node import _TopicProbe
 from ros_graph_debugger import probe_executor
@@ -139,7 +141,23 @@ def test_humble_probe_preserves_raw_message_and_receive_info(monkeypatch, execut
 @pytest.mark.parametrize('native', [False, True])
 def test_executor_leaves_ordinary_subscriptions_on_base_path(monkeypatch, executor, native):
     monkeypatch.setattr(probe_executor, '_NATIVE_MESSAGE_INFO', native)
-    monkeypatch.setattr(MultiThreadedExecutor, '_take_subscription', lambda self, sub: 'base path')
+    monkeypatch.setattr(Executor, '_take_subscription', lambda self, sub: 'base path')
     callback = lambda raw: None
     subscription = SimpleNamespace(callback=callback)
     assert executor._take_subscription(subscription) == 'base path'
+
+
+def test_collector_callback_completes_on_the_spin_thread(executor):
+    # A pool schedules this callback on another thread and can return before
+    # it completes. Collectors must finish directly on the spinning thread.
+    node = Node('collector_dispatch_test', context=executor.context)
+    calls = []
+    guard = node.create_guard_condition(lambda: calls.append(threading.get_ident()))
+    executor.add_node(node)
+    try:
+        guard.trigger()
+        executor.spin_once(timeout_sec=1)
+        assert calls == [threading.get_ident()]
+    finally:
+        executor.remove_node(node)
+        node.destroy_node()

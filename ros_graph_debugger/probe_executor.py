@@ -2,7 +2,7 @@
 
 from typing import NamedTuple
 
-from rclpy.executors import MultiThreadedExecutor
+from rclpy.executors import SingleThreadedExecutor
 from rclpy.subscription import Subscription
 
 
@@ -30,7 +30,14 @@ def with_message_info(callback):
     return legacy
 
 
-class ProbeExecutor(MultiThreadedExecutor):
+class ProbeExecutor(SingleThreadedExecutor):
+    """Run collectors on one spin thread without worker-pool dispatch.
+
+    Collectors already share a mutually exclusive callback group. Dispatching
+    them through a pool adds contention with high-frequency /clock and TF and
+    can make the observer drop messages while other subscribers keep up.
+    """
+
     def _take_subscription(self, subscription):
         # Humble takes (message, info) from RMW but discards info before calling
         # the callback. Adapt only our marked raw probes; every other entity
