@@ -58,7 +58,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
-    os.environ['ROS_DOMAIN_ID'] = '103'
+    os.environ.setdefault('ROS_DOMAIN_ID', '103')
     processes = Processes(args.output)
     node = None
     signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(TimeoutError('CPU scenario budget')))

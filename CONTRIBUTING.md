@@ -67,7 +67,8 @@ ROS worker:
 python3 test/integration/run_cpu_scenario.py --output /tmp/rgd-cpu
 ```
 
-It uses domain 103 and port 3962. The initial CPU sample must be unknown; a
+It defaults to domain 103 and port 3962, preserving an existing `ROS_DOMAIN_ID`
+(the CI job keeps domain 91 throughout). The initial CPU sample must be unknown; a
 service-controlled CPU workload must exceed 90% of one core and produce
 `high_cpu` evidence for the actual worker PID. The live assertion must fail
 during load and pass after recovery; stopped-process metrics must clear.
