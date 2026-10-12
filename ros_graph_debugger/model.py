@@ -81,6 +81,7 @@ class NodeInfo:
 
     pid: Optional[int] = None
     process_name: Optional[str] = None
+    # Process total, one core = 100%; unknown on the first/unavailable sample.
     cpu_percent: Optional[float] = None
     rss_bytes: Optional[int] = None
     # none | low | medium | high — be honest about node->process mapping.

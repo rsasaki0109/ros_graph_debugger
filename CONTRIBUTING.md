@@ -65,6 +65,23 @@ records agent/player/receiver CPU and RSS and checks delivery and the unchanged
 30 Hz / 100 ms contract. This optional data-heavy experiment is separate from
 the mandatory Humble/Jazzy integration tests.
 
+The same integration job checks process CPU sampling against a separate real
+ROS worker:
+
+```bash
+python3 test/integration/run_cpu_scenario.py --output /tmp/rgd-cpu
+```
+
+It defaults to domain 103 and port 3962, preserving an existing `ROS_DOMAIN_ID`
+(the CI job keeps domain 91 throughout). The initial CPU sample must be unknown; a
+service-controlled CPU workload must exceed 90% of one core and produce
+`high_cpu` evidence for the actual worker PID. The live assertion must fail
+during load and pass after recovery; stopped-process metrics must clear.
+Independent psutil measurements, snapshots and assertion recordings are saved
+with the agent/worker logs. Readiness is polled and child process groups are
+stopped on completion or failure. Unit checks cover PID reuse, denied access,
+and multiple nodes sharing one process (the CPU total is not split per node).
+
 ### Real Nav2 lifecycle recovery
 
 The `Nav2 Integration` workflow runs the distribution's actual Nav2 map_server

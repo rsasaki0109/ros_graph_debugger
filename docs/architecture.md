@@ -44,6 +44,7 @@ UI and to AI tools. Nothing in the target system is modified.
 |---|---|
 | `model.py` | dataclasses + `RuntimeGraphStore` (thread-safe) |
 | `node.py` | the rclpy node: collectors, probing, timers |
+| `process_metrics.py` | nonblocking CPU baseline per process lifetime; first sample is unknown, shared PIDs sampled once, exited/unavailable metrics cleared |
 | `graph_build.py` | reconstruct nodes/topics from **topic endpoint info** (robust to node-discovery lag) |
 | `qos_utils.py` | QoS enum→string + mismatch detection |
 | `msgutil.py` | `header.stamp` age helper (latency Tier A) |
