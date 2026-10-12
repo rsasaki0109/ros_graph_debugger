@@ -110,10 +110,11 @@ def test_bag_analysis_cannot_hide_actual_topic_stale_kind(tmp_path):
         scenario.validate_bag_recording(tmp_path)
 
 
-def test_live_bag_polling_preserves_writes_and_read_snapshot(tmp_path):
+@pytest.mark.parametrize('journal_mode', ['WAL', 'DELETE'])
+def test_live_bag_polling_preserves_writes_and_read_snapshot(tmp_path, journal_mode):
     path = tmp_path / 'bag_0.db3'
     with closing(sqlite3.connect(path, timeout=0)) as writer:
-        writer.execute('PRAGMA journal_mode=WAL')
+        writer.execute(f'PRAGMA journal_mode={journal_mode}')
         writer.executescript('CREATE TABLE topics(id INTEGER PRIMARY KEY, name TEXT);'
                              'CREATE TABLE messages(topic_id INTEGER, timestamp INTEGER);'
                              "INSERT INTO topics VALUES(1, '/map'),"
@@ -128,6 +129,15 @@ def test_live_bag_polling_preserves_writes_and_read_snapshot(tmp_path):
             reader.execute('BEGIN')
             assert reader.execute('SELECT COUNT(*) FROM messages').fetchone()[0] == 41
             writer.execute('INSERT INTO messages VALUES(2, 4100000000)')
+            if journal_mode == 'DELETE':
+                with pytest.raises(sqlite3.OperationalError, match='database is locked'):
+                    writer.commit()
+                writer.rollback()
+                # Even a bag satisfying every count/span requirement is unsafe
+                # to poll live with a rollback journal.
+                with pytest.raises(AssertionError, match='requires WAL'):
+                    scenario.bag_ready(tmp_path)
+                return
             writer.commit()
             assert reader.execute('SELECT COUNT(*) FROM messages').fetchone()[0] == 41
             assert scenario.bag_ready(tmp_path) == {
