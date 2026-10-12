@@ -1,0 +1,21 @@
+repositories:
+  autoware_core:
+    type: git
+    url: https://github.com/autowarefoundation/autoware_core.git
+    version: f25f83c632c1984ec276c894c41857d4abc0dad8
+  autoware_utils:
+    type: git
+    url: https://github.com/autowarefoundation/autoware_utils.git
+    version: 9cb6f102ab4fce01a1ba1b847c9a57e822184268
+  autoware_cmake:
+    type: git
+    url: https://github.com/autowarefoundation/autoware_cmake.git
+    version: 7796130d9fe9e45d8ec5e24815db9364dc4300f0
+  autoware_msgs:
+    type: git
+    url: https://github.com/autowarefoundation/autoware_msgs.git
+    version: bb8e7bf5d97168663e0e7b357929e4fcdbd3a967
+  autoware_internal_msgs:
+    type: git
+    url: https://github.com/autowarefoundation/autoware_internal_msgs.git
+    version: 4144effa727d194554ad78d343683201bbbbc427
