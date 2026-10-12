@@ -55,8 +55,11 @@ READ_TOOLS = [
     ('get_diagnostics', '/api/v1/diagnostics',
      'Get the latest /diagnostics statuses (level, name, message) as JSON.'),
     ('get_callbacks', '/api/v1/callbacks',
-     'Get per-callback execution-time stats (node, callback, p95/mean/max ms) '
-     'from tracing, as JSON — to see which callback is slow, not just which node.'),
+     'Get duration stats (node, callback, p95/mean/max ms, source) as JSON. '
+     'Source distinguishes paired callback traces, application-reported '
+     'processing time and synthetic data; missing/unknown source does not '
+     'establish callback execution time. Application reports follow publisher '
+     'semantics and do not prove callback start/end duration.'),
     ('get_statistics', '/api/v1/statistics',
      'Get rclcpp topic statistics (message period/age per subscriber node) and '
      'which topic each was attributed to, as JSON — rate/latency for topics '

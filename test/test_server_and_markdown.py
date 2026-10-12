@@ -202,7 +202,7 @@ def test_pipeline_path_line_shows_callback_time():
     store.set_callbacks([CallbackStat(node='/tracker', callback='sub /objects',
                                       topic='/objects', p95_ms=210.0)])
     md = snapshot_to_markdown(store.snapshot(), focus='/detector')
-    assert '[cb 210 ms ⟵ slowest cb]' in md  # tracker's callback annotated on the path
+    assert '[duration 210 ms; unknown ⟵ slowest duration]' in md
 
 
 def test_path_endpoint(base_url):

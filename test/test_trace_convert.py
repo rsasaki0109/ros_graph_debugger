@@ -87,6 +87,7 @@ EXPECTED_ROWS = [
     {'node': '/perception/detector', 'callback': 'sub /image_raw',
      'topic': '/image_raw', 'duration_ms': 30.0},
 ]
+EXPECTED_ROWS = [dict(row, source='trace') for row in EXPECTED_ROWS]
 
 
 def _events():

@@ -21,6 +21,7 @@ def test_one_callback_per_subscription():
     cbs = synthesize_callbacks(nodes)
     assert {c.node for c in cbs} == {'/detector', '/tracker'}  # cam has no sub callback
     assert all(c.topic and c.p95_ms is not None for c in cbs)
+    assert all(c.source == 'synthetic' for c in cbs)
 
 
 def test_slow_node_callback_spikes():

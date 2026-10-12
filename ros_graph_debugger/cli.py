@@ -296,8 +296,10 @@ def _cmd_trace(args) -> int:
     stats = sorted(aggregate_callback_durations(rows),
                    key=lambda c: -(c.p95_ms or 0))
     print('slowest callbacks (p95):', file=sys.stderr)
+    from .model import callback_source_label
     for c in stats[:args.top]:
-        print(f'  {c.p95_ms:8.1f} ms  {c.node}  {c.callback}  (n={c.count})',
+        print(f'  {c.p95_ms:8.1f} ms  {c.node}  {c.callback}  '
+              f'(n={c.count}; {callback_source_label(c.source)})',
               file=sys.stderr)
     return 0
 

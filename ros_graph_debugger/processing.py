@@ -2,9 +2,10 @@
 
 Many stacks publish how long each node spent per cycle — Autoware nodes
 publish ``~/debug/processing_time_ms`` (a ``Float64Stamped``) from nearly every
-component. That is the node's own measurement of its execution time, without
+component. That is the node's own measurement, with publisher-defined semantics, without
 any tracing, so it becomes a ``CallbackStat`` with ``callback =
-'processing_time'`` and ``topic`` = the debug topic. The existing machinery
+'processing_time'``, ``source = 'application_report'`` and ``topic`` = the debug
+topic. It need not be the start/end duration of a single callback. The existing machinery
 then applies unchanged: the stage-aware ``max_callback_ms`` budget (resolved
 from the debug topic, which sits under the node's stage namespace), the
 ``slow_callback`` issue, and the pipeline path (which falls back to a node's
@@ -83,6 +84,7 @@ class ProcessingTimes:
             v = list(vals)
             out.append(CallbackStat(
                 node=node, callback=LABEL, topic=topic, count=len(v),
+                source='application_report',
                 mean_ms=round(sum(v) / len(v), 1), p95_ms=_p95(v),
                 max_ms=round(max(v), 1)))
         return out

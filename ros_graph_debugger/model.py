@@ -134,11 +134,12 @@ class DiagnosticStatus:
 
 @dataclass
 class CallbackStat:
-    """Per-callback execution-time statistics (latency Tier C, from tracing).
+    """Duration statistics from a callback trace or application report.
 
     A callback is identified by the node it runs in and the topic it serves
-    (subscription callbacks) or an empty topic for timers. Durations are wall
-    time spent inside the callback, summarized over a window."""
+    (subscription callbacks) or an empty topic for timers. Only a trace measures
+    paired callback start/end wall time; an application report has the semantics
+    of its publisher. Missing source does not establish either provenance."""
 
     node: str
     callback: str  # human label, e.g. 'sub /perception/.../objects'
@@ -147,6 +148,23 @@ class CallbackStat:
     mean_ms: Optional[float] = None
     p95_ms: Optional[float] = None
     max_ms: Optional[float] = None
+    source: Optional[str] = None
+
+
+_CALLBACK_SOURCES = {
+    'trace': 'paired callback trace',
+    'application_report': 'application-reported processing time',
+    'synthetic': 'synthetic',
+}
+
+
+def callback_source(value) -> Optional[str]:
+    """Known duration source, or unknown for missing/future/invalid metadata."""
+    return value if isinstance(value, str) and value in _CALLBACK_SOURCES else None
+
+
+def callback_source_label(value) -> str:
+    return _CALLBACK_SOURCES.get(callback_source(value), 'unknown')
 
 
 @dataclass

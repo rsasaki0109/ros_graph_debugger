@@ -7,11 +7,13 @@ is the "critical path" an AI (or a human) wants when a node is flagged as a
 bottleneck: not just "detector is slow" but "camera -> detector -> [4.1 Hz] ->
 tracker -> ...", with the throttling hop marked.
 
-Kept free of the rclpy/model layer: it operates on the plain snapshot dict, so
+Kept free of rclpy: it operates on the plain snapshot dict, so
 it is reused by the Markdown briefing, the REST API, and tests alike.
 """
 
 from __future__ import annotations
+
+from .model import callback_source
 
 _MAX_HOPS = 12
 
@@ -83,16 +85,33 @@ def _walk(nodes_by_id, topics_by_name, start: str, downstream: bool):
 def callback_lookup(callbacks) -> 'callable':
     """``(node, topic) -> p95 ms``: the node's callback for that subscription,
     else the node's own reported processing time (Tier B), else None."""
+    lookup = callback_measurement_lookup(callbacks)
+    return lambda node, topic: lookup(node, topic)[0]
+
+
+def callback_measurement_lookup(callbacks) -> 'callable':
+    """Select a duration and its source together, without combining percentiles.
+
+    Largest subscription p95 wins; otherwise use the existing processing-time
+    fallback. Equal maxima from different sources have unknown attribution.
+    A legacy processing_time label does not establish source provenance.
+    """
     per_sub, per_node = {}, {}
     for c in callbacks or []:
         p95 = c.get('p95_ms')
         if not isinstance(p95, (int, float)):
             continue
         if c.get('callback') == 'processing_time':
-            per_node[c['node']] = max(p95, per_node.get(c['node'], p95))
+            bucket, key = per_node, c['node']
         else:
-            per_sub[(c['node'], c.get('topic'))] = p95
-    return lambda node, topic: per_sub.get((node, topic), per_node.get(node))
+            bucket, key = per_sub, (c['node'], c.get('topic'))
+        source = callback_source(c.get('source'))
+        previous = bucket.get(key)
+        if previous is None or p95 > previous[0]:
+            bucket[key] = (p95, source)
+        elif p95 == previous[0] and source != previous[1]:
+            bucket[key] = (p95, None)
+    return lambda node, topic: per_sub.get((node, topic), per_node.get(node, (None, None)))
 
 
 def trace_pipeline_path(d: dict, focus: str):
@@ -125,11 +144,10 @@ def trace_pipeline_path(d: dict, focus: str):
     if not hops:
         return None
 
-    # Annotate each hop with the consuming node's callback p95 for that topic —
-    # the measured execution-time counterpart to the rate-based bottleneck.
-    cb_p95 = callback_lookup(d.get('callbacks'))
+    # Preserve the selected duration's source; a report is not traced execution.
+    cb = callback_measurement_lookup(d.get('callbacks'))
     for h in hops:
-        h['cb_p95_ms'] = cb_p95(h['to'], h['topic'])
+        h['cb_p95_ms'], h['cb_source'] = cb(h['to'], h['topic'])
 
     nodes_seq = [hops[0]['from']] + [h['to'] for h in hops]
     rated = [h for h in hops if isinstance(h['rate_hz'], (int, float))]
@@ -182,15 +200,17 @@ def pipeline_timeline(snapshots: list[dict], focus: str | None = None) -> dict |
     t0 = snapshots[0].get('timestamp') or 0.0
     times, blamed = [], []
     hops = [{'from': h['from'], 'topic': h['topic'], 'to': h['to'],
-             'rate_hz': [], 'cb_p95_ms': []} for h in path['hops']]
+             'rate_hz': [], 'cb_p95_ms': [], 'cb_source': []} for h in path['hops']]
     for s in snapshots:
         times.append(round((s.get('timestamp') or t0) - t0, 2))
         blamed.append(path['pivot'] in _blamed(s))
         rates = {t['name']: t.get('rate_hz') for t in s.get('topics', [])}
-        cbs = callback_lookup(s.get('callbacks'))
+        cbs = callback_measurement_lookup(s.get('callbacks'))
         for h in hops:
             h['rate_hz'].append(rates.get(h['topic']))
-            h['cb_p95_ms'].append(cbs(h['to'], h['topic']))
+            p95, source = cbs(h['to'], h['topic'])
+            h['cb_p95_ms'].append(p95)
+            h['cb_source'].append(source)
     return {'target': path['target'], 'pivot': path['pivot'],
             'nodes': path['nodes'], 't': times, 'hops': hops, 'blamed': blamed}
 

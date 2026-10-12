@@ -6,6 +6,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ## [Unreleased]
 
+- Distinguish traced, application-reported, synthetic and unknown duration sources in diagnostic evidence, MCP, pipelines and reports without pooling or comparing different sources.
+
 - Add real-source investigation tasks with frame-bound citations, explicit unsupported conclusions and next checks, plus Humble/Jazzy CLI/MCP and negative-control validation.
 
 - Expose signed DDS source-to-receipt timestamp gaps separately from local probe waiting and header age, preserving unknown coverage and clock synchronization.

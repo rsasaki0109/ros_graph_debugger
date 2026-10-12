@@ -55,6 +55,7 @@ async def validate_case(bundle, case, output, port):
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     for name, expected in (('get_runtime_snapshot', evidence['snapshot']),
+                                           ('get_callbacks', evidence['snapshot'].get('callbacks', [])),
                                            ('get_recording_metadata', evidence['recording_metadata'])):
                         response = await session.call_tool(name, {})
                         assert not response.isError
@@ -80,6 +81,7 @@ async def validate_case(bundle, case, output, port):
         save(directory / 'negative-controls.json', failures)
         return {'case_id': ident, 'evidence_sha256': rubric['evidence_sha256'],
                 'cli_snapshot_exact': True, 'mcp_snapshot_and_metadata_exact': True,
+                'mcp_callbacks_exact': True,
                 'focused_markdown_exact': True, 'scripted_reference_passed': True,
                 'deliberate_invalid_answers_rejected': len(failures), 'model_invoked': False}
     finally:

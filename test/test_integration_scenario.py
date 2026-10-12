@@ -32,11 +32,13 @@ def capture(directory, mode='slow'):
     by_kind['slow_callback'].update(
         related_nodes=['/control/integration/processing'],
         related_topics=['/control/integration/processing/debug/processing_time_ms'],
-        evidence=['p95: 120 ms (limit 15 ms)'])
+        evidence=['p95: 120 ms (limit 15 ms)',
+                  'duration source: application-reported processing time'])
     if mode == 'slow':
         issues.append({'kind': 'rate_drop', 'related_nodes': ['/detector']})
     snapshots = [{'timestamp': float(t), 'issues': copy.deepcopy(issues),
                   'callbacks': [{'callback': 'processing_time', 'p95_ms': 120,
+                                 'source': 'application_report',
                                  'node': '/control/integration/processing'}]}
                  for t in range(20)]
     write_recording(str(directory / 'run.rgd.json'), make_header(0, 1), snapshots)
@@ -83,6 +85,23 @@ def test_processing_requires_real_measurement_attribution(tmp_path):
     snapshots = capture(tmp_path)
     for snapshot in snapshots:
         snapshot['callbacks'][0]['node'] = '/unrelated'
+    rewrite(tmp_path, snapshots)
+    with pytest.raises(AssertionError):
+        scenario.validate_live(tmp_path, 'slow')
+
+
+@pytest.mark.parametrize('failure', ['missing_source', 'wrong_source', 'missing_evidence'])
+def test_processing_requires_source_and_issue_evidence(tmp_path, failure):
+    snapshots = capture(tmp_path)
+    for snapshot in snapshots:
+        if failure == 'missing_source':
+            del snapshot['callbacks'][0]['source']
+        elif failure == 'wrong_source':
+            snapshot['callbacks'][0]['source'] = 'trace'
+        else:
+            for issue in snapshot['issues']:
+                if issue['kind'] == 'slow_callback':
+                    issue['evidence'] = ['p95: 120 ms (limit 15 ms)']
     rewrite(tmp_path, snapshots)
     with pytest.raises(AssertionError):
         scenario.validate_live(tmp_path, 'slow')

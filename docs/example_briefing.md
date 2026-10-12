@@ -27,8 +27,8 @@ The transform has not been updated recently.
 - Related: map, base_link
 
 ### [CRITICAL] Slow callback in /detector
-Callback "sub /sensing/camera/image_raw" runs 210 ms at p95, above the 100 ms budget; it can throttle everything downstream of this node.
-- Evidence: p95: 210 ms (limit 100 ms); mean: 116 ms; samples: 100
+Synthetic callback "sub /sensing/camera/image_raw" has a 210 ms p95, above the 100 ms budget. This scripted observation is not a real callback trace.
+- Evidence: p95: 210 ms (limit 100 ms); duration source: synthetic; mean: 116 ms; samples: 100
 - Suggested: Profile the callback body; Move heavy work off the executor thread
 - Related: /detector, /sensing/camera/image_raw
 
@@ -50,13 +50,15 @@ DDS stamp gap is the signed middleware receipt minus source system timestamp; cl
 |---|---|---|---|
 | /detector | 96% | 1800 MB | medium |
 
-## Callbacks (execution time, slowest first)
-| node | callback | p95 | mean | samples |
-|---|---|---|---|---|
-| /detector | sub /sensing/camera/image_raw | 210 ms | 116 ms | 100 |
-| /tracker | sub /perception/object_recognition/objects | 18 ms | 10 ms | 100 |
-| /planner | sub /perception/tracked_objects | 18 ms | 10 ms | 100 |
-| /controller | sub /planning/scenario_planning/trajectory | 18 ms | 10 ms | 100 |
+## Callbacks / processing durations (slowest first)
+| node | callback | source | p95 | mean | samples |
+|---|---|---|---|---|---|
+| /detector | sub /sensing/camera/image_raw | synthetic | 210 ms | 116 ms | 100 |
+| /tracker | sub /perception/object_recognition/objects | synthetic | 18 ms | 10 ms | 100 |
+| /planner | sub /perception/tracked_objects | synthetic | 18 ms | 10 ms | 100 |
+| /controller | sub /planning/scenario_planning/trajectory | synthetic | 18 ms | 10 ms | 100 |
+
+Only paired callback traces measure callback start/end wall time. Application reports follow publisher semantics; missing source stays unknown. These durations do not establish the cause of downstream rate loss.
 
 ## TF (stale transforms)
 - map -> base_link: 420.0 ms
@@ -84,13 +86,13 @@ detector output /perception/object_recognition/objects dropped below expectation
 - Related: /detector, /perception/object_recognition/objects
 
 ### [CRITICAL] Slow callback in /detector
-Callback "sub /sensing/camera/image_raw" runs 210 ms at p95, above the 100 ms budget; it can throttle everything downstream of this node.
-- Evidence: p95: 210 ms (limit 100 ms); mean: 116 ms; samples: 100
+Synthetic callback "sub /sensing/camera/image_raw" has a 210 ms p95, above the 100 ms budget. This scripted observation is not a real callback trace.
+- Evidence: p95: 210 ms (limit 100 ms); duration source: synthetic; mean: 116 ms; samples: 100
 - Suggested: Profile the callback body; Move heavy work off the executor thread
 - Related: /detector, /sensing/camera/image_raw
 
 ## Pipeline path (lowest-rate route through the focus)
-camera → /sensing/camera/image_raw (30.0 Hz) → **detector** [cb 210 ms ⟵ slowest cb] → /perception/object_recognition/objects (4.1 Hz ⟵ slowest) → tracker [cb 18 ms] → /perception/tracked_objects (10.0 Hz) → planner [cb 18 ms] → /planning/scenario_planning/trajectory (10.0 Hz) → controller [cb 18 ms]
+camera → /sensing/camera/image_raw (30.0 Hz) → **detector** [duration 210 ms; synthetic ⟵ slowest duration] → /perception/object_recognition/objects (4.1 Hz ⟵ slowest) → tracker [duration 18 ms; synthetic] → /perception/tracked_objects (10.0 Hz) → planner [duration 18 ms; synthetic] → /planning/scenario_planning/trajectory (10.0 Hz) → controller [duration 18 ms; synthetic]
 
 ## Topics
 | topic | type | pub | sub | rate | rate scope | DDS stamp gap p95 | probe wait p95 | age p95 | bandwidth | qos | status |
@@ -107,9 +109,11 @@ DDS stamp gap is the signed middleware receipt minus source system timestamp; cl
 |---|---|---|---|
 | /detector | 96% | 1800 MB | medium |
 
-## Callbacks (execution time, slowest first)
-| node | callback | p95 | mean | samples |
-|---|---|---|---|---|
-| /detector | sub /sensing/camera/image_raw | 210 ms | 116 ms | 100 |
-| /tracker | sub /perception/object_recognition/objects | 18 ms | 10 ms | 100 |
+## Callbacks / processing durations (slowest first)
+| node | callback | source | p95 | mean | samples |
+|---|---|---|---|---|---|
+| /detector | sub /sensing/camera/image_raw | synthetic | 210 ms | 116 ms | 100 |
+| /tracker | sub /perception/object_recognition/objects | synthetic | 18 ms | 10 ms | 100 |
+
+Only paired callback traces measure callback start/end wall time. Application reports follow publisher semantics; missing source stays unknown. These durations do not establish the cause of downstream rate loss.
 

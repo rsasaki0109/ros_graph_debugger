@@ -25,7 +25,7 @@ finally:
 def conversion(tmp_path, monkeypatch, mode='slow'):
     node = '/trace_' + mode
     rows = [{'node': node, 'callback': cb, 'topic': topic,
-             'duration_ms': 150.0 if mode == 'slow' else 1.0}
+             'duration_ms': 150.0 if mode == 'slow' else 1.0, 'source': 'trace'}
             for cb, topic in ((f'sub {node}/input', node + '/input'),
                               ('timer 200 ms', ''), (f'srv {node}/reset', ''))
             for _ in range(scenario.MIN_INVOCATIONS)]
@@ -37,7 +37,8 @@ def conversion(tmp_path, monkeypatch, mode='slow'):
     return rows, counts, event
 
 
-@pytest.mark.parametrize('failure', ['missing_owner', 'unattributed', 'missing_service', 'cli_mismatch'])
+@pytest.mark.parametrize('failure', ['missing_owner', 'unattributed', 'missing_service',
+                                     'cli_mismatch', 'missing_trace_source'])
 def test_conversion_rejects_missing_real_trace_evidence(tmp_path, monkeypatch, failure):
     rows, counts, event = conversion(tmp_path, monkeypatch)
     if failure == 'missing_owner':
@@ -46,6 +47,10 @@ def test_conversion_rejects_missing_real_trace_evidence(tmp_path, monkeypatch, f
         counts['unattributed'] = 1
     elif failure == 'missing_service':
         rows[:] = [r for r in rows if not r['callback'].startswith('srv ')]
+        (tmp_path / 'callbacks.ndjson').write_text(''.join(json.dumps(r) + '\n' for r in rows))
+    elif failure == 'missing_trace_source':
+        for row in rows:
+            del row['source']
         (tmp_path / 'callbacks.ndjson').write_text(''.join(json.dumps(r) + '\n' for r in rows))
     else:
         (tmp_path / 'callbacks.ndjson').write_text('')
@@ -60,7 +65,8 @@ def test_all_three_real_callback_contracts(tmp_path, monkeypatch, mode):
     node = '/trace_' + mode
     issues = [{'kind': 'slow_callback', 'related_nodes': [node],
                'related_topics': [c.topic] if c.topic else [],
-               'evidence': [f'p95: {c.p95_ms:.0f} ms (limit 100 ms)', f'samples: {c.count}']}
+               'evidence': [f'p95: {c.p95_ms:.0f} ms (limit 100 ms)', f'samples: {c.count}',
+                            'duration source: paired callback trace']}
               for c in stats] if mode == 'slow' else []
     snapshots = [{'timestamp': float(t), 'callbacks': [asdict(c) for c in stats],
                   'issues': copy.deepcopy(issues)} for t in range(4)]
