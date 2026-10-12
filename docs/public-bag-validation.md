@@ -3,8 +3,8 @@
 These observations use unchanged public archives downloaded on 2026-10-12.
 Raw recordings remain local research inputs. The hashes below are local
 fingerprints; the linked distribution documents do not publish reference
-checksums. HTTPS transfer, published byte counts, archive integrity and SQLite
-integrity/counts were checked separately.
+checksums. HTTPS transfer, published byte counts, archive structure, extracted
+member integrity and SQLite integrity/counts were checked separately.
 
 | Archive | Source | Bytes | Local SHA-256 |
 |---|---|---:|---|
