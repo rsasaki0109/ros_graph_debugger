@@ -7,6 +7,7 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 ## [Unreleased]
 
 ### Added
+- **Complete MCP snapshot** — `get_runtime_snapshot` returns timestamped nodes, topics, TF, diagnostics, callbacks and issue evidence in one read-only call to the existing snapshot API, matching `rgd snapshot` without combining observations from separate requests.
 - **Multiprocess ROS integration CI** — Humble/Jazzy exercise real DDS, slow/healthy pipelines, lifecycle, missing services/actions, deadline QoS, processing time, and recorded rosbag analysis, with failure artifacts.
 - **Full QoS compatibility** — `qos_mismatch` now covers every request/offer
   policy DDS checks: reliability, durability, **deadline**, **liveliness kind**

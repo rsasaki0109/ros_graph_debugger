@@ -16,7 +16,8 @@ import uvicorn
 
 from ros_graph_debugger import mcp_server
 from ros_graph_debugger.config import Thresholds
-from ros_graph_debugger.model import NodeInfo, RuntimeGraphStore, TopicInfo
+from ros_graph_debugger.model import (CallbackStat, Issue, NodeInfo,
+                                      RuntimeGraphStore, TfEdge, TopicInfo)
 from ros_graph_debugger.server import create_app
 
 
@@ -32,6 +33,12 @@ def _store():
                                publishers=['/objects']),
          '/tracker': NodeInfo(id='/tracker', name='tracker')},
         {'/objects': t})
+    store.set_tf({('map', 'base_link'): TfEdge('map', 'base_link',
+                 age_ms=3000, status='critical')})
+    store.set_callbacks([CallbackStat('/detector', 'objects',
+                         topic='/objects', count=5, p95_ms=120)])
+    store.set_issues([Issue('stale-tf', 'warning', 'tf_stale', 'Old transform',
+                     evidence=['age: 3000 ms'], related_frames=['map', 'base_link'])])
     return store
 
 
@@ -81,6 +88,23 @@ def test_read_tool_paths_are_documented():
         doc = f.read()
     for name, path, _ in mcp_server.READ_TOOLS:
         assert path in doc, f'{name} proxies undocumented {path}'
+
+
+def test_runtime_snapshot_keeps_cross_group_evidence_and_unknown_values(agent):
+    base, _ = agent
+    path = next(path for name, path, _ in mcp_server.READ_TOOLS
+                if name == 'get_runtime_snapshot')
+    snapshot = json.loads(mcp_server.fetch(path, base=base))
+    assert snapshot['timestamp'] > 0
+    detector = next(n for n in snapshot['nodes'] if n['id'] == '/detector')
+    assert detector['cpu_percent'] is None
+    assert detector['process_mapping_confidence'] == 'none'
+    assert snapshot['topics'][0]['rate_hz'] == 4.2
+    assert snapshot['tf_edges'][0]['age_ms'] == 3000
+    assert snapshot['callbacks'][0]['p95_ms'] == 120
+    issue = snapshot['issues'][0]
+    assert issue['kind'] == 'tf_stale' and issue['evidence'] == ['age: 3000 ms']
+    assert issue['related_frames'] == ['map', 'base_link']
 
 
 def test_get_node_briefing_focuses_the_graph(agent):

@@ -27,6 +27,11 @@ BASE = os.environ.get('RGD_BASE', 'http://127.0.0.1:3939')
 # Read-only proxy tools: (tool_name, path, description). main() registers each
 # one with the MCP SDK; tests iterate this table to verify every path is live.
 READ_TOOLS = [
+    ('get_runtime_snapshot', '/api/v1/snapshot',
+     'Get one complete JSON snapshot with its timestamp, nodes, topics, TF, '
+     'diagnostics, callbacks and issue kinds/evidence. Use this when evidence '
+     'from several groups must come from the same snapshot; missing metrics '
+     'remain null and process-mapping confidence is preserved.'),
     ('get_runtime_briefing', '/api/v1/snapshot.md',
      'Get an AI-ready Markdown briefing of the live ROS 2 system: issues to '
      'look at next, plus topic and node metrics.'),

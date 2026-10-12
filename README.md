@@ -272,7 +272,8 @@ pip install "mcp[cli]"
 claude mcp add ros-graph -- python -m ros_graph_debugger.mcp_server
 ```
 
-Now an AI assistant can read the live robot — `get_runtime_briefing`,
+Now an AI assistant can read the live robot — `get_runtime_snapshot`,
+`get_runtime_briefing`,
 `get_node_briefing(target)` (a focused briefing for one node or topic and its
 neighbours — the right size for a large Autoware/Nav2 graph),
 `get_pipeline_path(target)` (the constraining source→sink route, to reason about
@@ -282,6 +283,14 @@ neighbours — the right size for a large Autoware/Nav2 graph),
 **act** on it: `set_expected_rate(topic, min_hz)` encodes what "healthy" looks
 like for a topic at runtime, so the issue engine starts flagging it immediately.
 No restart, no file editing.
+
+Use `get_runtime_snapshot` when node/topic metrics, TF freshness and issue
+evidence must be collected together. It returns the same complete JSON as
+`rgd snapshot`, including the timestamp, issue kinds, mapping confidence and
+unavailable metrics as `null`. The focused briefing and individual tools remain
+useful when only a small part of a large graph is needed.
+See the [evidence collection evaluation](docs/evidence-collection.md) for the
+real ROS cases, reproducible protocol, tool-call comparison and its limits.
 
 ## Safety: probing is opt-in and bounded
 

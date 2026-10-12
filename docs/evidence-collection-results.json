@@ -1,0 +1,763 @@
+{
+  "date_jst": "2026-10-12",
+  "baseline_commit": "2613e804cae597329736cbafaa6bf2ca51c2e683",
+  "mcp_source_sha256": "ec7e364dbc704934ddcc170e52b4248c0c3b78febf98128d0c07fecc6c373a18",
+  "mcp_sdk_version": "1.29.0",
+  "method": "frozen real ROS snapshots; five alternating warm repeats per case; persistent MCP vs one CLI process per command; local transport only",
+  "claims_excluded": [
+    "human investigation time",
+    "blind model accuracy",
+    "external adoption",
+    "CPU health from legacy Nav2 values"
+  ],
+  "modes": {
+    "bundle": [
+      {
+        "family": "nav2",
+        "phase": "healthy",
+        "mcp_mode": "bundle",
+        "source_sha256": "a2f41a21c6457c14b5e24f53eedfdf5545cdbc97ed35d5a54efa015e237cb164",
+        "snapshot_index": 3,
+        "cli_cold_seconds": 0.07288424899979873,
+        "mcp_initialization_seconds": 0.4705350680005722,
+        "mcp_first_collection_seconds": 0.04398125900024752,
+        "mcp_tool_discovery_seconds": 0.005640670000502723,
+        "mcp_cold_total_seconds": 0.5201569970013225,
+        "warm_repetitions": [
+          {
+            "cli_seconds": 0.06677964699974837,
+            "mcp_seconds": 0.018211739000435045,
+            "cli_output_bytes": 91179,
+            "mcp_text_bytes": 85821,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.060664802999781386,
+            "mcp_seconds": 0.01945636500022374,
+            "cli_output_bytes": 91179,
+            "mcp_text_bytes": 85821,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.058749697000166634,
+            "mcp_seconds": 0.017723943999953917,
+            "cli_output_bytes": 91179,
+            "mcp_text_bytes": 85821,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06517126800008555,
+            "mcp_seconds": 0.017548116999932972,
+            "cli_output_bytes": 91179,
+            "mcp_text_bytes": 85821,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06884956999965652,
+            "mcp_seconds": 0.01867018899974937,
+            "cli_output_bytes": 91179,
+            "mcp_text_bytes": 85821,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          }
+        ],
+        "fact_accuracy": "all selected facts matched",
+        "cli_median_seconds": 0.06517126800008555,
+        "mcp_median_seconds": 0.018211739000435045
+      },
+      {
+        "family": "nav2",
+        "phase": "paused",
+        "mcp_mode": "bundle",
+        "source_sha256": "d0717c164fbfe89ed28da04ca40c3d106530a5b2348ab498ffd0e3d03e70af75",
+        "snapshot_index": 3,
+        "cli_cold_seconds": 0.07172966999951313,
+        "mcp_initialization_seconds": 0.38462367600004654,
+        "mcp_first_collection_seconds": 0.028128973000093538,
+        "mcp_tool_discovery_seconds": 0.005167817999790714,
+        "mcp_cold_total_seconds": 0.4179204669999308,
+        "warm_repetitions": [
+          {
+            "cli_seconds": 0.06349299699922994,
+            "mcp_seconds": 0.018622120000145514,
+            "cli_output_bytes": 92901,
+            "mcp_text_bytes": 87543,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06835816300008446,
+            "mcp_seconds": 0.017268188999878475,
+            "cli_output_bytes": 92901,
+            "mcp_text_bytes": 87543,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06079376500019862,
+            "mcp_seconds": 0.02279592499962746,
+            "cli_output_bytes": 92901,
+            "mcp_text_bytes": 87543,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.07417226199959259,
+            "mcp_seconds": 0.02583045699975628,
+            "cli_output_bytes": 92901,
+            "mcp_text_bytes": 87543,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.05968110600042564,
+            "mcp_seconds": 0.017565606000061962,
+            "cli_output_bytes": 92901,
+            "mcp_text_bytes": 87543,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          }
+        ],
+        "fact_accuracy": "all selected facts matched",
+        "cli_median_seconds": 0.06349299699922994,
+        "mcp_median_seconds": 0.018622120000145514
+      },
+      {
+        "family": "nav2",
+        "phase": "recovered",
+        "mcp_mode": "bundle",
+        "source_sha256": "4636441a02c962b340ec307f2bcb875a73da6cce23ad3e048ca661f3dacad91b",
+        "snapshot_index": 3,
+        "cli_cold_seconds": 0.06205666400001064,
+        "mcp_initialization_seconds": 0.39016738300051657,
+        "mcp_first_collection_seconds": 0.02703895200011175,
+        "mcp_tool_discovery_seconds": 0.004321859000810946,
+        "mcp_cold_total_seconds": 0.42152819400143926,
+        "warm_repetitions": [
+          {
+            "cli_seconds": 0.062418368000180635,
+            "mcp_seconds": 0.01764189100049407,
+            "cli_output_bytes": 91177,
+            "mcp_text_bytes": 85819,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.05897847100004583,
+            "mcp_seconds": 0.016867929000000004,
+            "cli_output_bytes": 91177,
+            "mcp_text_bytes": 85819,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.05787529699955485,
+            "mcp_seconds": 0.01805989500007854,
+            "cli_output_bytes": 91177,
+            "mcp_text_bytes": 85819,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.05914388400015014,
+            "mcp_seconds": 0.016994667000290065,
+            "cli_output_bytes": 91177,
+            "mcp_text_bytes": 85819,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.067491852000785,
+            "mcp_seconds": 0.033831875000032596,
+            "cli_output_bytes": 91177,
+            "mcp_text_bytes": 85819,
+            "cli_commands": 1,
+            "mcp_tool_calls": 3,
+            "facts_equal": true
+          }
+        ],
+        "fact_accuracy": "all selected facts matched",
+        "cli_median_seconds": 0.05914388400015014,
+        "mcp_median_seconds": 0.01764189100049407
+      },
+      {
+        "family": "cpu",
+        "phase": "warmup",
+        "mcp_mode": "bundle",
+        "source_sha256": "2be8cf17638fcb77ea6ffafc8e0c7d8a90c8b9781e5911f2705a159e259aa61a",
+        "snapshot_index": 0,
+        "cli_cold_seconds": 0.06311516699952335,
+        "mcp_initialization_seconds": 0.41938188599942805,
+        "mcp_first_collection_seconds": 0.020108789000005345,
+        "mcp_tool_discovery_seconds": 0.004815864999727637,
+        "mcp_cold_total_seconds": 0.44430653999916103,
+        "warm_repetitions": [
+          {
+            "cli_seconds": 0.06982138300008955,
+            "mcp_seconds": 0.01000397299958422,
+            "cli_output_bytes": 6924,
+            "mcp_text_bytes": 2638,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06234181600029842,
+            "mcp_seconds": 0.009296616000028735,
+            "cli_output_bytes": 6924,
+            "mcp_text_bytes": 2638,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.0611142320003637,
+            "mcp_seconds": 0.009282345999963582,
+            "cli_output_bytes": 6924,
+            "mcp_text_bytes": 2638,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.05676339299952815,
+            "mcp_seconds": 0.010099799000272469,
+            "cli_output_bytes": 6924,
+            "mcp_text_bytes": 2638,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.061194363000140584,
+            "mcp_seconds": 0.009199962999446143,
+            "cli_output_bytes": 6924,
+            "mcp_text_bytes": 2638,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          }
+        ],
+        "fact_accuracy": "all selected facts matched",
+        "cli_median_seconds": 0.061194363000140584,
+        "mcp_median_seconds": 0.009296616000028735
+      },
+      {
+        "family": "cpu",
+        "phase": "loaded",
+        "mcp_mode": "bundle",
+        "source_sha256": "c639935f6e28ae59db389d7762cd0193d3373d9d8979d932a9b211d0e117baba",
+        "snapshot_index": 0,
+        "cli_cold_seconds": 0.06069943200054695,
+        "mcp_initialization_seconds": 0.3844042049995551,
+        "mcp_first_collection_seconds": 0.01731779399960942,
+        "mcp_tool_discovery_seconds": 0.004163288000199827,
+        "mcp_cold_total_seconds": 0.4058852869993643,
+        "warm_repetitions": [
+          {
+            "cli_seconds": 0.061189073000605276,
+            "mcp_seconds": 0.00967706699975679,
+            "cli_output_bytes": 7314,
+            "mcp_text_bytes": 3027,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.05869060399982118,
+            "mcp_seconds": 0.009040220999850135,
+            "cli_output_bytes": 7314,
+            "mcp_text_bytes": 3027,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06492787699971814,
+            "mcp_seconds": 0.009244687000318663,
+            "cli_output_bytes": 7314,
+            "mcp_text_bytes": 3027,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.05928516399944783,
+            "mcp_seconds": 0.00864303500020469,
+            "cli_output_bytes": 7314,
+            "mcp_text_bytes": 3027,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06272048500068195,
+            "mcp_seconds": 0.010442011999657552,
+            "cli_output_bytes": 7314,
+            "mcp_text_bytes": 3027,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          }
+        ],
+        "fact_accuracy": "all selected facts matched",
+        "cli_median_seconds": 0.061189073000605276,
+        "mcp_median_seconds": 0.009244687000318663
+      },
+      {
+        "family": "cpu",
+        "phase": "recovered",
+        "mcp_mode": "bundle",
+        "source_sha256": "c25f8f7020c5b14b52f169fb0db407003ade60bae8fafd526f397786b0e7cd8d",
+        "snapshot_index": 0,
+        "cli_cold_seconds": 0.06114006499956304,
+        "mcp_initialization_seconds": 0.38823546699950384,
+        "mcp_first_collection_seconds": 0.0190326849997291,
+        "mcp_tool_discovery_seconds": 0.005258039999716857,
+        "mcp_cold_total_seconds": 0.4125261919989498,
+        "warm_repetitions": [
+          {
+            "cli_seconds": 0.06069797399959498,
+            "mcp_seconds": 0.011774866999985534,
+            "cli_output_bytes": 6923,
+            "mcp_text_bytes": 2637,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.05878260099962063,
+            "mcp_seconds": 0.010717365999880712,
+            "cli_output_bytes": 6923,
+            "mcp_text_bytes": 2637,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06108544000016991,
+            "mcp_seconds": 0.009413690000656061,
+            "cli_output_bytes": 6923,
+            "mcp_text_bytes": 2637,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06023874299989984,
+            "mcp_seconds": 0.010722403999352537,
+            "cli_output_bytes": 6923,
+            "mcp_text_bytes": 2637,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.05984646199976851,
+            "mcp_seconds": 0.016048201000558038,
+            "cli_output_bytes": 6923,
+            "mcp_text_bytes": 2637,
+            "cli_commands": 1,
+            "mcp_tool_calls": 2,
+            "facts_equal": true
+          }
+        ],
+        "fact_accuracy": "all selected facts matched",
+        "cli_median_seconds": 0.06023874299989984,
+        "mcp_median_seconds": 0.010722403999352537
+      }
+    ],
+    "snapshot": [
+      {
+        "family": "nav2",
+        "phase": "healthy",
+        "mcp_mode": "snapshot",
+        "source_sha256": "a2f41a21c6457c14b5e24f53eedfdf5545cdbc97ed35d5a54efa015e237cb164",
+        "snapshot_index": 3,
+        "cli_cold_seconds": 0.06236950200036517,
+        "mcp_initialization_seconds": 0.3943052730001,
+        "mcp_first_collection_seconds": 0.01583165600004577,
+        "mcp_tool_discovery_seconds": 0.0044424390007407055,
+        "mcp_cold_total_seconds": 0.41457936800088646,
+        "warm_repetitions": [
+          {
+            "cli_seconds": 0.06136007100030838,
+            "mcp_seconds": 0.006995365999500791,
+            "cli_output_bytes": 91179,
+            "mcp_text_bytes": 91179,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.058447020999665256,
+            "mcp_seconds": 0.005924151999352034,
+            "cli_output_bytes": 91179,
+            "mcp_text_bytes": 91179,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06968047400005162,
+            "mcp_seconds": 0.0060298360003798734,
+            "cli_output_bytes": 91179,
+            "mcp_text_bytes": 91179,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06688127699999313,
+            "mcp_seconds": 0.006159841999760829,
+            "cli_output_bytes": 91179,
+            "mcp_text_bytes": 91179,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.05861522800023522,
+            "mcp_seconds": 0.006367756999679841,
+            "cli_output_bytes": 91179,
+            "mcp_text_bytes": 91179,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          }
+        ],
+        "fact_accuracy": "all selected facts matched",
+        "cli_median_seconds": 0.06136007100030838,
+        "mcp_median_seconds": 0.006159841999760829
+      },
+      {
+        "family": "nav2",
+        "phase": "paused",
+        "mcp_mode": "snapshot",
+        "source_sha256": "d0717c164fbfe89ed28da04ca40c3d106530a5b2348ab498ffd0e3d03e70af75",
+        "snapshot_index": 3,
+        "cli_cold_seconds": 0.06683349600007205,
+        "mcp_initialization_seconds": 0.38196973000049184,
+        "mcp_first_collection_seconds": 0.01592473699929542,
+        "mcp_tool_discovery_seconds": 0.0043699179996110615,
+        "mcp_cold_total_seconds": 0.4022643849993983,
+        "warm_repetitions": [
+          {
+            "cli_seconds": 0.065661665999869,
+            "mcp_seconds": 0.006692586000099254,
+            "cli_output_bytes": 92901,
+            "mcp_text_bytes": 92901,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06220746800045163,
+            "mcp_seconds": 0.005951758000264817,
+            "cli_output_bytes": 92901,
+            "mcp_text_bytes": 92901,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06945508399985556,
+            "mcp_seconds": 0.005894193999665731,
+            "cli_output_bytes": 92901,
+            "mcp_text_bytes": 92901,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06460782900012418,
+            "mcp_seconds": 0.00583524400008173,
+            "cli_output_bytes": 92901,
+            "mcp_text_bytes": 92901,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06462966199978837,
+            "mcp_seconds": 0.006587906000277144,
+            "cli_output_bytes": 92901,
+            "mcp_text_bytes": 92901,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          }
+        ],
+        "fact_accuracy": "all selected facts matched",
+        "cli_median_seconds": 0.06462966199978837,
+        "mcp_median_seconds": 0.005951758000264817
+      },
+      {
+        "family": "nav2",
+        "phase": "recovered",
+        "mcp_mode": "snapshot",
+        "source_sha256": "4636441a02c962b340ec307f2bcb875a73da6cce23ad3e048ca661f3dacad91b",
+        "snapshot_index": 3,
+        "cli_cold_seconds": 0.06559385699983977,
+        "mcp_initialization_seconds": 0.41159235699979035,
+        "mcp_first_collection_seconds": 0.016384604000450054,
+        "mcp_tool_discovery_seconds": 0.004961377999279648,
+        "mcp_cold_total_seconds": 0.43293833899952006,
+        "warm_repetitions": [
+          {
+            "cli_seconds": 0.07197482900028263,
+            "mcp_seconds": 0.007181743000728602,
+            "cli_output_bytes": 91177,
+            "mcp_text_bytes": 91177,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06313358700026583,
+            "mcp_seconds": 0.006497177000710508,
+            "cli_output_bytes": 91177,
+            "mcp_text_bytes": 91177,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06027487900064443,
+            "mcp_seconds": 0.0067495829998733825,
+            "cli_output_bytes": 91177,
+            "mcp_text_bytes": 91177,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06434307100062142,
+            "mcp_seconds": 0.005978375999802665,
+            "cli_output_bytes": 91177,
+            "mcp_text_bytes": 91177,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06275816900051723,
+            "mcp_seconds": 0.0062049299995123874,
+            "cli_output_bytes": 91177,
+            "mcp_text_bytes": 91177,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          }
+        ],
+        "fact_accuracy": "all selected facts matched",
+        "cli_median_seconds": 0.06313358700026583,
+        "mcp_median_seconds": 0.006497177000710508
+      },
+      {
+        "family": "cpu",
+        "phase": "warmup",
+        "mcp_mode": "snapshot",
+        "source_sha256": "2be8cf17638fcb77ea6ffafc8e0c7d8a90c8b9781e5911f2705a159e259aa61a",
+        "snapshot_index": 0,
+        "cli_cold_seconds": 0.06603150499995536,
+        "mcp_initialization_seconds": 0.42157152100025996,
+        "mcp_first_collection_seconds": 0.014610077000725141,
+        "mcp_tool_discovery_seconds": 0.005161844000213023,
+        "mcp_cold_total_seconds": 0.4413434420011981,
+        "warm_repetitions": [
+          {
+            "cli_seconds": 0.06835733000025357,
+            "mcp_seconds": 0.005112823999297689,
+            "cli_output_bytes": 6924,
+            "mcp_text_bytes": 6924,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.0664572119994773,
+            "mcp_seconds": 0.00529884800016589,
+            "cli_output_bytes": 6924,
+            "mcp_text_bytes": 6924,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06111080799928459,
+            "mcp_seconds": 0.005357787000320968,
+            "cli_output_bytes": 6924,
+            "mcp_text_bytes": 6924,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06249029199989309,
+            "mcp_seconds": 0.005408590999650187,
+            "cli_output_bytes": 6924,
+            "mcp_text_bytes": 6924,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06117380600062461,
+            "mcp_seconds": 0.0046279529997264035,
+            "cli_output_bytes": 6924,
+            "mcp_text_bytes": 6924,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          }
+        ],
+        "fact_accuracy": "all selected facts matched",
+        "cli_median_seconds": 0.06249029199989309,
+        "mcp_median_seconds": 0.00529884800016589
+      },
+      {
+        "family": "cpu",
+        "phase": "loaded",
+        "mcp_mode": "snapshot",
+        "source_sha256": "c639935f6e28ae59db389d7762cd0193d3373d9d8979d932a9b211d0e117baba",
+        "snapshot_index": 0,
+        "cli_cold_seconds": 0.0611734569993132,
+        "mcp_initialization_seconds": 0.38440935900052864,
+        "mcp_first_collection_seconds": 0.013196640999922238,
+        "mcp_tool_discovery_seconds": 0.004797158000656054,
+        "mcp_cold_total_seconds": 0.40240315800110693,
+        "warm_repetitions": [
+          {
+            "cli_seconds": 0.06927861399981339,
+            "mcp_seconds": 0.004734793000352511,
+            "cli_output_bytes": 7314,
+            "mcp_text_bytes": 7314,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06482166200021311,
+            "mcp_seconds": 0.0048182889995587175,
+            "cli_output_bytes": 7314,
+            "mcp_text_bytes": 7314,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.05891617099950963,
+            "mcp_seconds": 0.004556095999760146,
+            "cli_output_bytes": 7314,
+            "mcp_text_bytes": 7314,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.05864195599951927,
+            "mcp_seconds": 0.004298085999835166,
+            "cli_output_bytes": 7314,
+            "mcp_text_bytes": 7314,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.056243435999931535,
+            "mcp_seconds": 0.004891057000349974,
+            "cli_output_bytes": 7314,
+            "mcp_text_bytes": 7314,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          }
+        ],
+        "fact_accuracy": "all selected facts matched",
+        "cli_median_seconds": 0.05891617099950963,
+        "mcp_median_seconds": 0.004734793000352511
+      },
+      {
+        "family": "cpu",
+        "phase": "recovered",
+        "mcp_mode": "snapshot",
+        "source_sha256": "c25f8f7020c5b14b52f169fb0db407003ade60bae8fafd526f397786b0e7cd8d",
+        "snapshot_index": 0,
+        "cli_cold_seconds": 0.06702589900032763,
+        "mcp_initialization_seconds": 0.4380142549998709,
+        "mcp_first_collection_seconds": 0.014910812000380247,
+        "mcp_tool_discovery_seconds": 0.004566395999972883,
+        "mcp_cold_total_seconds": 0.45749146300022403,
+        "warm_repetitions": [
+          {
+            "cli_seconds": 0.06072930700065626,
+            "mcp_seconds": 0.00645886700021947,
+            "cli_output_bytes": 6923,
+            "mcp_text_bytes": 6923,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.057875718000104825,
+            "mcp_seconds": 0.005634856000142463,
+            "cli_output_bytes": 6923,
+            "mcp_text_bytes": 6923,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.060280567000518204,
+            "mcp_seconds": 0.00470871499965142,
+            "cli_output_bytes": 6923,
+            "mcp_text_bytes": 6923,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.05793674399956217,
+            "mcp_seconds": 0.003934880000088015,
+            "cli_output_bytes": 6923,
+            "mcp_text_bytes": 6923,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          },
+          {
+            "cli_seconds": 0.06471469899952353,
+            "mcp_seconds": 0.004624927000804746,
+            "cli_output_bytes": 6923,
+            "mcp_text_bytes": 6923,
+            "cli_commands": 1,
+            "mcp_tool_calls": 1,
+            "facts_equal": true
+          }
+        ],
+        "fact_accuracy": "all selected facts matched",
+        "cli_median_seconds": 0.060280567000518204,
+        "mcp_median_seconds": 0.00470871499965142
+      }
+    ]
+  }
+}
