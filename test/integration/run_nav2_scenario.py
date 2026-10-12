@@ -1,6 +1,7 @@
 """Diagnose and recover a real Nav2 map_server, including latched-map bags."""
 
 import argparse
+from contextlib import closing
 import json
 import os
 from pathlib import Path
@@ -102,7 +103,11 @@ def receipt_ready(path):
 def bag_ready(bag):
     files = list(bag.glob('*.db3'))
     assert len(files) == 1, files
-    with sqlite3.connect(f'file:{files[0]}?mode=ro', uri=True) as db:
+    with closing(sqlite3.connect(f'file:{files[0]}?mode=ro', uri=True)) as db:
+        # The recorder must use WAL: rollback-journal readers can abort its
+        # timeout-free writer with SQLITE_BUSY during this readiness query.
+        mode = db.execute('PRAGMA journal_mode').fetchone()[0]
+        assert mode == 'wal', f'live bag polling requires WAL, got {mode}'
         counts = dict(db.execute('SELECT topics.name, COUNT(*) FROM messages JOIN topics '
                                  'ON topics.id = messages.topic_id GROUP BY topics.name'))
         span = db.execute('SELECT (MAX(timestamp)-MIN(timestamp))/1e9 FROM messages').fetchone()[0]
@@ -213,6 +218,7 @@ def scenario(output, port):
                        '  history: keep_last\n  depth: 1\n')
         # Start after activation: the single map must arrive via transient-local history.
         recorder = processes.start('bag-record', ['ros2', 'bag', 'record', '-s', 'sqlite3',
+                                                '--storage-preset-profile', 'resilient',
                                                 '--max-cache-size', '0', '--qos-profile-overrides-path',
                                                 str(qos), '-o', str(output / 'bag'), '/map',
                                                 '/integration/nav2/heartbeat'])
