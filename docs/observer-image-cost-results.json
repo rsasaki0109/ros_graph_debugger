@@ -1,0 +1,143 @@
+{
+  "source_commit": "9f48a9988b2a7a5a0e9902b12a6762ae3baaa9a8",
+  "benchmark_sha256": "c4bf62ae39b25cbdc64eda0bd93f055de7c92bef1fed574fa6c4a27cb960a139",
+  "source_metadata": {
+    "source_page": "https://drive.google.com/file/d/1VQCQ_qiEZpCMI3-z6SNs__zJ-4HJFQjx/view",
+    "official_readme": "https://github.com/autowarefoundation/autoware_universe/blob/dc1fcea1d7ccae851466e7c4db3843c08304c6a5/localization/autoware_landmark_based_localizer/autoware_ar_tag_based_localizer/README.md",
+    "file_id": "1VQCQ_qiEZpCMI3-z6SNs__zJ-4HJFQjx",
+    "size_bytes": 956306836,
+    "local_sha256": "ad822cb4982cb7073eba662a31238a1c58a1ea81b0f10d82d1bc3b754b24f001",
+    "upstream_checksum_available": false,
+    "https_and_metadata_size_matched": true,
+    "acquired_utc": "2026-10-12T05:05:47.167383+00:00"
+  },
+  "protocol": {
+    "source_commit": "9f48a9988b2a7a5a0e9902b12a6762ae3baaa9a8",
+    "source_metadata": {
+      "source_page": "https://drive.google.com/file/d/1VQCQ_qiEZpCMI3-z6SNs__zJ-4HJFQjx/view",
+      "official_readme": "https://github.com/autowarefoundation/autoware_universe/blob/dc1fcea1d7ccae851466e7c4db3843c08304c6a5/localization/autoware_landmark_based_localizer/autoware_ar_tag_based_localizer/README.md",
+      "file_id": "1VQCQ_qiEZpCMI3-z6SNs__zJ-4HJFQjx",
+      "size_bytes": 956306836,
+      "local_sha256": "ad822cb4982cb7073eba662a31238a1c58a1ea81b0f10d82d1bc3b754b24f001",
+      "upstream_checksum_available": false,
+      "https_and_metadata_size_matched": true,
+      "acquired_utc": "2026-10-12T05:05:47.167383+00:00"
+    },
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "production_sha256": {
+      "agent.py": "24a400d97a454d9d7eaf1be9dd7d07707cbb1c58f6e7a46455519b4db1ff8474",
+      "node.py": "f0b5f041438bd18e677e4804a7709debf90626c4263f7bbe288495fd194637d8",
+      "probe_executor.py": "ad9829fb001b2e6d3532d08057b823e3a80d1ddebaaf7956ebfe056c7180c796"
+    },
+    "clock": "original recorded /clock, no generated clock",
+    "image": "/sensing/camera/front/image",
+    "receiver_reliability": "reliable",
+    "source_frames": 539,
+    "measurement_source_offsets": [
+      10,
+      20
+    ],
+    "exact_delivery_roi": [
+      10.05,
+      19.95
+    ],
+    "repetitions": 3,
+    "default_rmw": "rmw_fastrtps_cpp"
+  },
+  "controlled_reliable": {
+    "baseline": {
+      "repetitions": 3,
+      "source_frames_per_run": 70,
+      "missing_per_run": [
+        0,
+        0,
+        0
+      ],
+      "agent_cpu_percent_one_core_median": null,
+      "agent_rss_peak_mib_median": null,
+      "dds_source_to_receipt_p95_ms_median": 13.472834,
+      "probe_rate_ranges_hz": null
+    },
+    "no_probe": {
+      "repetitions": 3,
+      "source_frames_per_run": 70,
+      "missing_per_run": [
+        0,
+        0,
+        0
+      ],
+      "agent_cpu_percent_one_core_median": 4.263842405341599,
+      "agent_rss_peak_mib_median": 127.42578125,
+      "dds_source_to_receipt_p95_ms_median": 14.302991,
+      "probe_rate_ranges_hz": null
+    },
+    "clock": {
+      "repetitions": 3,
+      "source_frames_per_run": 70,
+      "missing_per_run": [
+        0,
+        0,
+        0
+      ],
+      "agent_cpu_percent_one_core_median": 4.714768760657016,
+      "agent_rss_peak_mib_median": 127.265625,
+      "dds_source_to_receipt_p95_ms_median": 21.561145,
+      "probe_rate_ranges_hz": null
+    },
+    "image": {
+      "repetitions": 3,
+      "source_frames_per_run": 70,
+      "missing_per_run": [
+        0,
+        0,
+        0
+      ],
+      "agent_cpu_percent_one_core_median": 8.24467111431592,
+      "agent_rss_peak_mib_median": 159.55078125,
+      "dds_source_to_receipt_p95_ms_median": 33.083206,
+      "probe_rate_ranges_hz": [
+        [
+          3.2,
+          6.56
+        ],
+        [
+          2.29,
+          3.98
+        ],
+        [
+          3.19,
+          5.78
+        ]
+      ]
+    }
+  },
+  "default_best_effort_failures": {
+    "baseline": {
+      "source_frames": 70,
+      "missing": 38,
+      "duplicates": 0,
+      "exit_code": 1
+    },
+    "no_probe": {
+      "source_frames": 70,
+      "missing": 27,
+      "duplicates": 0,
+      "exit_code": 1
+    }
+  },
+  "scope": "Linux/Jazzy replay of Clock and Image only; one core=100%; not original algorithm CPU, physical latency or wire bytes",
+  "incompatible_reliable_receiver_only": {
+    "image_publisher": "BEST_EFFORT",
+    "receiver": "RELIABLE",
+    "received_frames": 0,
+    "exit_code": 1,
+    "reason": "QoS incompatibility; full interval not reached"
+  },
+  "quality_scope": "All original ROI image stamp/count/serialized-size checks passed at common RELIABLE receiver; this does not certify BEST_EFFORT agent probe delivery. Probe rates remain separate observations."
+}

@@ -7,6 +7,7 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 ## [Unreleased]
 
 ### Added
+- **Public camera observer benchmark** — measures Clock/image probe CPU and RSS against an independent source-frame receiver, retaining default BEST_EFFORT delivery failures separately from controlled RELIABLE comparisons.
 - **Recording clock provenance** — reports and replay briefings identify the header-age clock; `/api/v1/recording` and MCP `get_recording_metadata` expose the original header, with missing legacy provenance kept unknown.
 - **Complete MCP snapshot** — `get_runtime_snapshot` returns timestamped nodes, topics, TF, diagnostics, callbacks and issue evidence in one read-only call to the existing snapshot API, matching `rgd snapshot` without combining observations from separate requests.
 - **Real LTTng integration CI** — Humble/Jazzy record rclcpp subscription, timer and service callbacks and verify conversion, attribution and slow/healthy agent diagnosis, preserving raw traces and failure diagnostics.
