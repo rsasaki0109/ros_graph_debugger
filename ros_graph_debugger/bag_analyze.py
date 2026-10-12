@@ -7,8 +7,9 @@ unchanged, with no DDS and no live system.
 
 The bag is cut into windows (``interval`` apart, each covering the trailing
 ``window`` seconds of bag time). Per window and topic: message rate, bandwidth,
-size, and — for stamped types — header-stamp age (bag receive time minus
-``header.stamp``); `/tf`, `/tf_static` and `/diagnostics` feed TF freshness and
+size, and — for stamped types — header-stamp age (recorded ROS clock when
+available, otherwise bag receive time, minus ``header.stamp``);
+`/tf`, `/tf_static` and `/diagnostics` feed TF freshness and
 diagnostics. Each window then runs through the live issue engine on the bag's
 own clock, with the same profile expectations.
 
@@ -22,6 +23,7 @@ The core is pure (`stamp_from_cdr`, `BagAnalyzer`) and tested without ROS;
 from __future__ import annotations
 
 import bisect
+import math
 import os
 import struct
 from dataclasses import dataclass, field
@@ -37,17 +39,21 @@ DIAGNOSTICS_TOPIC = '/diagnostics'
 _MIN_STREAMING = 3
 
 
+def _time_from_cdr(raw: bytes, *, zero_valid: bool = False) -> float | None:
+    if len(raw) < 12 or raw[0] != 0 or raw[1] not in (0, 1):
+        return None
+    fmt = '<iI' if raw[1] == 1 else '>iI'
+    sec, nanosec = struct.unpack_from(fmt, raw, 4)
+    if sec < 0 or nanosec >= 1_000_000_000 or (not zero_valid and sec == nanosec == 0):
+        return None
+    return sec + nanosec * 1e-9
+
+
 def stamp_from_cdr(raw: bytes) -> float | None:
     """``header.stamp`` (epoch seconds) of a CDR-serialized message whose
     first field is a ``std_msgs/Header``, read without deserializing — so even
     multi-megabyte images cost nothing. None if unset or unreadable."""
-    if len(raw) < 12 or raw[0] != 0 or raw[1] not in (0, 1):
-        return None
-    fmt = '<iI' if raw[1] == 1 else '>iI'  # encapsulation: CDR_LE / CDR_BE
-    sec, nanosec = struct.unpack_from(fmt, raw, 4)
-    if sec <= 0 or nanosec >= 1_000_000_000:
-        return None
-    return sec + nanosec * 1e-9
+    return _time_from_cdr(raw)
 
 
 def _p(values, pct):
@@ -69,22 +75,39 @@ class BagAnalyzer:
     """Accumulate a bag's messages, then emit one snapshot dict per window."""
 
     def __init__(self, topic_types: dict[str, str], thresholds,
-                 profile_name: str | None = None) -> None:
+                 profile_name: str | None = None, *, age_clock: str = 'bag') -> None:
+        if age_clock not in ('bag', 'ros'):
+            raise ValueError('age_clock must be bag or ros')
         self.topic_types = dict(topic_types)
         self.thresholds = thresholds
         self.profile_name = profile_name
+        self.age_clock = age_clock
+        self.clock_messages = 0
+        self.unreadable_clock_messages = 0
+        self._ros_clock = None
         self._series: dict[str, _Series] = {name: _Series() for name in topic_types}
         self._tf: list[tuple[float, str, str, bool]] = []
         self._diag: list[tuple[float, DiagnosticStatus]] = []
         self._proc: list[tuple[float, str, float]] = []
 
     # -- input -------------------------------------------------------------- #
+    def update_ros_clock(self, value: float | None) -> None:
+        self.clock_messages += 1
+        if value is None or not math.isfinite(value) or value < 0:
+            self.unreadable_clock_messages += 1
+            value = None
+        self._ros_clock = value
+
     def add_message(self, topic: str, t: float, size: int,
                     stamp: float | None = None) -> None:
         s = self._series.setdefault(topic, _Series())
         s.t.append(t)
         s.size.append(size)
-        s.age_ms.append(max(0.0, (t - stamp) * 1000.0) if stamp else None)
+        now = t if self.age_clock == 'bag' else self._ros_clock
+        # Match live ROS-clock startup: a zero/unavailable clock cannot measure
+        # header age. Arrival windows and receipt freshness still use bag time.
+        known = now is not None and (self.age_clock == 'bag' or now > 0)
+        s.age_ms.append(max(0.0, (now - stamp) * 1000.0) if stamp and known else None)
 
     def add_tf(self, t: float, parent: str, child: str, static: bool) -> None:
         self._tf.append((t, parent, child, static))
@@ -213,9 +236,11 @@ def _first_field_is_header(msg_type) -> bool:
 
 
 def analyze_bag(path: str, thresholds, profile_name: str | None = None,
-                processing_time_patterns=None) -> BagAnalyzer:
+                processing_time_patterns=None, *, age_clock: str = 'auto') -> BagAnalyzer:
     """Read every message of the bag at ``path`` into a ``BagAnalyzer``.
     Topics matching ``processing_time_patterns`` also feed processing time."""
+    if age_clock not in ('auto', 'bag', 'ros'):
+        raise ValueError('age_clock must be auto, bag or ros')
     try:
         import rosbag2_py
         from rclpy.serialization import deserialize_message
@@ -230,7 +255,11 @@ def analyze_bag(path: str, thresholds, profile_name: str | None = None,
                 rosbag2_py.ConverterOptions(input_serialization_format='cdr',
                                             output_serialization_format='cdr'))
     types = {t.name: t.type for t in reader.get_all_topics_and_types()}
-    analyzer = BagAnalyzer(types, thresholds, profile_name)
+    recorded_clock = types.get('/clock') == 'rosgraph_msgs/msg/Clock'
+    if age_clock == 'ros' and not recorded_clock:
+        raise ValueError('--age-clock ros requires a recorded /clock (rosgraph_msgs/msg/Clock)')
+    selected_clock = 'ros' if age_clock == 'ros' or (age_clock == 'auto' and recorded_clock) else 'bag'
+    analyzer = BagAnalyzer(types, thresholds, profile_name, age_clock=selected_clock)
 
     proc = compile_patterns(processing_time_patterns)
     msg_types, stamped = {}, {}
@@ -245,6 +274,10 @@ def analyze_bag(path: str, thresholds, profile_name: str | None = None,
     while reader.has_next():
         topic, raw, t_ns = reader.read_next()
         t = t_ns * 1e-9
+        if topic == '/clock' and recorded_clock and selected_clock == 'ros':
+            # Clock starts with builtin_interfaces/Time, not std_msgs/Header;
+            # decode even if its Python binding is not installed.
+            analyzer.update_ros_clock(_time_from_cdr(raw, zero_valid=True))
         stamp = stamp_from_cdr(raw) if stamped.get(topic) else None
         analyzer.add_message(topic, t, len(raw), stamp)
         mt = msg_types.get(topic)

@@ -397,6 +397,17 @@ the bag's own clock, with the same profile expectations. A bag records topics,
 not the graph, so nodes, CPU and callback times stay empty. Needs a sourced
 ROS 2 (`rosbag2_py`; MCAP on Humble also needs `ros-humble-rosbag2-storage-mcap`).
 
+Header age uses the recorded `/clock` (`rosgraph_msgs/msg/Clock`) when present;
+otherwise it uses bag receive time. This avoids treating the calendar gap between
+a replayed sensor recording and its later re-recording as transport delay.
+`--age-clock bag` explicitly uses receive time, while `--age-clock ros` requires
+recorded `/clock`. The selected basis and unreadable clock-message count are
+saved in the recording header. Before the first positive ROS clock, age is
+unknown; a paused clock remains paused and backward jumps follow the recording.
+Stamps must use the selected clock; choose `bag` for system-stamped recordings
+that also contain an unrelated ROS clock. Arrival rates, bandwidth, receipt
+freshness and TF freshness continue to use bag receive time.
+
 ### Live observation during bag replay or simulation
 
 Use the same ROS clock as the publishers when their header stamps use simulation
@@ -413,7 +424,9 @@ Header age follows the agent's ROS clock. Before the first `/clock` message,
 header age is unavailable. Collection timers continue before `/clock` starts
 and while it is paused. Topic arrival rate and receipt freshness still use
 real time, so slowing or pausing playback can violate rate/freshness contracts.
-Offline `rgd bag analyze` uses recorded bag time directly. These two observations
+When the bag already records `/clock`, replay that topic instead of creating a
+second clock with `--clock`. Offline `rgd bag analyze` uses bag receive time for
+arrival metrics and its selected clock for header age. These two observations
 answer different questions: the original recording's behavior and the live
 replay's behavior. ROS parameters and remappings use standard `--ros-args` syntax.
 

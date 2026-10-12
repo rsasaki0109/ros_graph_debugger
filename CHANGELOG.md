@@ -56,6 +56,7 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
   profile → thresholds merge is shared as `profile.apply_profile()`.
 
 ### Fixed
+- **Offline ROS-clock ages** — use recorded `/clock` for header age in replayed bags, retain bag-time arrival/freshness metrics, and expose an explicit clock override with recorded provenance.
 - **Nav2 bag polling** — use rosbag2's WAL preset and close polling connections so live readiness reads cannot lock out the recorder; preserve the exact map and heartbeat evidence checks.
 - **Process CPU measurements** — reuse nonblocking CPU baselines per live PID, mark initial/unavailable samples unknown, sample shared processes once, and clear exited/unmapped process metrics; Humble/Jazzy integration covers real CPU load and recovery.
 - **Observer executor overhead** — dispatch collectors directly on their spin thread, avoiding worker-pool contention and observer-induced rate drops during high-frequency clock/TF replay while retaining Humble receive timestamps.

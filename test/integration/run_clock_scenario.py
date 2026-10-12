@@ -14,6 +14,7 @@ from rclpy.node import Node
 from std_srvs.srv import SetBool, Trigger
 
 from run_scenario import Processes, cli, run
+from ros_graph_debugger.recording import read_recording
 
 TOPIC = '/localization/kinematic_state'
 BASE = 'http://127.0.0.1:3959'
@@ -69,16 +70,42 @@ def phase(directory, processes, delayed):
             assert hits[0]['related_nodes'] == ['/integration/clock_fixture']
     data = wait_for(ready, processes, directory, 'stamped phase')
     (directory / 'snapshot.json').write_text(json.dumps(data, indent=2))
+    observed_start = time.time()
     run(cli('assert', BASE, '--duration', '6', '--settle', '1', '--json',
             '--expect', TOPIC + '=30', '--require-topic', TOPIC,
             '--forbid', 'stale_data', '--record', directory / 'run.rgd.json'),
         directory, 'assert', expected=1 if delayed else 0)
+    (directory / 'observation.json').write_text(json.dumps({
+        'start': observed_start, 'end': time.time(), 'delayed': delayed}))
     result = json.loads((directory / 'assert.json').read_text())
     assert result['samples'] >= 4 and result['passed'] is not delayed
     if delayed:
         check = next(c for c in result['checks'] if c['name'] == 'no stale_data issues')
         assert check['breaches'] == result['samples'], check
     run(cli('report', directory / 'run.rgd.json', '--md', directory / 'report.md'), directory, 'report')
+
+
+def validate_clock_bag(directory):
+    header, snapshots = read_recording(str(directory / 'bag.rgd.json'))
+    assert header['header_age_clock']['selected'] == 'ros'
+    assert header['header_age_clock']['clock_messages'] > 0
+    assert header['header_age_clock']['unreadable_clock_messages'] == 0
+    # Keep the 100 ms age budget and 30 Hz contract through all live phases.
+    # Exclude the trailing window that overlaps a transition, not any breach.
+    for name in ('healthy', 'delayed', 'recovered', 'paused-delayed', 'paused-recovered'):
+        observation = json.loads((directory / name / 'observation.json').read_text())
+        selected = [s for s in snapshots if observation['start'] + 2 <= s['timestamp'] <= observation['end']]
+        assert len(selected) >= 3, (name, len(selected))
+        for snap in selected:
+            topic = next(t for t in snap['topics'] if t['name'] == TOPIC)
+            age = topic['header_age_p95_ms']
+            assert topic['rate_hz'] >= 30 and age is not None, (name, topic)
+            assert (age > 100) == observation['delayed'], (name, topic)
+            hits = [i for i in snap['issues'] if i['kind'] == 'stale_data' and TOPIC in i['related_topics']]
+            assert bool(hits) == observation['delayed'], (name, hits)
+            if hits:
+                assert len(hits) == 1
+                assert hits[0]['evidence'] == [f'p95 header age: {age:.0f} ms', 'expected within: 100 ms']
 
 
 def main():
@@ -101,11 +128,14 @@ def main():
             '--probe-regex', '^/localization/kinematic_state$',
             '--ros-args', '-p', 'use_sim_time:=true', '-r', '__node:=sim_clock_agent'])
         processes.start('publisher', [sys.executable, 'test/integration/clock_publisher.py'])
+        recorder = processes.start('bag-record', ['ros2', 'bag', 'record', '-s', 'sqlite3',
+            '-o', str(args.output / 'bag'), '/clock', TOPIC])
         def unstarted(data, topic):
             assert any(n['id'] == '/sim_clock_agent' for n in data['nodes'])
             assert topic['probed'] and (topic['rate_hz'] or 0) >= 30, topic
             assert topic['header_age_p95_ms'] is None, topic
             assert not any(i['kind'] == 'stale_data' and TOPIC in i['related_topics'] for i in data['issues'])
+            assert any('rosbag' in n for n in topic['subscribers']), topic
         data = wait_for(unstarted, processes, args.output, 'unstarted clock')
         (args.output / 'unstarted.json').write_text(json.dumps(data, indent=2))
         call(node, start, Trigger.Request(), processes)
@@ -124,7 +154,14 @@ def main():
         request.data = False
         call(node, lag, request, processes)
         phase(args.output / 'paused-recovered', processes, False)
+        processes.stop(recorder)
+        run(cli('bag', 'analyze', args.output / 'bag', '--profile', 'autoware',
+                '--out', args.output / 'bag.rgd.json'), args.output, 'bag-analyze')
+        validate_clock_bag(args.output)
+        run(cli('report', args.output / 'bag.rgd.json', '--md', args.output / 'bag-report.md'),
+            args.output, 'bag-report')
         print('ROS clock: startup, healthy/fault/recovery and paused-clock collection passed')
+        print('Recorded ROS clock: real bag retains healthy/fault/recovery age and arrival contracts')
     finally:
         processes.close()
         if node is not None:

@@ -337,7 +337,8 @@ def _cmd_bag(args) -> int:
     thresholds.expected_min_rate.update(expect_rates)
 
     try:
-        analyzer = analyze_bag(args.bag, thresholds, profile_name, proc_patterns)
+        analyzer = analyze_bag(args.bag, thresholds, profile_name, proc_patterns,
+                               age_clock=args.age_clock)
     except BagReaderUnavailable as exc:
         print(f'error: {exc}', file=sys.stderr)
         return 2
@@ -351,8 +352,13 @@ def _cmd_bag(args) -> int:
 
     start, end = analyzer.time_range()
     with open(args.out, 'w') as fh:
-        write_header(fh, make_header(started=start, interval=args.interval,
-                                     profile=profile_public))
+        header = make_header(started=start, interval=args.interval, profile=profile_public)
+        header['header_age_clock'] = {
+            'requested': args.age_clock, 'selected': analyzer.age_clock,
+            'clock_messages': analyzer.clock_messages,
+            'unreadable_clock_messages': analyzer.unreadable_clock_messages,
+        }
+        write_header(fh, header)
         for snap in snapshots:
             append_snapshot(fh, snap)
     verdicts = [summarize_health(s)['verdict'] for s in snapshots]
@@ -556,6 +562,9 @@ def main(argv=None) -> int:
                      help='profile pack (autoware | nav2 | moveit | path)')
     bga.add_argument('--expect', action='append', default=[], metavar='TOPIC=HZ',
                      help='expected minimum rate (repeatable)')
+    bga.add_argument('--age-clock', choices=('auto', 'bag', 'ros'), default='auto',
+                     help='header-age clock: auto uses recorded /clock when present; '
+                          'bag uses receive time; ros requires recorded /clock')
     bga.add_argument('--processing-time-topic', action='append', default=[],
                      metavar='REGEX',
                      help='topics carrying a node\'s own processing time in ms '
