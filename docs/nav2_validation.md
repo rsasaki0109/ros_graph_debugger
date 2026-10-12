@@ -58,6 +58,12 @@ independent subscriber, which requests reliable, transient-local QoS.
    and subscriber must still contain exactly one map.
 
 All readiness waits poll state, graph, message receipts or SQLite contents.
+The late recorder uses rosbag2's `resilient` SQLite preset (WAL), and readiness
+checks verify the actual journal mode. WAL permits reads during recording;
+rollback-journal reads can otherwise make the recorder abort with
+`SQLITE_BUSY: database is locked`. Each poll closes its read connection before
+returning. Map contents, exact map count and heartbeat count/span checks remain
+unchanged.
 Observation durations are intentional measurement windows. Processes are
 checked during polling, child process groups are stopped on success or failure,
 and SIGTERM and the 120-second budget trigger cleanup. The CI job allows five
