@@ -99,7 +99,7 @@ def _cmd_serve(args) -> int:
         if args.demo and args.fleet > 1 else header.get('profile')
     app = create_app(replay, find_web_dir(), profile_data=profile_data,
                      stream_period=min(0.25, interval), replay=replay,
-                     replay_interval=interval)
+                     replay_interval=interval, recording_header=header)
 
     url = f'http://{args.host}:{args.port}'
     open_url = url + ('/?cinema=1' if args.cinema else '')

@@ -408,6 +408,14 @@ Stamps must use the selected clock; choose `bag` for system-stamped recordings
 that also contain an unrelated ROS clock. Arrival rates, bandwidth, receipt
 freshness and TF freshness continue to use bag receive time.
 
+`rgd report` includes this clock basis in Markdown and HTML. When serving a
+recording, the full original header is available at `GET /api/v1/recording`
+and the MCP tool `get_recording_metadata`; read it alongside
+`get_runtime_snapshot` when interpreting delayed messages. Replay briefings
+also include the clock basis. Missing metadata in older recordings is shown
+as **unknown**, without guessing from the topic list or measured age. Clock
+message counts describe the whole analysis, not the selected replay frame.
+
 ### Live observation during bag replay or simulation
 
 Use the same ROS clock as the publishers when their header stamps use simulation
