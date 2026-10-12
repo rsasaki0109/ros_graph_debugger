@@ -36,6 +36,7 @@ from .processing import ProcessingTimes, compile_patterns, matches, value_ms
 from .lifecycle import UNKNOWN as LIFECYCLE_UNKNOWN, is_lifecycle_node
 from .msgutil import header_stamp_age_ms
 from .procmap import match_nodes_to_processes
+from .process_metrics import ProcessMetricsSampler
 from .probe_executor import with_message_info
 from .statistics import StatisticsBuffer, parse_metrics
 from .model import (
@@ -138,6 +139,7 @@ class DebuggerNode(Node):
         self.probe_cfg = probe
         self.thresholds = thresholds
         store.set_profile(profile_name)
+        self._process_metrics = ProcessMetricsSampler(lambda pid: psutil.Process(pid))
 
         self._probes: dict[str, _TopicProbe] = {}
         self._subs: dict[str, object] = {}
@@ -392,25 +394,26 @@ class DebuggerNode(Node):
 
     # ------------------------------------------------------------ processes #
     def _poll_processes(self) -> None:
-        if psutil is None:
-            return
-        try:
-            procs = _collect_processes()
-        except Exception:
-            return
         nodes, _, _, _, _ = self.store.working_copy()
-        matches = match_nodes_to_processes(list(nodes), procs)
-        for node_id, m in matches.items():
+        matches = {}
+        if psutil is not None:
             try:
-                proc = psutil.Process(m['pid'])
-                cpu = proc.cpu_percent(interval=None)
-                rss = proc.memory_info().rss
-                pname = proc.name()
+                matches = match_nodes_to_processes(list(nodes), _collect_processes())
             except Exception:
-                continue
-            self.store.update_node_process(
-                node_id, pid=m['pid'], process_name=pname, cpu_percent=cpu,
-                rss_bytes=rss, process_mapping_confidence=m['confidence'])
+                self._process_metrics.clear()
+        # Sample each PID once, including component containers with many nodes.
+        metrics = self._process_metrics.sample(m['pid'] for m in matches.values())
+        for node_id in nodes:
+            match = matches.get(node_id)
+            sample = metrics.get(match['pid']) if match else None
+            if sample is None:
+                self.store.update_node_process(
+                    node_id, pid=None, process_name=None, cpu_percent=None,
+                    rss_bytes=None, process_mapping_confidence='none')
+            else:
+                self.store.update_node_process(
+                    node_id, pid=match['pid'], **sample,
+                    process_mapping_confidence=match['confidence'])
 
     # --------------------------------------------------- metrics + analyze #
     def _refresh_metrics_and_analyze(self) -> None:
