@@ -67,6 +67,8 @@ class TopicInfo:
 
     qos_status: str = UNKNOWN  # ok | mismatch | risk | unknown
     status: str = UNKNOWN  # ok | warning | critical | unknown
+    # Where samples were observed; this does not establish delivery completeness.
+    rate_measurement_scope: Optional[str] = None
 
 
 @dataclass
@@ -202,6 +204,7 @@ class RuntimeGraphStore:
                 if old is not None and old.probed:
                     new.probed = old.probed
                     new.rate_source = old.rate_source
+                    new.rate_measurement_scope = old.rate_measurement_scope
                     new.rate_hz = old.rate_hz
                     new.bandwidth_bps = old.bandwidth_bps
                     new.avg_msg_size_bytes = old.avg_msg_size_bytes
@@ -277,11 +280,13 @@ class RuntimeGraphStore:
             metrics = overlay.get(name)
             if metrics:
                 topic.rate_source = 'statistics'
+                topic.rate_measurement_scope = 'subscriber_statistics'
                 topic.rate_hz = metrics.get('rate_hz')
                 topic.header_age_ms = metrics.get('header_age_ms')
                 topic.header_age_p95_ms = metrics.get('header_age_p95_ms')
             elif topic.rate_source == 'statistics':
                 topic.rate_source = None
+                topic.rate_measurement_scope = None
                 topic.rate_hz = None
                 topic.header_age_ms = None
                 topic.header_age_p95_ms = None

@@ -161,24 +161,31 @@ def test_dead_topic_trips_rate_expectation():
 def test_store_overlays_unprobed_topics_and_keeps_probe_authoritative():
     store = RuntimeGraphStore()
     store.set_graph(*_graph())
-    store.update_topic_metrics('/objects', rate_hz=9.0)
+    store.update_topic_metrics('/objects', rate_hz=9.0,
+                               rate_measurement_scope='probe_receipt')
     store.set_statistics([_row('detector', PERIOD, 33.3),
                           _row('fusion', PERIOD, 50.0, hint='/objects')])
     snap = store.snapshot().to_dict()
     t = {x['name']: x for x in snap['topics']}
     assert t['/image_raw']['rate_hz'] == 30.03
     assert t['/image_raw']['rate_source'] == 'statistics'
+    assert t['/image_raw']['rate_measurement_scope'] == 'subscriber_statistics'
     assert t['/objects']['rate_hz'] == 9.0
     assert t['/objects']['rate_source'] == 'probe'
+    assert t['/objects']['rate_measurement_scope'] == 'probe_receipt'
     assert {s['attribution'] for s in snap['statistics']} == {'single_sub', 'explicit'}
 
     # The overlay survives a graph re-poll and is cleared when stats stop.
     store.set_graph(*_graph())
     image = {x['name']: x for x in store.snapshot().to_dict()['topics']}['/image_raw']
     assert image['rate_hz'] == 30.03
+    assert image['rate_measurement_scope'] == 'subscriber_statistics'
+    objects = next(t for t in store.snapshot().to_dict()['topics'] if t['name'] == '/objects')
+    assert objects['rate_measurement_scope'] == 'probe_receipt'
     store.set_statistics([])
     image = {x['name']: x for x in store.snapshot().to_dict()['topics']}['/image_raw']
     assert image['rate_hz'] is None and image['rate_source'] is None
+    assert image['rate_measurement_scope'] is None
 
 
 def test_rate_drop_fires_from_statistics_with_honest_evidence():

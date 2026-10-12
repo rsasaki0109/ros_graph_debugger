@@ -6,6 +6,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ## [Unreleased]
 
+- Identify live-probe, subscriber-statistics and bag rate measurements in diagnostic evidence without treating unknown delivery completeness as a slow publisher.
+
 ### Added
 - **Public camera observer benchmark** — measures Clock/image probe CPU and RSS against an independent source-frame receiver, retaining default BEST_EFFORT delivery failures separately from controlled RELIABLE comparisons.
 - **Recording clock provenance** — reports and replay briefings identify the header-age clock; `/api/v1/recording` and MCP `get_recording_metadata` expose the original header, with missing legacy provenance kept unknown.

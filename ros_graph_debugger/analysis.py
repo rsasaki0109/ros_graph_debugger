@@ -111,8 +111,9 @@ def analyze(store: RuntimeGraphStore, thresholds,
                 explanation=f'Observed {t.rate_hz:.1f} Hz, expected '
                             f'>= {expected:.1f} Hz.',
                 evidence=[f'observed: {t.rate_hz:.1f} Hz{_via(t)}',
-                          f'expected: {expected:.1f} Hz'],
-                suggested_actions=['Inspect the publishing node callback',
+                          f'expected: {expected:.1f} Hz'] + _rate_scope_evidence(t),
+                suggested_actions=['Compare publisher-side timing with receiver delivery',
+                                   'Inspect the publishing node callback',
                                    'Check upstream topic freshness'],
                 related_topics=[name], related_nodes=list(t.publishers)))
 
@@ -339,16 +340,19 @@ def _infer_bottlenecks(nodes, topics, thresholds) -> list[Issue]:
         if n.cpu_percent is not None:
             evidence.append(f'{n.name} CPU: {n.cpu_percent:.0f}%')
         evidence += healthy_inputs[:3]
+        evidence += _rate_scope_evidence(slow_topic)
         severity = CRITICAL if hot else WARNING
         out.append(Issue(
             id=counter.next('likely'), severity=severity,
             kind='bottleneck',
             title=f'Likely bottleneck: {n.name}',
-            explanation=f'{n.name} output {slow_topic.name} dropped below '
-                        f'expectation while its inputs look healthy'
-                        + (' and it is CPU-bound.' if hot else '.'),
+            explanation=f'Measured output {slow_topic.name} is below expectation.'
+                        + (' The mapped process is CPU-bound.' if hot else '')
+                        + ' This is a candidate for investigation; the rate alone '
+                        'does not establish a slow publishing callback.',
             evidence=evidence,
-            suggested_actions=['Inspect this node\'s callback duration',
+            suggested_actions=['Compare publisher-side timing with receiver delivery',
+                               'Inspect this node\'s callback duration',
                                'Check CPU/GPU utilization of its process',
                                'Reduce input load (downsample) if applicable'],
             related_nodes=[node_id], related_topics=[slow_topic.name]))
@@ -363,6 +367,14 @@ def _measured(topic) -> bool:
 def _via(topic) -> str:
     """Evidence suffix naming a measurement that is not our own probe."""
     return ' (via topic statistics)' if topic.rate_source == 'statistics' else ''
+
+
+def _rate_scope_evidence(topic) -> list[str]:
+    """Describe receipt measurements without claiming publisher-side throughput."""
+    scope = topic.rate_measurement_scope
+    if scope not in ('probe_receipt', 'bag_recording', 'subscriber_statistics'):
+        return ['rate measurement scope: unknown', 'delivery completeness: unknown']
+    return [f'rate measurement scope: {scope}', 'delivery completeness: unknown']
 
 
 def _qos_evidence(topic) -> list[str]:

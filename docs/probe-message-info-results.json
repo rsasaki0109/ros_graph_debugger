@@ -1,0 +1,62 @@
+{
+  "experiment": "raw-subscription MessageInfo on public physical-camera replay",
+  "date_utc": "2026-10-12",
+  "main_base": "5d38e5b48c1782595c93213d68c80bdff9f40ab7",
+  "harness_sha256": "6b78cf881aec60c555d552ea7f11f7e8a12ac995f19717fcd61a45acec88e330",
+  "control": "explicit RELIABLE player and common receiver; default RMW; original recorded /clock",
+  "scope": "capability observation only; no per-publisher loss counter inferred",
+  "distros": {
+    "humble": {
+      "captured_messages": 240,
+      "roi_source_frames": 70,
+      "roi_missing": 0,
+      "roi_duplicates": 0,
+      "message_info_keys": [
+        "received_timestamp",
+        "source_timestamp"
+      ],
+      "publication_sequence_available": false,
+      "reception_sequence_available": false,
+      "publisher_gid_available": false,
+      "first_info": {
+        "source_timestamp": 1791794861538928475,
+        "received_timestamp": 1791794861543196542
+      },
+      "last_info": {
+        "source_timestamp": 1791794880467547570,
+        "received_timestamp": 1791794880467689687
+      },
+      "receiver_sha256": "904bad964b8b886076f6320575826c52edc5e3842e02c5386f4e153f59d316ed",
+      "owned_process_groups_reaped": true
+    },
+    "jazzy": {
+      "captured_messages": 240,
+      "roi_source_frames": 70,
+      "roi_missing": 0,
+      "roi_duplicates": 0,
+      "message_info_keys": [
+        "publication_sequence_number",
+        "received_timestamp",
+        "reception_sequence_number",
+        "source_timestamp"
+      ],
+      "publication_sequence_available": true,
+      "reception_sequence_available": false,
+      "publisher_gid_available": false,
+      "first_info": {
+        "source_timestamp": 1791794776101876022,
+        "received_timestamp": 1791794776169863980,
+        "publication_sequence_number": 1,
+        "reception_sequence_number": null
+      },
+      "last_info": {
+        "source_timestamp": 1791794795044607420,
+        "received_timestamp": 1791794795046642835,
+        "publication_sequence_number": 240,
+        "reception_sequence_number": null
+      },
+      "receiver_sha256": "39a7ddbb4ec9a85f218dc22ed263725ba5011625a6b490ff08d938d54c56b428",
+      "owned_process_groups_reaped": true
+    }
+  }
+}

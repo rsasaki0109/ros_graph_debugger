@@ -111,6 +111,7 @@ class _TopicProbe:
         bw = (avg * rate) if (avg is not None and rate is not None) else None
         return {
             'rate_hz': round(rate, 2) if rate is not None else None,
+            'rate_measurement_scope': 'probe_receipt',
             'avg_msg_size_bytes': round(avg, 1) if avg is not None else None,
             'p95_msg_size_bytes': _percentile(self.sizes, 95),
             'bandwidth_bps': round(bw, 1) if bw is not None else None,

@@ -115,7 +115,7 @@ pattern.
                   "durability", "history", "depth", "liveliness",
                   "deadline_ms", "liveliness_lease_ms" }],   // ms; null = infinite
                 "rate_hz", "bandwidth_bps", "p95_msg_size_bytes",
-                "header_age_p95_ms", "rate_source", "qos_status", "status" }],
+                "header_age_p95_ms", "rate_source", "rate_measurement_scope", "qos_status", "status" }],
   "edges":   [{ "from_node", "to_node", "topic", "status" }],
   "tf_edges":[{ "parent", "child", "age_ms", "status" }],
   "callbacks":[{ "node", "callback", "topic", "count",
@@ -148,3 +148,17 @@ tool: `set_expected_rate(topic, min_hz)`
 posts to `/config` so an AI can set a topic's expected-rate floor at runtime.
 It is a thin client of the REST API; point it at a non-default agent with
 `RGD_BASE`.
+
+
+`topics[].rate_measurement_scope` identifies where rate samples were observed:
+`probe_receipt` for the agent's live subscription, `subscriber_statistics` for
+rclcpp topic statistics, and `bag_recording` for messages stored in a bag.
+`null` means unknown, including recordings created before this field existed.
+The existing `rate_source` field remains compatible; bag analysis historically
+sets it to `probe`. Use the new scope to distinguish a bag from a live probe.
+
+These rates describe observed messages. Delivery completeness and publisher-side
+throughput remain unknown: a low rate can reflect slow publishing, receiver
+loss, queue pressure or observer work. `rate_drop` and `bottleneck` evidence
+states the measurement scope and this limitation; their rate thresholds and
+severity rules are unchanged. See [probe reception evidence](probe-reception-evidence.md).

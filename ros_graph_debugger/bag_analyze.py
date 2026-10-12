@@ -161,6 +161,7 @@ class BagAnalyzer:
             streaming = len(s.t) >= _MIN_STREAMING and name != '/tf_static'
             metrics[name] = {
                 'rate_hz': round(len(sizes) / window, 2),
+                'rate_measurement_scope': 'bag_recording',
                 'bandwidth_bps': round(sum(sizes) / window, 1),
                 'avg_msg_size_bytes': round(sum(sizes) / len(sizes), 1) if sizes else None,
                 'p95_msg_size_bytes': _p(sizes, 95),
