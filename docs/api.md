@@ -26,7 +26,7 @@ unless noted. The same surface is served in replay mode (`rgd serve`), except
 | GET | `/api/v1/statistics` | rclcpp topic statistics (Tier B) per subscriber node and metric, with the topic each was attributed to (`[]` when none) |
 | GET | `/api/v1/issues` | detected issues (sorted by severity) |
 | GET | `/api/v1/summary` | one-line health rollup (`{verdict: ok\|degraded\|critical, counts, headline, issue_count}`) |
-| GET | `/api/v1/path?target=TARGET` | the constraining source→sink pipeline path through a node/topic (`{target, pivot, nodes, hops, bottleneck_topic, cb_bottleneck_node}`; each hop carries `rate_hz` + the consumer's `cb_p95_ms`; 404 if no connected path) |
+| GET | `/api/v1/path?target=TARGET` | a representative data-flow path through a node/topic (`{target, pivot, nodes, hops, bottleneck_topic, cb_bottleneck_node}`; each hop carries `rate_hz` + the consumer's `cb_p95_ms`; shared ROS control buses are excluded unless their topic is explicitly selected; 404 if no connected path) |
 | GET | `/api/v1/profile` | active profile name + stage groups (UI grouping) |
 | GET | `/api/v1/config` | current thresholds + expectations (live mode only; `{}` in replay) |
 | POST | `/api/v1/config` | merge a partial config into the live thresholds |
@@ -136,6 +136,21 @@ pattern.
 ```
 
 ## MCP
+
+Pipeline paths follow application topics by default. Standard ParameterEvent,
+Log, Clock, DiagnosticArray, MetricsMessage and TFMessage types identify shared
+control/telemetry buses, including remapped and federated names. Legacy topics
+without a declared type use canonical `/parameter_events`, `/rosout`, `/clock`,
+`/diagnostics`, `/diagnostics_agg`, `/statistics`, `/tf` and `/tf_static` names
+(with a recorded federation host prefix removed). A custom declared type on a
+standard-looking name remains eligible application data.
+
+Selecting a control topic explicitly, such as `target=/clock`, includes that
+topic and requires a connected hop through it. A node connected only to control
+buses has no default data path. All topics, endpoints, metrics and issues remain
+in the full graph and snapshot. Paths choose a representative branch using
+observed rates; they are not complete input dependency graphs or proof of causal
+delay. A stale topic can retain its previous receipt-window rate.
 
 `python -m ros_graph_debugger.mcp_server` exposes the same data to AI assistants
 as tools. Read tools: `get_recording_metadata` (`/recording` — read alongside

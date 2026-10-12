@@ -17,6 +17,36 @@ from .model import callback_source
 
 _MAX_HOPS = 12
 
+# Shared control/telemetry buses connect otherwise unrelated ROS nodes. Their
+# graph edges are useful evidence, but not application data-flow links.
+_CONTROL_TYPES = {
+    'rcl_interfaces/msg/ParameterEvent', 'rcl_interfaces/msg/Log',
+    'rosgraph_msgs/msg/Clock', 'diagnostic_msgs/msg/DiagnosticArray',
+    'statistics_msgs/msg/MetricsMessage', 'tf2_msgs/msg/TFMessage',
+}
+_CONTROL_NAMES = {
+    '/parameter_events', '/rosout', '/clock', '/diagnostics',
+    '/diagnostics_agg', '/statistics', '/tf', '/tf_static',
+}
+
+
+def _control_topic(topic: dict) -> bool:
+    """Use declared ROS types, or canonical names for legacy missing types.
+
+    A custom, declared type on a standard-looking name remains application
+    data. Remapped/federated standard types are still control traffic.
+    """
+    declared = topic.get('type')
+    if declared is not None and declared != '':
+        return isinstance(declared, str) and declared in _CONTROL_TYPES
+    name = topic['name']
+    host = topic.get('host')
+    if isinstance(host, str) and host:
+        prefix = '/' + host.strip('/').replace('/', '_') + '/'
+        if name.startswith(prefix):
+            name = '/' + name[len(prefix):]
+    return name in _CONTROL_NAMES
+
 
 def resolve_focus(d: dict, focus: str):
     """Map a focus string to a ``('node', id)`` or ``('topic', name)`` target.
@@ -49,14 +79,15 @@ def _rate_key(topic: dict) -> float:
     return r if isinstance(r, (int, float)) else float('inf')
 
 
-def _walk(nodes_by_id, topics_by_name, start: str, downstream: bool):
+def _walk(nodes_by_id, topics_by_name, start: str, downstream: bool,
+          focus_topic: str | None = None):
     """Walk one direction from ``start``, following the lowest-rate link each
     step. Returns hops as ``{from, topic, rate_hz, status, to}`` in walk order
     (nearest hop first)."""
     hops = []
     visited = {start}
     cur = start
-    for _ in range(_MAX_HOPS):
+    for step in range(_MAX_HOPS):
         node = nodes_by_id.get(cur)
         if not node:
             break
@@ -67,12 +98,18 @@ def _walk(nodes_by_id, topics_by_name, start: str, downstream: bool):
             t = topics_by_name.get(tn)
             if not t:
                 continue
+            if tn != focus_topic and _control_topic(t):
+                continue
             others = [e for e in t.get(endpoint_key, []) if e not in visited]
             if others:
                 cands.append((t, sorted(others)[0]))
         if not cands:
             break
-        cands.sort(key=lambda c: (_rate_key(c[0]), c[0]['name']))
+        # Explicit topic queries must traverse that topic, even when an
+        # unrelated output has a lower known rate than the selected clock/TF.
+        cands.sort(key=lambda c: (step == 0 and focus_topic is not None
+                                 and c[0]['name'] != focus_topic,
+                                 _rate_key(c[0]), c[0]['name']))
         t, nxt = cands[0]
         frm, to = (cur, nxt) if downstream else (nxt, cur)
         hops.append({'from': frm, 'topic': t['name'], 'rate_hz': t.get('rate_hz'),
@@ -120,7 +157,10 @@ def trace_pipeline_path(d: dict, focus: str):
     Returns ``{target, pivot, nodes, hops, bottleneck_topic}`` or ``None`` if
     the focus is unknown or has no connected path. ``nodes`` is the ordered list
     of node ids from source to sink; ``hops`` are the topics between them;
-    ``bottleneck_topic`` is the lowest-rate hop (the throttling link)."""
+    ``bottleneck_topic`` is the lowest-rate hop. Shared ROS control/telemetry
+    topics are excluded unless the query explicitly selects that topic.
+    The result is representative graph topology, not a proven causal path.
+    """
     kind, key = resolve_focus(d, focus)
     if kind is None:
         return None
@@ -138,10 +178,13 @@ def trace_pipeline_path(d: dict, focus: str):
         if pivot is None:
             return None
 
-    up = _walk(nodes_by_id, topics_by_name, pivot, downstream=False)
-    down = _walk(nodes_by_id, topics_by_name, pivot, downstream=True)
+    focus_topic = key if kind == 'topic' else None
+    up = _walk(nodes_by_id, topics_by_name, pivot, downstream=False, focus_topic=focus_topic)
+    down = _walk(nodes_by_id, topics_by_name, pivot, downstream=True, focus_topic=focus_topic)
     hops = list(reversed(up)) + down
     if not hops:
+        return None
+    if focus_topic is not None and not any(h['topic'] == focus_topic for h in hops):
         return None
 
     # Preserve the selected duration's source; a report is not traced execution.
