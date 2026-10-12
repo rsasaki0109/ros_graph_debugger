@@ -8,10 +8,15 @@ human investigation time.
 
 ## Sources and tasks
 
-The six CI cases come from the existing separate-process integration artifacts:
+The ten CI cases come from the existing separate-process integration and real
+LTTng artifacts. Six cover:
 slow/healthy detector output, CPU warmup/load/recovery, and an uninitialized ROS
 clock with valid DDS receipts. The slow/healthy minimum 10 Hz and CPU controls
 are checked before exporting tasks. Existing ROS integration gates are unchanged.
+Four duration cases add the processing-time helper from each slow/healthy run
+and the subscription/timer/service callbacks from each slow/healthy LTTng run.
+Preparation requires the original source, count, duration and issue-attribution
+gates; it does not relabel or fill in source data to make a case pass.
 
 Optional local cases add actual Nav2 healthy/paused/recovered recordings and the
 original public Autoware camera/Clock bag, its live replay and an older recording
@@ -35,6 +40,7 @@ From the checkout, with the optional web stack and test-only MCP SDK available
 ```bash
 python3 test/benchmarks/investigation_cases.py prepare \
   --integration /absolute/path/integration-artifacts \
+  --trace-recordings /absolute/path/trace-artifacts \
   --output /tmp/investigation-bundle
 python3 test/benchmarks/validate_investigation.py \
   --bundle /tmp/investigation-bundle --output /tmp/investigation-validation
@@ -48,6 +54,9 @@ Optional `prepare` arguments:
 | Argument | Original source |
 |---|---|
 | `--nav-recordings DIR` | Actual Nav2 `healthy/paused/recovered/run.rgd.json` |
+| `--trace-recordings DIR` | Real LTTng `slow/healthy/run.rgd.json` with original source/count/budget evidence |
+| `--duration-recording FILE --duration-target NODE` | An original recording, including legacy data without source metadata |
+| `--synthetic-demo` | An explicitly synthetic duration control, separate from provided source cases |
 | `--public-live FILE` | Camera benchmark `snapshots.json`, measured offsets 10–20 s |
 | `--public-legacy FILE` | Older camera replay `snapshots.json`, same offsets |
 | `--public-bag FILE` | `rgd bag analyze` recording of the original public camera bag |
@@ -57,15 +66,15 @@ and [camera observer benchmark](observer-image-cost.md) for reproduction and
 source limitations. Raw bags and response logs stay outside Git.
 
 Validation replays each original frame unchanged and checks a real CLI snapshot,
-stdio MCP snapshot, recording metadata and focused Markdown, including the
+stdio MCP snapshot, callback list, recording metadata and focused Markdown, including the
 recorded clock note. Readiness is polled, cases run sequentially and owned replay
 groups/MCP sessions are closed on success or failure. Port 3972 must be free;
 `--port` changes it. Responses, cleanup, reference scores and negative controls
 are retained. The reference response is generated from the rubric and is
 explicitly a **scripted oracle**, not a model answer.
 
-CI adds two `investigation` jobs after the Humble/Jazzy integrations. Each
-downloads its original artifact and validates all six cases. The MCP dependency
+CI adds two `investigation` jobs after the Humble/Jazzy integration and trace
+jobs. Each downloads both original artifacts and validates all ten cases. The MCP dependency
 is test-only; no required package dependency changes. The original integration
 job retains its five-minute budget. Task inputs, rubrics, responses and failures
 are uploaded as `investigation-<distro>` artifacts.
@@ -80,6 +89,28 @@ a relevant next-check ID. For example, a positive DDS timestamp gap alone does
 not establish host-clock synchronization or network latency; CPU alone does not
 establish successful processing or callback duration. Independently computed
 p95 values cannot be added to obtain an end-to-end p95.
+
+Duration tasks request each selected node's callback label, topic, sample count,
+mean/p95/max and **declared** source. Claim IDs keep the original callback-array
+index (`duration_N_*`); values and sources must cite that same observation row.
+Equal p95 values in different rows do not make their citations interchangeable.
+Known source values are `trace`, `application_report` and `synthetic`; missing,
+invalid and unrecognized values stay unknown and cite the callback parent.
+Missing timing/sample-count values are unknown, not zero. An empty observed
+callback list differs from a missing list and does not prove no callback work.
+
+The rubric rejects a single-callback start/end conclusion from an application
+report or unknown source, measured runtime timing from synthetic data, and an
+application-cycle measurement inferred from a callback trace. A source string
+alone does not authenticate provenance, and p95 alone does not establish a
+downstream rate-loss cause. Those questions require verifying original duration
+provenance, inspecting cycle boundaries or collecting paired measurements.
+
+Duration tasks retain the seven existing negative controls and add three:
+source confusion, a value/source citation mismatch, and a source-specific timing
+overclaim. Each duration case rejects ten deliberately invalid answers. The ten
+CI cases therefore reject 82 invalid answers per distro. These are rubric
+calibration controls, not answers produced by a model.
 
 Place each response at `answers/case-NNN.json`, then run:
 
@@ -111,3 +142,13 @@ Derived results and source hashes are in
 An initial validator run omitted the existing replay clock note from its
 expected Markdown and failed; it was corrected to compare the complete documented
 response. The exact comparison remains in place and the failed result is retained.
+
+The duration extension validates 12 cases locally: the ten integration/trace
+cases, one original legacy LTTng recording without source fields, and one
+explicitly synthetic demo control. All 102 deliberately invalid answers fail;
+the scripted-reference scoring CLI exits 0 and the wrong-source controls exit 1.
+CLI/MCP preserve every selected frame/header/callback list, focused Markdown
+matches exactly, and replay groups are reaped. The legacy source remains unknown.
+Derived hashes and controls are in
+[duration-investigation-results.json](duration-investigation-results.json).
+These results do not measure model accuracy or investigation time.

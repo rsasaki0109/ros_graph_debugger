@@ -108,7 +108,7 @@ jobs:
 
   investigation:
     name: frozen investigation evidence (ROS 2 ${{ matrix.ros_distro }})
-    needs: integration
+    needs: [integration, trace-integration]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -126,9 +126,13 @@ jobs:
         with:
           name: integration-${{ matrix.ros_distro }}
           path: investigation-source
+      - uses: actions/download-artifact@v4
+        with:
+          name: trace-${{ matrix.ros_distro }}
+          path: investigation-traces
       - name: Prepare cases and verify original evidence
         run: |
-          python test/benchmarks/investigation_cases.py prepare --integration investigation-source --output investigation-bundle
+          python test/benchmarks/investigation_cases.py prepare --integration investigation-source --trace-recordings investigation-traces --output investigation-bundle
           python test/benchmarks/validate_investigation.py --bundle investigation-bundle --output investigation-validation
       - name: Save tasks, citations, responses and negative controls
         if: always()
