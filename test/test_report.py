@@ -1,5 +1,6 @@
 """Recording round-trip + report builder/renderers — no ROS, fully synthetic."""
 
+from copy import deepcopy
 import os
 import tempfile
 
@@ -156,3 +157,67 @@ def test_empty_profile_no_readiness():
     assert summary['readiness'] is None
     # still renders
     assert '<!DOCTYPE html>' in render_html(summary)
+
+
+def test_rate_sources_count_measurements_and_keep_unknown_legacy_sources():
+    scopes = ['probe_receipt', 'subscriber_statistics', 'bag_recording', None, 'future_scope']
+    snaps = []
+    for i, scope in enumerate(scopes):
+        s = _snapshot(i + 1, 0.0 if scope == 'bag_recording' else 4.0)
+        topic = s['topics'][0]
+        topic['rate_source'] = 'probe'  # Legacy bag and probe shared this value.
+        if scope is not None:
+            topic['rate_measurement_scope'] = scope
+        snaps.append(s)
+    unmeasured = _snapshot(6, None)
+    unmeasured['topics'][0]['rate_measurement_scope'] = 'probe_receipt'
+    snaps.append(unmeasured)
+    absent = _snapshot(7, 4.0)
+    absent['topics'] = absent['topics'][1:]
+    snaps.append(absent)
+    original = deepcopy(snaps)
+    summary = build_report(make_header(1, 1), snaps)
+    topic = next(t for t in summary['topics'] if 'object_recognition' in t['name'])
+    assert topic['rate_measurement_scope_counts'] == {
+        'probe_receipt': 1, 'subscriber_statistics': 1, 'bag_recording': 1, 'unknown': 2,
+    }
+    assert topic['rate_unmeasured_count'] == 1
+    assert topic['rate_min'] == 0.0
+    assert topic['rate_avg'] == 3.2
+    assert topic['rate_max'] == 4.0
+    assert snaps == original
+    for render in (render_markdown, render_html):
+        text = render(summary)
+        assert 'Rate measurement sources' in text
+        assert 'not message counts' in text
+        assert 'Delivery completeness and publisher-side throughput are unknown' in text
+
+
+def test_report_keeps_late_issue_evidence_and_escapes_html():
+    s = _snapshot(1, 4.0, bottleneck=True)
+    evidence = ['observed: 4 Hz', 'expected: 10 Hz', 'CPU: 95%', 'input: 30 Hz',
+                '<script>unsafe</script>', 'rate measurement scope: probe_receipt',
+                'delivery completeness: unknown']
+    s['issues'][0]['evidence'] = evidence
+    s['topics'][0]['name'] = '/<script>camera</script>'
+    summary = build_report(make_header(1, 1), [s])
+    assert summary['bottlenecks'][0]['evidence'] == evidence
+    for render in (render_markdown, render_html):
+        text = render(summary)
+        assert 'rate measurement scope: probe_receipt' in text
+        assert 'delivery completeness: unknown' in text
+    html = render_html(summary)
+    assert '<script>unsafe</script>' not in html
+    assert '&lt;script&gt;unsafe&lt;/script&gt;' in html
+    assert '/&lt;script&gt;camera&lt;/script&gt;' in html
+
+
+def test_render_older_report_summary_does_not_invent_source_counts():
+    summary = build_report(make_header(1, 1), [_snapshot(1, 4.0)])
+    for t in summary['topics']:
+        del t['rate_measurement_scope_counts']
+        del t['rate_unmeasured_count']
+    md = render_markdown(summary)
+    assert '| — | — | — | — | — |' in md
+    html = render_html(summary)
+    assert '<td>—</td>' * 5 in html

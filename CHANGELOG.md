@@ -6,6 +6,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ## [Unreleased]
 
+- Retain complete issue evidence and count rate measurement sources in Markdown/HTML recording reports, with explicit unknown delivery completeness in AI briefings.
+
 - Identify live-probe, subscriber-statistics and bag rate measurements in diagnostic evidence without treating unknown delivery completeness as a slow publisher.
 
 ### Added

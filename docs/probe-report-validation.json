@@ -1,0 +1,37 @@
+{
+  "validation": "public camera rate-scope reports and actual stdio MCP",
+  "date_utc": "2026-10-12",
+  "base_head": "d72f7b7c34472313539ae6d875331bbb4b729f6f",
+  "script_sha256": "42240d3e32ddef4dcb242aaa657189e6858bfc258a3d8d2e9cc8bbd7480557f7",
+  "cases": {
+    "bag": {
+      "source": "/workspace/autoware-ar-tag-real-validation/rate-scope-public-bag.rgd.json",
+      "sha256": "62004f12ec75a8353ef5b19465e3a96edd48a8d26a65aa1bfdc410533a12b115",
+      "snapshots": 88,
+      "expected_scope": "bag_recording",
+      "topics_checked": 7,
+      "mcp_raw_snapshot_unchanged": true,
+      "owned_replay_group_reaped": true
+    },
+    "live": {
+      "source": "/workspace/autoware-ar-tag-real-validation/rate-scope-live-replay/0-image/snapshots.json",
+      "sha256": "1949873104d20ee5525a114b938662851d674a0c7fa8fad0ef3f7714a21c9ee1",
+      "snapshots": 11,
+      "expected_scope": "probe_receipt",
+      "topics_checked": 9,
+      "mcp_raw_snapshot_unchanged": true,
+      "owned_replay_group_reaped": true
+    },
+    "legacy": {
+      "source": "/workspace/autoware-ar-tag-real-validation/image-observer-reliable-comparison/0-image/snapshots.json",
+      "sha256": "71d7896169b5cfd0a84955f8216b906c3ee76aee0f5a2777cbf61a1823f4be54",
+      "snapshots": 10,
+      "expected_scope": "unknown",
+      "topics_checked": 9,
+      "mcp_raw_snapshot_unchanged": true,
+      "owned_replay_group_reaped": true
+    }
+  },
+  "cli_markdown_html_match": true,
+  "limits": "Scripted evidence presentation and fidelity; not AI diagnosis accuracy, human time improvement or delivery completeness."
+}
