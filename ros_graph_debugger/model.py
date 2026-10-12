@@ -73,6 +73,10 @@ class TopicInfo:
     probe_callback_delay_p95_ms: Optional[float] = None
     probe_callback_delay_samples: int = 0
     probe_callback_delay_window_samples: int = 0
+    # Signed RMW receipt minus source stamp; host clock synchronization unknown.
+    probe_source_receipt_gap_p95_ms: Optional[float] = None
+    probe_source_receipt_gap_samples: int = 0
+    probe_source_receipt_gap_window_samples: int = 0
 
 
 @dataclass
@@ -212,6 +216,9 @@ class RuntimeGraphStore:
                     new.probe_callback_delay_p95_ms = old.probe_callback_delay_p95_ms
                     new.probe_callback_delay_samples = old.probe_callback_delay_samples
                     new.probe_callback_delay_window_samples = old.probe_callback_delay_window_samples
+                    new.probe_source_receipt_gap_p95_ms = old.probe_source_receipt_gap_p95_ms
+                    new.probe_source_receipt_gap_samples = old.probe_source_receipt_gap_samples
+                    new.probe_source_receipt_gap_window_samples = old.probe_source_receipt_gap_window_samples
                     new.rate_hz = old.rate_hz
                     new.bandwidth_bps = old.bandwidth_bps
                     new.avg_msg_size_bytes = old.avg_msg_size_bytes

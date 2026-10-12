@@ -217,7 +217,7 @@ def test_probe_entry_is_captured_before_header_deserialization(monkeypatch):
         return object()
     fake.create_subscription = subscribe
     DebuggerNode._start_probe(fake, '/pose', 'geometry_msgs/msg/PoseStamped')
-    info = {'received_timestamp': 900_000_000}
+    info = {'received_timestamp': 900_000_000, 'source_timestamp': 898_000_000}
     if probe_executor._NATIVE_MESSAGE_INFO:
         callbacks[0](b'raw', info)
     else:
@@ -225,6 +225,7 @@ def test_probe_entry_is_captured_before_header_deserialization(monkeypatch):
     metrics = fake._probes['/pose'].metrics()
     assert metrics['probe_callback_delay_p95_ms'] == 100  # Excludes 1000 ms decode.
     assert metrics['header_age_ms'] == 1000  # ROS header age is a separate measure.
+    assert metrics['probe_source_receipt_gap_p95_ms'] == 2  # Neither header age nor decode time.
 
 
 def test_store_preserves_probe_wait_across_graph_poll_and_statistics():
@@ -239,3 +240,51 @@ def test_store_preserves_probe_wait_across_graph_poll_and_statistics():
     topic = store.snapshot().to_dict()['topics'][0]
     assert topic['probe_callback_delay_p95_ms'] == 450
     assert topic['probe_callback_delay_samples'] == topic['probe_callback_delay_window_samples'] == 5
+
+
+def test_source_receipt_gap_preserves_signed_clock_differences_and_rate():
+    probe = _TopicProbe(window=3)
+    assert probe.metrics()['probe_source_receipt_gap_p95_ms'] is None
+    for i in range(3):
+        rx = 1_000_000_000 + i * 100_000_000
+        probe.add(10, received_timestamp_ns=rx, callback_timestamp_ns=rx + 400_000_000,
+                  source_timestamp_ns=rx + 20_000_000)  # Remote clock can lead ours.
+    m = probe.metrics()
+    assert m['probe_source_receipt_gap_p95_ms'] == -20
+    assert m['probe_callback_delay_p95_ms'] == 400
+    assert m['rate_hz'] == 10
+    assert m['probe_source_receipt_gap_samples'] == m['probe_source_receipt_gap_window_samples'] == 3
+    for i, gap in enumerate((0, 2, 5)):
+        rx = 2_000_000_000 + i * 100_000_000
+        probe.add(10, received_timestamp_ns=rx, source_timestamp_ns=rx - gap * 1_000_000)
+    assert probe.metrics()['probe_source_receipt_gap_p95_ms'] == 5
+    assert probe.metrics()['probe_callback_delay_p95_ms'] is None
+
+
+@pytest.mark.parametrize('source,received', [(0, 100), (-1, 100), (100, 0), (100, -1)])
+def test_missing_source_or_receipt_makes_whole_gap_window_unknown(source, received):
+    probe = _TopicProbe(window=2)
+    probe.add(1, source_timestamp_ns=100, received_timestamp_ns=100)
+    probe.add(1, source_timestamp_ns=source, received_timestamp_ns=received)
+    m = probe.metrics()
+    assert m['probe_source_receipt_gap_p95_ms'] is None
+    assert m['probe_source_receipt_gap_samples'] == 1
+    assert m['probe_source_receipt_gap_window_samples'] == 2
+    for ns in (200, 300):
+        probe.add(1, source_timestamp_ns=ns, received_timestamp_ns=ns)
+    assert probe.metrics()['probe_source_receipt_gap_p95_ms'] == 0
+
+
+def test_source_receipt_gap_survives_graph_poll_without_fabricating_old_metrics():
+    store = RuntimeGraphStore()
+    def graph():
+        return {}, {'/scan': TopicInfo(name='/scan')}
+    store.set_graph(*graph())
+    assert store.snapshot().to_dict()['topics'][0]['probe_source_receipt_gap_p95_ms'] is None
+    store.update_topic_metrics('/scan', probe_source_receipt_gap_p95_ms=-20,
+                               probe_source_receipt_gap_samples=5, probe_source_receipt_gap_window_samples=5)
+    store.set_graph(*graph())
+    store.set_statistics([])
+    topic = store.snapshot().to_dict()['topics'][0]
+    assert topic['probe_source_receipt_gap_p95_ms'] == -20
+    assert topic['probe_source_receipt_gap_samples'] == topic['probe_source_receipt_gap_window_samples'] == 5

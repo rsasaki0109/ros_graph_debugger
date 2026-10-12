@@ -1,0 +1,128 @@
+{
+  "source_base": "a35859316a04117f9223e97de09233e689432bf9",
+  "date": "2026-10-12 UTC",
+  "clock_synchronization": "unknown in production; controlled scenario on one host",
+  "controlled": {
+    "jazzy": {
+      "received": 30,
+      "source_stamps_inside_publish_calls": true,
+      "held": {
+        "rate_hz": 20.0,
+        "probe_callback_delay_p95_ms": 504.9,
+        "probe_source_receipt_gap_p95_ms": 0.4,
+        "probe_source_receipt_gap_samples": 5,
+        "probe_source_receipt_gap_window_samples": 5
+      },
+      "recovered": {
+        "rate_hz": 20.0,
+        "probe_callback_delay_p95_ms": 0.2,
+        "probe_source_receipt_gap_p95_ms": 0.1,
+        "probe_source_receipt_gap_samples": 5,
+        "probe_source_receipt_gap_window_samples": 5
+      },
+      "groups_reaped": true,
+      "exit_codes": {
+        "receiver": 0,
+        "publisher": 0
+      },
+      "raw_sha256": {
+        "publisher.json": "7419639339b59de3b49d7fce5f8cee177059885b8d818d358d99f726cce4cc01",
+        "receiver.json": "53f6794faaa5636c8524774a2361e7db91e2abf03e036459b2332b4dfc25e476",
+        "warmup-receiver.json": "95d9c448bf814b7491b520e50a87146c3f97cbf77ac2c93851ca222b1d946d57"
+      }
+    },
+    "humble": {
+      "received": 30,
+      "source_stamps_inside_publish_calls": true,
+      "held": {
+        "rate_hz": 20.0,
+        "probe_callback_delay_p95_ms": 503.4,
+        "probe_source_receipt_gap_p95_ms": 0.1,
+        "probe_source_receipt_gap_samples": 5,
+        "probe_source_receipt_gap_window_samples": 5
+      },
+      "recovered": {
+        "rate_hz": 20.0,
+        "probe_callback_delay_p95_ms": 0.2,
+        "probe_source_receipt_gap_p95_ms": 0.1,
+        "probe_source_receipt_gap_samples": 5,
+        "probe_source_receipt_gap_window_samples": 5
+      },
+      "groups_reaped": true,
+      "exit_codes": {
+        "receiver": 0,
+        "publisher": 0
+      },
+      "raw_sha256": {
+        "publisher.json": "0e865679d56a3e44097f13edd2c54f1b5c7c2d1ac27cc348d3fc94e9d6187f17",
+        "receiver.json": "e7f303c59451fd4798b2592edc9fc4373ac5907582bc4420152237ab315b609a",
+        "warmup-receiver.json": "599dcb72b7736ece34618f62fd019a191095d99aea29a3d7abfb08c864855755"
+      }
+    }
+  },
+  "public_image": {
+    "measured_snapshots": 10,
+    "dds_stamp_gap_p95_range_ms": [
+      3.9,
+      4.0
+    ],
+    "probe_wait_p95_range_ms": [
+      13.0,
+      13.0
+    ],
+    "header_age_p95_range_ms": [
+      335.2,
+      356.7
+    ],
+    "independent_reliable_receiver": "70/70 unique ROI frames; agent remains BEST_EFFORT; probe completeness unknown",
+    "groups_reaped": true,
+    "snapshots_sha256": "f284fb3726fed8933ad7012bf10e6b93793a88f6412806e26fe95b11aec38c1f"
+  },
+  "mcp_cases": {
+    "bag": {
+      "source": "/workspace/autoware-ar-tag-real-validation/rate-scope-public-bag.rgd.json",
+      "sha256": "62004f12ec75a8353ef5b19465e3a96edd48a8d26a65aa1bfdc410533a12b115",
+      "snapshots": 88,
+      "expected_scope": "bag_recording",
+      "topics_checked": 7,
+      "mcp_raw_snapshot_unchanged": true,
+      "owned_replay_group_reaped": true
+    },
+    "live": {
+      "source": "/workspace/autoware-ar-tag-real-validation/source-gap-public-image/0-image/snapshots.json",
+      "sha256": "f284fb3726fed8933ad7012bf10e6b93793a88f6412806e26fe95b11aec38c1f",
+      "snapshots": 10,
+      "expected_scope": "probe_receipt",
+      "topics_checked": 9,
+      "mcp_raw_snapshot_unchanged": true,
+      "owned_replay_group_reaped": true
+    },
+    "legacy": {
+      "source": "/workspace/autoware-ar-tag-real-validation/image-observer-reliable-comparison/0-image/snapshots.json",
+      "sha256": "71d7896169b5cfd0a84955f8216b906c3ee76aee0f5a2777cbf61a1823f4be54",
+      "snapshots": 10,
+      "expected_scope": "unknown",
+      "topics_checked": 9,
+      "mcp_raw_snapshot_unchanged": true,
+      "owned_replay_group_reaped": true
+    }
+  },
+  "initial_failure": {
+    "distro": "humble",
+    "seq": 0,
+    "source_to_receipt_ms": 122.875007,
+    "remaining_gap_range_ms": [
+      0.058148,
+      0.115916
+    ],
+    "groups_reaped": true,
+    "resolution": "condition-polled actual DDS warmup receipt before all 30 numbered messages; original gates retained"
+  },
+  "implementation_sha256": {
+    "ros_graph_debugger/node.py": "cdda272dee78c61dcdea12e8ab8a3eff823193606d23fd10fadbeeb36b071c3d",
+    "ros_graph_debugger/model.py": "373eed67a4fe9bdc2ed31379a68316d28219ba14327ff5280b32b7dbb7dbf46f",
+    "ros_graph_debugger/analysis.py": "cd6d1a58630a000e59e5d4a22b1b095da30334c5d7a47c51b60880c77acd5af7",
+    "ros_graph_debugger/markdown.py": "29d2d4c4d6084ca35bbe384d46f5d2f8f2302dfce56cf66c53d684bf619855e1",
+    "test/integration/run_probe_delay_scenario.py": "98b462122362b17b53a9ac4f8c09c1df46b3ac8e73f6fc2962efdf3d42981856"
+  }
+}

@@ -236,3 +236,5 @@ Keep PRs focused, describe the user-facing change, and make sure
 For interpreting low-rate failures, see [rate measurement and delivery evidence](docs/probe-reception-evidence.md).
 
 The integration job also checks [probe receipt-to-callback gaps](docs/probe-reception-evidence.md#probe-receipt-to-callback-gap) with an independent publisher, a condition-controlled observer stall and uninitialized simulation time.
+
+The same scenario checks [DDS source-to-receipt timestamp differences](docs/probe-reception-evidence.md#dds-source-to-receipt-timestamp-difference) against each publisher call on the shared host clock, retaining every sequence and checking raw-pair p95 coverage. Remote clock synchronization remains unknown; these differences add no rate or latency budget.

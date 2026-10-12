@@ -117,7 +117,9 @@ pattern.
                 "rate_hz", "bandwidth_bps", "p95_msg_size_bytes",
                 "header_age_p95_ms", "rate_source", "rate_measurement_scope",
                 "probe_callback_delay_p95_ms", "probe_callback_delay_samples",
-                "probe_callback_delay_window_samples", "qos_status", "status" }],
+                "probe_callback_delay_window_samples",
+                "probe_source_receipt_gap_p95_ms", "probe_source_receipt_gap_samples",
+                "probe_source_receipt_gap_window_samples", "qos_status", "status" }],
   "edges":   [{ "from_node", "to_node", "topic", "status" }],
   "tf_edges":[{ "parent", "child", "age_ms", "status" }],
   "callbacks":[{ "node", "callback", "topic", "count",
@@ -179,3 +181,15 @@ and executor waiting, and excludes the probe callback body. It is independent
 of ROS/simulation time, affected by system clock adjustments, and does not
 measure publisher callback time or certify delivery. See
 [probe reception evidence](probe-reception-evidence.md).
+
+`probe_source_receipt_gap_p95_ms` is the p95 of the signed middleware receive
+timestamp minus its source timestamp, in milliseconds. The associated
+`probe_source_receipt_gap_samples` and `probe_source_receipt_gap_window_samples`
+count usable pairs and receipts in the same bounded probe window. The p95 is
+`null` for an empty window or any missing/nonpositive timestamp. Negative and
+zero differences are valid observations. Source and receive clocks may belong
+to different hosts: clock synchronization is unknown, and clock skew or clock
+adjustments can affect either sign. This measures neither network latency nor
+publisher callback execution. No delay threshold or health rule is added.
+Older recordings, bag analysis and subscriber statistics do not supply this
+probe measurement. Both probe gap measurements survive graph polling.
