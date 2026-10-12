@@ -105,7 +105,7 @@ def test_cli_and_html_reports_explain_basis_without_changing_issues(tmp_path, ca
             assert 'Unknown: this recording does not identify the header-age clock.' in text
     assert summary['issue_catalog'] == [] and FRAME['issues'] == []
     if selected == 'ros':
-        assert 'Clock messages used: 9; unreadable: 1.' in md
+        assert 'Clock messages: 9; unreadable: 1.' in md
 
 
 def test_malformed_provenance_is_unknown_without_interpreting_header_markup():
@@ -121,7 +121,7 @@ def test_missing_clock_counts_remain_unknown():
     h = header()
     h['header_age_clock'] = {'selected': 'ros'}
     md = render_markdown(build_report(h, [FRAME]))
-    assert 'requested mode: unknown' in md and 'Clock messages used: unknown; unreadable: unknown.' in md
+    assert 'requested mode: unknown' in md and 'Clock messages: unknown; unreadable: unknown.' in md
 
 
 @pytest.mark.parametrize('h', [header(), None])

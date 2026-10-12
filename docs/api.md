@@ -66,7 +66,9 @@ For a bag analysis this includes, for example:
 `selected: "ros"` means header ages use recorded ROS clock values; `"bag"`
 means bag receive time. Arrival windows and receipt freshness still use bag
 receive time. The message counts cover the analysis of the entire recording,
-not the current replay frame. Seeking or pausing does not change provenance.
+not the current replay frame; `clock_messages` includes the unreadable messages
+counted separately by `unreadable_clock_messages`. Seeking or pausing does not
+change provenance.
 This endpoint exposes the original header, preserving extension fields.
 
 Old and headerless recordings may lack `header_age_clock`; that means **unknown**,

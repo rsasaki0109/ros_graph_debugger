@@ -34,7 +34,7 @@ def header_age_clock_note(header: dict) -> str:
         def count(key):
             value = clock.get(key)
             return value if type(value) is int and value >= 0 else 'unknown'
-        note += (f' Clock messages used: {count("clock_messages")}; '
+        note += (f' Clock messages: {count("clock_messages")}; '
                  f'unreadable: {count("unreadable_clock_messages")}.')
     return note + ' Arrival windows and receipt freshness use bag receive time.'
 
