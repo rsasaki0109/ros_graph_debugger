@@ -47,6 +47,17 @@ jobs:
           source install/setup.bash
           dpkg-query -W ros-${{ matrix.ros_distro }}-nav2-map-server
           python3 test/integration/run_nav2_scenario.py --output nav2-artifacts
+      - name: Show failed Nav2 child process logs
+        if: failure()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for path in sorted(Path('nav2-artifacts').glob('*.log')):
+              print(f'::group::{path.name}', flush=True)
+              print('\n'.join(path.read_text(errors='replace').splitlines()[-100:]), flush=True)
+              print('::endgroup::', flush=True)
+          PY
       - name: Save Nav2 recovery diagnostics
         if: always()
         uses: actions/upload-artifact@v4
