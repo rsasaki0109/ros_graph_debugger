@@ -95,6 +95,7 @@ jobs:
           colcon build --packages-select ros_graph_debugger --executor sequential
           source install/setup.bash
           python3 test/integration/run_scenario.py --output integration-artifacts
+          python3 test/integration/run_clock_scenario.py --output integration-artifacts/clock
       - name: Save integration diagnostics
         if: always()
         uses: actions/upload-artifact@v4

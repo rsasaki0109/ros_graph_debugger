@@ -15,6 +15,7 @@ import time
 from collections import deque
 
 import rclpy
+from rclpy.clock import Clock, ClockType
 from rclpy.node import Node
 from rclpy.qos import (
     DurabilityPolicy,
@@ -133,6 +134,9 @@ class DebuggerNode(Node):
                  lifecycle: bool = True,
                  processing_time_patterns: list[str] | None = None) -> None:
         super().__init__('ros_graph_debugger')
+        # Observer work must continue before /clock starts and while replay is
+        # paused. Only header-stamp age follows the publishers' ROS clock.
+        self._collector_clock = Clock(clock_type=ClockType.STEADY_TIME)
         self.store = store
         self.probe_cfg = probe
         self.thresholds = thresholds
@@ -187,12 +191,12 @@ class DebuggerNode(Node):
         self._lc_pending: dict[str, tuple[object, float]] = {}
         self._lc_states: dict[str, str] = {}
         if lifecycle:
-            self.create_timer(2.0, self._poll_lifecycle)
+            self.create_timer(2.0, self._poll_lifecycle, clock=self._collector_clock)
 
         # Periodic work.
-        self.create_timer(1.0, self._poll_graph)
-        self.create_timer(2.0, self._poll_processes)
-        self.create_timer(1.0, self._refresh_metrics_and_analyze)
+        self.create_timer(1.0, self._poll_graph, clock=self._collector_clock)
+        self.create_timer(2.0, self._poll_processes, clock=self._collector_clock)
+        self.create_timer(1.0, self._refresh_metrics_and_analyze, clock=self._collector_clock)
 
         self.get_logger().info('ros_graph_debugger node started')
 
@@ -329,7 +333,11 @@ class DebuggerNode(Node):
                 try:
                     from rclpy.serialization import deserialize_message
                     msg = deserialize_message(bytes(raw), _mt)
-                    age = header_stamp_age_ms(msg, time.time())
+                    now = self.get_clock().now().nanoseconds * 1e-9
+                    # Header stamps follow ROS time. The simulation clock can
+                    # still be unset before the first /clock message arrives.
+                    if now > 0:
+                        age = header_stamp_age_ms(msg, now)
                     _probe.has_header = hasattr(msg, 'header')
                 except Exception:
                     _probe.has_header = False
