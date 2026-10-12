@@ -374,7 +374,12 @@ def _rate_scope_evidence(topic) -> list[str]:
     scope = topic.rate_measurement_scope
     if scope not in ('probe_receipt', 'bag_recording', 'subscriber_statistics'):
         return ['rate measurement scope: unknown', 'delivery completeness: unknown']
-    return [f'rate measurement scope: {scope}', 'delivery completeness: unknown']
+    evidence = [f'rate measurement scope: {scope}', 'delivery completeness: unknown']
+    if scope == 'probe_receipt' and topic.probe_callback_delay_p95_ms is not None:
+        evidence.append(f'probe receive-to-callback p95: {topic.probe_callback_delay_p95_ms:.1f} ms '
+                        f'(system timestamps; {topic.probe_callback_delay_samples}/'
+                        f'{topic.probe_callback_delay_window_samples} samples)')
+    return evidence
 
 
 def _qos_evidence(topic) -> list[str]:

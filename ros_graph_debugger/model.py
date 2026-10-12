@@ -69,6 +69,10 @@ class TopicInfo:
     status: str = UNKNOWN  # ok | warning | critical | unknown
     # Where samples were observed; this does not establish delivery completeness.
     rate_measurement_scope: Optional[str] = None
+    # Local system-clock gap from middleware receipt to Python probe entry.
+    probe_callback_delay_p95_ms: Optional[float] = None
+    probe_callback_delay_samples: int = 0
+    probe_callback_delay_window_samples: int = 0
 
 
 @dataclass
@@ -205,6 +209,9 @@ class RuntimeGraphStore:
                     new.probed = old.probed
                     new.rate_source = old.rate_source
                     new.rate_measurement_scope = old.rate_measurement_scope
+                    new.probe_callback_delay_p95_ms = old.probe_callback_delay_p95_ms
+                    new.probe_callback_delay_samples = old.probe_callback_delay_samples
+                    new.probe_callback_delay_window_samples = old.probe_callback_delay_window_samples
                     new.rate_hz = old.rate_hz
                     new.bandwidth_bps = old.bandwidth_bps
                     new.avg_msg_size_bytes = old.avg_msg_size_bytes

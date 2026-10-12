@@ -160,3 +160,19 @@ def test_rate_evidence_keeps_failure_without_claiming_publisher_slowdown(scope):
     # Identical minimum-rate contract: healthy observations still pass.
     store.update_topic_metrics('/output', rate_hz=12.5, rate_measurement_scope=scope)
     assert not {'rate_drop', 'bottleneck'} & _kinds(analyze(store, threshold))
+
+
+def test_callback_wait_is_probe_evidence_without_changing_rate_verdict():
+    store = RuntimeGraphStore()
+    store.set_graph({}, {'/output': TopicInfo(name='/output')})
+    store.update_topic_metrics('/output', rate_hz=4, rate_measurement_scope='probe_receipt',
+                               probe_callback_delay_p95_ms=450,
+                               probe_callback_delay_samples=5, probe_callback_delay_window_samples=5)
+    threshold = Thr(expected_min_rate={'/output': 10})
+    issue = next(i for i in analyze(store, threshold) if i.kind == 'rate_drop')
+    assert issue.severity == 'warning'
+    assert 'probe receive-to-callback p95: 450.0 ms (system timestamps; 5/5 samples)' in issue.evidence
+    assert 'delivery completeness: unknown' in issue.evidence
+    store.update_topic_metrics('/output', rate_measurement_scope='bag_recording')
+    issue = next(i for i in analyze(store, threshold) if i.kind == 'rate_drop')
+    assert not any(e.startswith('probe receive-to-callback') for e in issue.evidence)

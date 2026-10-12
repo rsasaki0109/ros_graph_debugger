@@ -6,6 +6,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ## [Unreleased]
 
+- Measure live probe receive-to-callback system-time gaps with explicit unknown coverage, and validate condition-controlled observer backlog in Humble/Jazzy integration.
+
 - Retain complete issue evidence and count rate measurement sources in Markdown/HTML recording reports, with explicit unknown delivery completeness in AI briefings.
 
 - Identify live-probe, subscriber-statistics and bag rate measurements in diagnostic evidence without treating unknown delivery completeness as a slow publisher.
