@@ -1,0 +1,393 @@
+{
+  "date_jst": "2026-10-12",
+  "before_commit": "2613e804cae597329736cbafaa6bf2ca51c2e683",
+  "after_base_commit": "2613e804cae597329736cbafaa6bf2ca51c2e683",
+  "after_source_sha256": {
+    "agent.py": "24a400d97a454d9d7eaf1be9dd7d07707cbb1c58f6e7a46455519b4db1ff8474",
+    "node.py": "c96fa1297ab4700a12588c44707b9535dde4716af5b75a92ca5057522be3e885",
+    "probe_executor.py": "ad9829fb001b2e6d3532d08057b823e3a80d1ddebaaf7956ebfe056c7180c796"
+  },
+  "source_archive": {
+    "source_page": "https://drive.google.com/file/d/1iCoykBBETI_rGfKEFYYb7LFydF-RJVkC/view",
+    "file_id": "1iCoykBBETI_rGfKEFYYb7LFydF-RJVkC",
+    "size_bytes": 3279004339,
+    "local_sha256": "7f2cb72d21e331d4a911a2f44184fc4fd112ec535b26e12559be96fa24479d68",
+    "upstream_checksum_available": false,
+    "https_and_metadata_size_matched": true
+  },
+  "measurement_seconds": [
+    10,
+    20
+  ],
+  "repetitions": 3,
+  "rmw": "rmw_fastrtps_cpp",
+  "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "source_interval": {
+    "/localization/kinematic_state": {
+      "messages": 500,
+      "serialized_bytes": 358000
+    },
+    "/sensing/lidar/concatenated/pointcloud": {
+      "messages": 100,
+      "serialized_bytes": 318485572
+    },
+    "/tf": {
+      "messages": 650,
+      "serialized_bytes": 65000
+    },
+    "/tf_static": {
+      "messages": 0,
+      "serialized_bytes": 0
+    }
+  },
+  "sdk_local_image_id": "sha256:150c0c12dba9db3b26533e3b98d4a4132453077681ef214d0ac0a0c2ea75749f",
+  "runs": {
+    "before": [
+      {
+        "mode": "baseline",
+        "agent_cpu_percent_one_core": [],
+        "agent_rss_mib": [],
+        "player_cpu_percent_one_core": [
+          7.346843876413034,
+          3.9003467221017414,
+          3.820437572147986
+        ],
+        "receiver_cpu_percent_one_core": [
+          8.736787312491177,
+          5.600497857376859,
+          5.42904286568398
+        ],
+        "receiver_rate_hz": [
+          50.001721592341696,
+          50.00199813094956,
+          50.00181960529501
+        ],
+        "receiver_p95_age_ms": [
+          0,
+          0,
+          0
+        ],
+        "receiver_missing_source_messages": [
+          0,
+          0,
+          0
+        ],
+        "receiver_contract_failures": 0,
+        "agent_contract_observations": 0,
+        "agent_contract_breaches": 0,
+        "agent_min_rate_hz": null,
+        "agent_max_p95_age_ms": null,
+        "breach_evidence": []
+      },
+      {
+        "mode": "no_probe",
+        "agent_cpu_percent_one_core": [
+          91.30610265180444,
+          90.8731702065002,
+          88.50698429371668
+        ],
+        "agent_rss_mib": [
+          128.53125,
+          126.4765625,
+          127.328125
+        ],
+        "player_cpu_percent_one_core": [
+          8.86177005017513,
+          6.490940729035727,
+          4.480106066611081
+        ],
+        "receiver_cpu_percent_one_core": [
+          10.554467700208585,
+          8.58801388764727,
+          7.367285531760443
+        ],
+        "receiver_rate_hz": [
+          50.00219781704463,
+          50.002200577808516,
+          50.00193883770397
+        ],
+        "receiver_p95_age_ms": [
+          0,
+          0,
+          0
+        ],
+        "receiver_missing_source_messages": [
+          0,
+          0,
+          0
+        ],
+        "receiver_contract_failures": 0,
+        "agent_contract_observations": 0,
+        "agent_contract_breaches": 0,
+        "agent_min_rate_hz": null,
+        "agent_max_p95_age_ms": null,
+        "breach_evidence": []
+      },
+      {
+        "mode": "odom",
+        "agent_cpu_percent_one_core": [
+          93.44994132863924,
+          93.95004839001669,
+          93.73982046948674
+        ],
+        "agent_rss_mib": [
+          128.1640625,
+          127.78515625,
+          128.48046875
+        ],
+        "player_cpu_percent_one_core": [
+          8.350845820857126,
+          5.532390429818971,
+          4.397177079592129
+        ],
+        "receiver_cpu_percent_one_core": [
+          15.806958160908128,
+          6.940635266500163,
+          6.695701462106195
+        ],
+        "receiver_rate_hz": [
+          50.00008905326482,
+          50.00165335627314,
+          50.001764541227836
+        ],
+        "receiver_p95_age_ms": [
+          0,
+          0,
+          0
+        ],
+        "receiver_missing_source_messages": [
+          0,
+          0,
+          0
+        ],
+        "receiver_contract_failures": 0,
+        "agent_contract_observations": 30,
+        "agent_contract_breaches": 0,
+        "agent_min_rate_hz": 34.5,
+        "agent_max_p95_age_ms": 95.6,
+        "breach_evidence": []
+      },
+      {
+        "mode": "cloud",
+        "agent_cpu_percent_one_core": [
+          94.30128803169718,
+          95.94095567825451,
+          93.84714785181316
+        ],
+        "agent_rss_mib": [
+          134.80078125,
+          140.0078125,
+          149.265625
+        ],
+        "player_cpu_percent_one_core": [
+          10.355045487489136,
+          5.318902354547584,
+          5.075508526450128
+        ],
+        "receiver_cpu_percent_one_core": [
+          10.95825202074093,
+          6.723895429333737,
+          6.568305151876635
+        ],
+        "receiver_rate_hz": [
+          49.91071289163978,
+          50.00144398959671,
+          50.00194212453222
+        ],
+        "receiver_p95_age_ms": [
+          0,
+          0,
+          0
+        ],
+        "receiver_missing_source_messages": [
+          1,
+          0,
+          0
+        ],
+        "receiver_contract_failures": 1,
+        "agent_contract_observations": 30,
+        "agent_contract_breaches": 0,
+        "agent_min_rate_hz": 38.28,
+        "agent_max_p95_age_ms": 85.9,
+        "breach_evidence": []
+      }
+    ],
+    "after": [
+      {
+        "mode": "baseline",
+        "agent_cpu_percent_one_core": [],
+        "agent_rss_mib": [],
+        "player_cpu_percent_one_core": [
+          5.6706155924361825,
+          5.692397189343972,
+          8.542462449491863
+        ],
+        "receiver_cpu_percent_one_core": [
+          7.461336305837084,
+          10.685728057189564,
+          7.637966425428017
+        ],
+        "receiver_rate_hz": [
+          50.00180542591034,
+          49.990003001203426,
+          50.00194970528256
+        ],
+        "receiver_p95_age_ms": [
+          0,
+          0,
+          0
+        ],
+        "receiver_missing_source_messages": [
+          0,
+          0,
+          0
+        ],
+        "receiver_contract_failures": 0,
+        "agent_contract_observations": 0,
+        "agent_contract_breaches": 0,
+        "agent_min_rate_hz": null,
+        "agent_max_p95_age_ms": null,
+        "breach_evidence": []
+      },
+      {
+        "mode": "no_probe",
+        "agent_cpu_percent_one_core": [
+          7.9195936533634645,
+          7.712126962577247,
+          11.303611870230066
+        ],
+        "agent_rss_mib": [
+          127.5859375,
+          126.54296875,
+          126.484375
+        ],
+        "player_cpu_percent_one_core": [
+          5.444720636687384,
+          5.108032144044671,
+          7.402365295548892
+        ],
+        "receiver_cpu_percent_one_core": [
+          5.34572571602034,
+          6.2097645672699935,
+          8.702780820442618
+        ],
+        "receiver_rate_hz": [
+          50.00189600375761,
+          50.00206416837864,
+          49.9988600310012
+        ],
+        "receiver_p95_age_ms": [
+          0,
+          0,
+          0
+        ],
+        "receiver_missing_source_messages": [
+          0,
+          0,
+          0
+        ],
+        "receiver_contract_failures": 0,
+        "agent_contract_observations": 0,
+        "agent_contract_breaches": 0,
+        "agent_min_rate_hz": null,
+        "agent_max_p95_age_ms": null,
+        "breach_evidence": []
+      },
+      {
+        "mode": "odom",
+        "agent_cpu_percent_one_core": [
+          11.812576376029996,
+          8.823608695359377,
+          13.502358452114798
+        ],
+        "agent_rss_mib": [
+          127.48828125,
+          127.41015625,
+          127.84375
+        ],
+        "player_cpu_percent_one_core": [
+          5.2500339449022215,
+          4.75880019525,
+          7.053470833194296
+        ],
+        "receiver_cpu_percent_one_core": [
+          7.168315578616494,
+          5.651075231859372,
+          9.169512083152586
+        ],
+        "receiver_rate_hz": [
+          50.00179960885769,
+          50.00177898112889,
+          49.99959223278443
+        ],
+        "receiver_p95_age_ms": [
+          0,
+          0,
+          0
+        ],
+        "receiver_missing_source_messages": [
+          0,
+          0,
+          0
+        ],
+        "receiver_contract_failures": 0,
+        "agent_contract_observations": 30,
+        "agent_contract_breaches": 0,
+        "agent_min_rate_hz": 49.94,
+        "agent_max_p95_age_ms": 0.0,
+        "breach_evidence": []
+      },
+      {
+        "mode": "cloud",
+        "agent_cpu_percent_one_core": [
+          15.156167940480241,
+          19.010756033495134,
+          19.179113837152613
+        ],
+        "agent_rss_mib": [
+          134.39453125,
+          136.15625,
+          136.87109375
+        ],
+        "player_cpu_percent_one_core": [
+          5.250175822519299,
+          7.644536817701747,
+          7.612328687942018
+        ],
+        "receiver_cpu_percent_one_core": [
+          5.844535349596955,
+          10.360359108201049,
+          7.118021630283446
+        ],
+        "receiver_rate_hz": [
+          50.001737410069175,
+          49.97479178863539,
+          50.0020461658968
+        ],
+        "receiver_p95_age_ms": [
+          0,
+          0,
+          0
+        ],
+        "receiver_missing_source_messages": [
+          0,
+          0,
+          0
+        ],
+        "receiver_contract_failures": 0,
+        "agent_contract_observations": 30,
+        "agent_contract_breaches": 0,
+        "agent_min_rate_hz": 49.73,
+        "agent_max_p95_age_ms": 12.8,
+        "breach_evidence": []
+      }
+    ]
+  }
+}

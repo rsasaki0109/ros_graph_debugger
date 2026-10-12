@@ -51,6 +51,7 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
   profile → thresholds merge is shared as `profile.apply_profile()`.
 
 ### Fixed
+- **Observer executor overhead** — dispatch collectors directly on their spin thread, avoiding worker-pool contention and observer-induced rate drops during high-frequency clock/TF replay while retaining Humble receive timestamps.
 - **Simulation-clock message age** — agent accepts standard ROS arguments and measures header age on its ROS clock, preventing old bag stamps from becoming false `stale_data` during `/clock` replay; collector timers continue before or during paused `/clock`, while arrival-rate and receipt-freshness clocks stay in real time.
 - **Live probe rate** — use middleware receive timestamps rather than delayed Python callback execution times, preserving raw message information on Humble and native callbacks on Jazzy; invalid timestamps fall back to a complete monotonic window without mixing clocks.
 - **Healthy demo contrast** — target 12.5 Hz for the detector while retaining the minimum 10 Hz contract and the original slow/toggle cadence, so nominal timer jitter does not invalidate the healthy fixture.
