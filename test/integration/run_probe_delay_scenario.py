@@ -12,6 +12,7 @@ os.environ.setdefault('ROS_DOMAIN_ID','97')
 if a.role:
  import rclpy
  from rclpy.node import Node
+ from rclpy.executors import ExternalShutdownException
  from rclpy.parameter import Parameter
  from rclpy.qos import QoSProfile,ReliabilityPolicy
  from rclpy.serialization import deserialize_message
@@ -53,8 +54,11 @@ if a.role:
   deadline=time.monotonic()+12
   while time.monotonic()<deadline:ex.spin_once(timeout_sec=0.02)
   raise TimeoutError('parent did not finish before child budget')
+ except (KeyboardInterrupt,ExternalShutdownException):
+  pass
  finally:
-  ex.shutdown();node.destroy_node();rclpy.shutdown()
+  ex.shutdown();node.destroy_node()
+  if rclpy.ok():rclpy.shutdown()
 else:
  a.output.mkdir(exist_ok=False)
  p=Processes(a.output)
@@ -89,3 +93,8 @@ else:
    else:reaped[name]=False
   (a.output/'cleanup.json').write_text(json.dumps(reaped))
   assert all(reaped.values()),reaped
+
+if not a.role:
+ codes={name:child.returncode for name,child in p.children}
+ (a.output/'exit-codes.json').write_text(json.dumps(codes))
+ assert all(code==0 for code in codes.values()),codes

@@ -11,24 +11,32 @@
     "humble": {
       "received": 30,
       "rmw": "rmw_fastrtps_cpp",
-      "held_p95_ms": 501.2,
-      "recovered_p95_ms": 1.7,
+      "held_p95_ms": 501.0,
+      "recovered_p95_ms": 0.2,
       "rate_hz": 20.0,
       "ros_clock_uninitialized": true,
       "groups_reaped": true,
-      "receiver_sha256": "b11ce80736f94d1a660e5810384934dcbe85eb145145334e72ca2a14d9bd5b76",
-      "publisher_sha256": "053eb0ae54c5aea9d4ca83b673b437a06151937f0fda4a992037062f8b5e3a4e"
+      "receiver_sha256": "b4bf785886c490480bbd1ea2f7a6cf18bb74ceccf62815a09ac6bba3a89a82ab",
+      "publisher_sha256": "920c6acfb102466ff18fab20af688e65cdbc2b2f4a22769ae512787700110a8c",
+      "exit_codes": {
+        "receiver": 0,
+        "publisher": 0
+      }
     },
     "jazzy": {
       "received": 30,
       "rmw": "rmw_fastrtps_cpp",
       "held_p95_ms": 501.3,
-      "recovered_p95_ms": 0.6,
+      "recovered_p95_ms": 0.2,
       "rate_hz": 20.0,
       "ros_clock_uninitialized": true,
       "groups_reaped": true,
-      "receiver_sha256": "76f191cbfc003426ad66b6e13e98c5e337344acb1a2dc74dbe15c6750629ee81",
-      "publisher_sha256": "72f7224338b63c6a2b8f70084f1d11418a4259ca227c98e316cf4038b411f69c"
+      "receiver_sha256": "ed763b0f9d721d1c34898287d43e8f8010122d7387a27fe0d13892ed59eab1ec",
+      "publisher_sha256": "15c3a772153743eea7d912002e6fa19146c2773ab2842f38f3baea256a124a36",
+      "exit_codes": {
+        "receiver": 0,
+        "publisher": 0
+      }
     }
   },
   "source_base": "fcb0b4179d12b482eb766325329ce4aed237d7d7",
