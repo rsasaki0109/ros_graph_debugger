@@ -64,10 +64,13 @@ CI includes them in `integration-humble` / `integration-jazzy` artifacts.
 Readiness is polled, and child process groups are stopped on completion/failure.
 
 For a separate public-bag observer-cost comparison, see
-[the benchmark protocol and reproduction steps](docs/observer-cost.md). It
-records agent/player/receiver CPU and RSS and checks delivery and the unchanged
-30 Hz / 100 ms contract. This optional data-heavy experiment is separate from
-the mandatory Humble/Jazzy integration tests.
+[the benchmark protocol and reproduction steps](docs/observer-cost.md). That
+experiment records agent/player/receiver CPU and RSS and checks delivery and
+the unchanged 30 Hz / 100 ms contract. The separate
+[public camera/recorded-clock comparison](docs/observer-image-cost.md) uses an
+exact source-frame delivery gate with explicit QoS conditions. These optional
+data-heavy experiments are separate from the mandatory Humble/Jazzy integration
+tests.
 
 The same integration job checks process CPU sampling against a separate real
 ROS worker:
