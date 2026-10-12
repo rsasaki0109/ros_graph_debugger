@@ -234,3 +234,5 @@ Keep PRs focused, describe the user-facing change, and make sure
 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 For interpreting low-rate failures, see [rate measurement and delivery evidence](docs/probe-reception-evidence.md).
+
+The integration job also checks [probe receipt-to-callback gaps](docs/probe-reception-evidence.md#probe-receipt-to-callback-gap) with an independent publisher, a condition-controlled observer stall and uninitialized simulation time.

@@ -1,0 +1,73 @@
+{
+  "public_image": {
+    "measured_snapshots": 10,
+    "probe_gap_p95_range_ms": [
+      10.7,
+      13.7
+    ],
+    "source_delivery_control": "independent reliable receiver 70/70; agent probe delivery unknown"
+  },
+  "controlled": {
+    "humble": {
+      "received": 30,
+      "rmw": "rmw_fastrtps_cpp",
+      "held_p95_ms": 501.0,
+      "recovered_p95_ms": 0.2,
+      "rate_hz": 20.0,
+      "ros_clock_uninitialized": true,
+      "groups_reaped": true,
+      "receiver_sha256": "b4bf785886c490480bbd1ea2f7a6cf18bb74ceccf62815a09ac6bba3a89a82ab",
+      "publisher_sha256": "920c6acfb102466ff18fab20af688e65cdbc2b2f4a22769ae512787700110a8c",
+      "exit_codes": {
+        "receiver": 0,
+        "publisher": 0
+      }
+    },
+    "jazzy": {
+      "received": 30,
+      "rmw": "rmw_fastrtps_cpp",
+      "held_p95_ms": 501.3,
+      "recovered_p95_ms": 0.2,
+      "rate_hz": 20.0,
+      "ros_clock_uninitialized": true,
+      "groups_reaped": true,
+      "receiver_sha256": "ed763b0f9d721d1c34898287d43e8f8010122d7387a27fe0d13892ed59eab1ec",
+      "publisher_sha256": "15c3a772153743eea7d912002e6fa19146c2773ab2842f38f3baea256a124a36",
+      "exit_codes": {
+        "receiver": 0,
+        "publisher": 0
+      }
+    }
+  },
+  "source_base": "fcb0b4179d12b482eb766325329ce4aed237d7d7",
+  "date": "2026-10-12 JST",
+  "mcp_cases": {
+    "bag": {
+      "source": "/workspace/autoware-ar-tag-real-validation/rate-scope-public-bag.rgd.json",
+      "sha256": "62004f12ec75a8353ef5b19465e3a96edd48a8d26a65aa1bfdc410533a12b115",
+      "snapshots": 88,
+      "expected_scope": "bag_recording",
+      "topics_checked": 7,
+      "mcp_raw_snapshot_unchanged": true,
+      "owned_replay_group_reaped": true
+    },
+    "live": {
+      "source": "/workspace/autoware-ar-tag-real-validation/probe-delay-public-image/0-image/snapshots.json",
+      "sha256": "76bd2d9f3798c3f2b989265a94dc625b08d958c4dadea7f84e76a300f447cb72",
+      "snapshots": 10,
+      "expected_scope": "probe_receipt",
+      "topics_checked": 9,
+      "mcp_raw_snapshot_unchanged": true,
+      "owned_replay_group_reaped": true
+    },
+    "legacy": {
+      "source": "/workspace/autoware-ar-tag-real-validation/image-observer-reliable-comparison/0-image/snapshots.json",
+      "sha256": "71d7896169b5cfd0a84955f8216b906c3ee76aee0f5a2777cbf61a1823f4be54",
+      "snapshots": 10,
+      "expected_scope": "unknown",
+      "topics_checked": 9,
+      "mcp_raw_snapshot_unchanged": true,
+      "owned_replay_group_reaped": true
+    }
+  }
+}

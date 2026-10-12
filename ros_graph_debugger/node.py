@@ -76,6 +76,7 @@ class _TopicProbe:
     def __init__(self, window: int) -> None:
         self.stamps: deque[float] = deque(maxlen=window)
         self.received_stamps: deque[int] = deque(maxlen=window)
+        self.callback_delays: deque[float | None] = deque(maxlen=window)
         self.sizes: deque[int] = deque(maxlen=window)
         self.ages: deque[float] = deque(maxlen=window)  # header.stamp ages (ms)
         self.last_seen_time: float | None = None
@@ -83,11 +84,16 @@ class _TopicProbe:
         self.has_header = None
 
     def add(self, size: int, age_ms: float | None = None,
-            received_timestamp_ns: int = 0) -> None:
+            received_timestamp_ns: int = 0, callback_timestamp_ns: int = 0) -> None:
         # Polling metrics must not refresh an inactive publisher's last receipt.
         self.last_seen_time = time.time()
         self.stamps.append(time.monotonic())
         self.received_stamps.append(received_timestamp_ns)
+        delay = None
+        if received_timestamp_ns > 0 and callback_timestamp_ns >= received_timestamp_ns:
+            delay = (callback_timestamp_ns - received_timestamp_ns) / 1e6
+        # Keep missing/future stamps in the window; never turn them into zero wait.
+        self.callback_delays.append(delay)
         self.sizes.append(size)
         if age_ms is not None:
             self.ages.append(age_ms)
@@ -112,6 +118,10 @@ class _TopicProbe:
         return {
             'rate_hz': round(rate, 2) if rate is not None else None,
             'rate_measurement_scope': 'probe_receipt',
+            'probe_callback_delay_p95_ms': _percentile(self.callback_delays, 95)
+            if self.callback_delays and all(d is not None for d in self.callback_delays) else None,
+            'probe_callback_delay_samples': sum(d is not None for d in self.callback_delays),
+            'probe_callback_delay_window_samples': len(self.callback_delays),
             'avg_msg_size_bytes': round(avg, 1) if avg is not None else None,
             'p95_msg_size_bytes': _percentile(self.sizes, 95),
             'bandwidth_bps': round(bw, 1) if bw is not None else None,
@@ -324,6 +334,7 @@ class DebuggerNode(Node):
         self._probes[name] = probe
 
         def _cb(raw: bytes, info, _probe=probe, _mt=msg_type) -> None:
+            callback_timestamp_ns = time.time_ns()
             try:
                 size = len(raw) if isinstance(raw, (bytes, bytearray)) \
                     else len(bytes(raw))
@@ -345,7 +356,8 @@ class DebuggerNode(Node):
                 except Exception:
                     _probe.has_header = False
             received = (info or {}).get('received_timestamp', 0) or 0
-            _probe.add(size, age, received_timestamp_ns=received)
+            _probe.add(size, age, received_timestamp_ns=received,
+                       callback_timestamp_ns=callback_timestamp_ns)
 
         try:
             sub = self.create_subscription(

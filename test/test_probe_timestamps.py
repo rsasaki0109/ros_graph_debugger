@@ -162,3 +162,80 @@ def test_collector_callback_completes_on_the_spin_thread(executor):
     finally:
         executor.remove_node(node)
         node.destroy_node()
+
+
+def test_probe_callback_delay_tracks_wait_and_recovers_after_window_replacement():
+    probe = _TopicProbe(window=3)
+    base = 1_700_000_000_000_000_000
+    for i, delay in enumerate((500, 400, 300)):
+        rx = base + i * 100_000_000
+        probe.add(10, received_timestamp_ns=rx, callback_timestamp_ns=rx + delay * 1_000_000)
+    metrics = probe.metrics()
+    assert metrics['probe_callback_delay_p95_ms'] >= 400
+    assert metrics['probe_callback_delay_samples'] == metrics['probe_callback_delay_window_samples'] == 3
+    assert metrics['rate_hz'] == 10  # Backlog is not a change to the rate contract.
+    for i in range(3, 6):
+        rx = base + i * 100_000_000
+        probe.add(10, received_timestamp_ns=rx, callback_timestamp_ns=rx + 100_000)
+    assert probe.metrics()['probe_callback_delay_p95_ms'] == 0.1
+    assert probe.metrics()['rate_hz'] == 10
+
+
+@pytest.mark.parametrize('received,callback', [(0, 100), (100, 0), (100, 99)])
+def test_unknown_or_future_receipt_makes_entire_wait_window_unknown(received, callback):
+    probe = _TopicProbe(window=2)
+    probe.add(1, received_timestamp_ns=100, callback_timestamp_ns=100)
+    probe.add(1, received_timestamp_ns=received, callback_timestamp_ns=callback)
+    metrics = probe.metrics()
+    assert metrics['probe_callback_delay_p95_ms'] is None
+    assert metrics['probe_callback_delay_samples'] == 1
+    assert metrics['probe_callback_delay_window_samples'] == 2
+    # Invalid samples expire rather than being clamped to zero waiting time.
+    probe.add(1, received_timestamp_ns=200, callback_timestamp_ns=200)
+    probe.add(1, received_timestamp_ns=300, callback_timestamp_ns=300)
+    assert probe.metrics()['probe_callback_delay_p95_ms'] == 0
+
+
+def test_probe_entry_is_captured_before_header_deserialization(monkeypatch):
+    from ros_graph_debugger.node import DebuggerNode
+    from ros_graph_debugger.config import ProbeConfig
+    from geometry_msgs.msg import PoseStamped
+    callbacks = []
+    now = [1_000_000_000]
+    monkeypatch.setattr('ros_graph_debugger.node.time.time_ns', lambda: now[0])
+    def decode(raw, msg_type):
+        now[0] += 1_000_000_000  # Observer work belongs to the callback body.
+        msg = PoseStamped()
+        msg.header.stamp.sec = 1
+        return msg
+    monkeypatch.setattr('rclpy.serialization.deserialize_message', decode)
+    fake = SimpleNamespace(probe_cfg=ProbeConfig(window=3), _probes={}, _subs={},
+                           _probe_qos=None, get_logger=lambda: MagicMock(),
+                           get_clock=lambda: SimpleNamespace(now=lambda: SimpleNamespace(nanoseconds=2_000_000_000)))
+    def subscribe(msg_type, name, callback, qos, raw):
+        callbacks.append(callback)
+        return object()
+    fake.create_subscription = subscribe
+    DebuggerNode._start_probe(fake, '/pose', 'geometry_msgs/msg/PoseStamped')
+    info = {'received_timestamp': 900_000_000}
+    if probe_executor._NATIVE_MESSAGE_INFO:
+        callbacks[0](b'raw', info)
+    else:
+        callbacks[0](probe_executor._ReceivedMessage(b'raw', info))
+    metrics = fake._probes['/pose'].metrics()
+    assert metrics['probe_callback_delay_p95_ms'] == 100  # Excludes 1000 ms decode.
+    assert metrics['header_age_ms'] == 1000  # ROS header age is a separate measure.
+
+
+def test_store_preserves_probe_wait_across_graph_poll_and_statistics():
+    store = RuntimeGraphStore()
+    def graph():
+        return {}, {'/scan': TopicInfo(name='/scan')}
+    store.set_graph(*graph())
+    store.update_topic_metrics('/scan', probe_callback_delay_p95_ms=450,
+                               probe_callback_delay_samples=5, probe_callback_delay_window_samples=5)
+    store.set_graph(*graph())
+    store.set_statistics([])
+    topic = store.snapshot().to_dict()['topics'][0]
+    assert topic['probe_callback_delay_p95_ms'] == 450
+    assert topic['probe_callback_delay_samples'] == topic['probe_callback_delay_window_samples'] == 5

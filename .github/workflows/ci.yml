@@ -97,6 +97,7 @@ jobs:
           python3 test/integration/run_scenario.py --output integration-artifacts
           python3 test/integration/run_clock_scenario.py --output integration-artifacts/clock
           python3 test/integration/run_cpu_scenario.py --output integration-artifacts/cpu
+          python3 test/integration/run_probe_delay_scenario.py --output integration-artifacts/probe-delay
       - name: Save integration diagnostics
         if: always()
         uses: actions/upload-artifact@v4

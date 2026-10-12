@@ -110,3 +110,61 @@ expected focused scope label. The CLI report matched the verified renderers.
 Replay process groups were reaped. Source hashes and derived checks are in
 [probe-report-validation.json](probe-report-validation.json); raw inputs and
 responses remain outside the repository.
+
+
+## Probe receipt-to-callback gap
+
+RMW defines its time point as the rcutils nanosecond time point since the Unix
+epoch; the tested default Fast DDS receiver supplies it before callback entry.
+Live probes expose `probe_callback_delay_p95_ms`: the local system timestamp
+at the start of the Python probe callback minus the middleware's receive
+timestamp. Capture occurs before payload/header decoding, so that decoding
+belongs to the callback body and is excluded. Taking/copying messages and
+executor waiting before callback entry are included. The exact middleware
+receipt point is implementation dependent; the gap does not separate these
+causes, measure publisher callback execution or certify packet delivery.
+
+`probe_callback_delay_samples` and `probe_callback_delay_window_samples` give
+coverage of the same bounded receipt window used for the rate. An empty window
+or any missing/nonpositive/future timestamp pair makes the p95 unknown until
+those samples expire. Valid zero gaps remain zero. Positive system clock steps
+can inflate the gap; negative gaps are unknown, never clamped to zero. ROS Clock
+and header ages are separate, and simulation time need not be initialized.
+Older recordings, bag analysis and subscriber statistics have no such probe
+measurement. Low-rate issue evidence includes the gap when available without
+changing the rate threshold, severity or verdict. Markdown briefings show it as
+probe wait p95 with its clock limitation.
+
+The condition-controlled test uses a separate publisher and receiver with
+RELIABLE QoS/depth 100, verifies all 30 sequence values exactly, and keeps ROS
+Clock uninitialized. The receiver holds callback 0 until the publisher has
+sent 12 messages; the bounded probe window must show a p95 above 300 ms and
+then below 100 ms after fresh receipts replace the backlog, while DDS receipt
+rate remains above 10 Hz. These are observation-test gates, not new application
+budgets. In the native Humble/Jazzy Fast DDS capability runs, delayed receipts
+showed roughly 500–300 ms and the final receipts about 0.1 ms. This confirms the
+meaning on the tested implementations, rather than all RMW/version combinations.
+
+Run in a built/sourced ROS workspace:
+
+```bash
+ROS_DOMAIN_ID=97 python3 test/integration/run_probe_delay_scenario.py --output /tmp/probe-delay
+```
+
+Use a fresh output directory. Readiness/release are polled, timeouts fail and
+owned child process groups are stopped in `finally`. CI runs this scenario in
+both existing integration jobs using their fixed ROS_DOMAIN_ID and default RMW;
+raw timestamps, probe metrics, publisher rows, logs and cleanup are saved in
+`integration-<distro>/probe-delay/`. All existing rate/age/issue assertions and
+the five-minute integration job budget remain in place.
+
+
+A separate live replay of the original public camera/Clock bag retained the
+independent RELIABLE receiver's strict 70/70-frame gate. Ten measured camera
+snapshots exposed a receive-to-callback p95 of 10.7–13.7 ms with complete
+timestamp-pair coverage. Agent subscriptions remained BEST_EFFORT, so these
+gaps do not certify probe delivery or explain all low-rate observations.
+Actual stdio MCP replay preserved the original JSON fields and rendered the
+new gap separately from header age; older live/bag recordings rendered no
+probe gap. This is evidence transport and observer timing, not publisher-side
+execution time or human investigation-time improvement.

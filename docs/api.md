@@ -115,7 +115,9 @@ pattern.
                   "durability", "history", "depth", "liveliness",
                   "deadline_ms", "liveliness_lease_ms" }],   // ms; null = infinite
                 "rate_hz", "bandwidth_bps", "p95_msg_size_bytes",
-                "header_age_p95_ms", "rate_source", "rate_measurement_scope", "qos_status", "status" }],
+                "header_age_p95_ms", "rate_source", "rate_measurement_scope",
+                "probe_callback_delay_p95_ms", "probe_callback_delay_samples",
+                "probe_callback_delay_window_samples", "qos_status", "status" }],
   "edges":   [{ "from_node", "to_node", "topic", "status" }],
   "tf_edges":[{ "parent", "child", "age_ms", "status" }],
   "callbacks":[{ "node", "callback", "topic", "count",
@@ -162,3 +164,18 @@ throughput remain unknown: a low rate can reflect slow publishing, receiver
 loss, queue pressure or observer work. `rate_drop` and `bottleneck` evidence
 states the measurement scope and this limitation; their rate thresholds and
 severity rules are unchanged. See [probe reception evidence](probe-reception-evidence.md).
+
+
+Live probes also expose `probe_callback_delay_p95_ms`, the local system-time gap
+from the middleware receive timestamp to Python callback entry. The bounded
+window has `probe_callback_delay_window_samples` receipts, of which
+`probe_callback_delay_samples` have usable timestamp pairs. The p95 is `null`
+when the window is empty or any pair is missing, nonpositive, or future-dated.
+A zero gap is a valid observation. These fields survive graph polling; bag and
+subscriber-statistics measurements have no probe wait measurement.
+
+This includes work before callback entry, such as taking/copying the message
+and executor waiting, and excludes the probe callback body. It is independent
+of ROS/simulation time, affected by system clock adjustments, and does not
+measure publisher callback time or certify delivery. See
+[probe reception evidence](probe-reception-evidence.md).

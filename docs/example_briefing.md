@@ -33,15 +33,16 @@ Callback "sub /sensing/camera/image_raw" runs 210 ms at p95, above the 100 ms bu
 - Related: /detector, /sensing/camera/image_raw
 
 ## Topics
-| topic | type | pub | sub | rate | rate scope | age p95 | bandwidth | qos | status |
-|---|---|---|---|---|---|---|---|---|---|
-| /control/command/control_cmd | Control | 1 | 0 | 30.0 Hz | unknown | — | 6.0 KB/s | ok | ok |
-| /perception/object_recognition/objects | DetectedObjects | 1 | 1 | 4.1 Hz | unknown | — | 120.0 KB/s | ok | critical |
-| /perception/tracked_objects | TrackedObjects | 1 | 1 | 10.0 Hz | unknown | — | 90.0 KB/s | ok | ok |
-| /planning/scenario_planning/trajectory | Trajectory | 1 | 1 | 10.0 Hz | unknown | — | 40.0 KB/s | ok | ok |
-| /sensing/camera/image_raw | Image | 1 | 1 | 30.0 Hz | unknown | — | 420.0 KB/s | ok | ok |
+| topic | type | pub | sub | rate | rate scope | probe wait p95 | age p95 | bandwidth | qos | status |
+|---|---|---|---|---|---|---|---|---|---|---|
+| /control/command/control_cmd | Control | 1 | 0 | 30.0 Hz | unknown | — | — | 6.0 KB/s | ok | ok |
+| /perception/object_recognition/objects | DetectedObjects | 1 | 1 | 4.1 Hz | unknown | — | — | 120.0 KB/s | ok | critical |
+| /perception/tracked_objects | TrackedObjects | 1 | 1 | 10.0 Hz | unknown | — | — | 90.0 KB/s | ok | ok |
+| /planning/scenario_planning/trajectory | Trajectory | 1 | 1 | 10.0 Hz | unknown | — | — | 40.0 KB/s | ok | ok |
+| /sensing/camera/image_raw | Image | 1 | 1 | 30.0 Hz | unknown | — | — | 420.0 KB/s | ok | ok |
 
 Rates describe observed messages. Delivery completeness and publisher-side throughput are unknown; a low rate alone does not prove a slow publishing callback.
+Probe wait uses local system timestamps from middleware receipt to Python callback entry; it excludes the probe callback body and is affected by clock adjustments.
 
 ## Nodes (process metrics)
 | node | cpu | rss | confidence |
@@ -91,12 +92,13 @@ Callback "sub /sensing/camera/image_raw" runs 210 ms at p95, above the 100 ms bu
 camera → /sensing/camera/image_raw (30.0 Hz) → **detector** [cb 210 ms ⟵ slowest cb] → /perception/object_recognition/objects (4.1 Hz ⟵ slowest) → tracker [cb 18 ms] → /perception/tracked_objects (10.0 Hz) → planner [cb 18 ms] → /planning/scenario_planning/trajectory (10.0 Hz) → controller [cb 18 ms]
 
 ## Topics
-| topic | type | pub | sub | rate | rate scope | age p95 | bandwidth | qos | status |
-|---|---|---|---|---|---|---|---|---|---|
-| /perception/object_recognition/objects | DetectedObjects | 1 | 1 | 4.1 Hz | unknown | — | 120.0 KB/s | ok | critical |
-| /sensing/camera/image_raw | Image | 1 | 1 | 30.0 Hz | unknown | — | 420.0 KB/s | ok | ok |
+| topic | type | pub | sub | rate | rate scope | probe wait p95 | age p95 | bandwidth | qos | status |
+|---|---|---|---|---|---|---|---|---|---|---|
+| /perception/object_recognition/objects | DetectedObjects | 1 | 1 | 4.1 Hz | unknown | — | — | 120.0 KB/s | ok | critical |
+| /sensing/camera/image_raw | Image | 1 | 1 | 30.0 Hz | unknown | — | — | 420.0 KB/s | ok | ok |
 
 Rates describe observed messages. Delivery completeness and publisher-side throughput are unknown; a low rate alone does not prove a slow publishing callback.
+Probe wait uses local system timestamps from middleware receipt to Python callback entry; it excludes the probe callback body and is affected by clock adjustments.
 
 ## Nodes (process metrics)
 | node | cpu | rss | confidence |
