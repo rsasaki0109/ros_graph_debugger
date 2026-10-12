@@ -27,8 +27,10 @@ UI and to AI tools. Nothing in the target system is modified.
 
 ## Threading model
 
-- **Spin thread**: a `MultiThreadedExecutor` runs `DebuggerNode`. All collectors
-  and the issue engine run here, on timers and subscription callbacks.
+- **Spin thread**: a `SingleThreadedExecutor` runs `DebuggerNode`. All collectors
+  and the issue engine run here, on timers and subscription callbacks. The
+  collectors share a mutually exclusive callback group; direct dispatch avoids
+  worker-pool contention with high-frequency clock and TF subscriptions.
 - **Main thread**: `uvicorn` runs the FastAPI app (asyncio).
 - The two communicate **only** through `RuntimeGraphStore`, whose every accessor
   takes a lock. Writers replace whole fields; readers get a consistent snapshot.
@@ -42,6 +44,7 @@ UI and to AI tools. Nothing in the target system is modified.
 |---|---|
 | `model.py` | dataclasses + `RuntimeGraphStore` (thread-safe) |
 | `node.py` | the rclpy node: collectors, probing, timers |
+| `process_metrics.py` | nonblocking CPU baseline per process lifetime; first sample is unknown, shared PIDs sampled once, exited/unavailable metrics cleared |
 | `graph_build.py` | reconstruct nodes/topics from **topic endpoint info** (robust to node-discovery lag) |
 | `qos_utils.py` | QoS enum→string + mismatch detection |
 | `msgutil.py` | `header.stamp` age helper (latency Tier A) |

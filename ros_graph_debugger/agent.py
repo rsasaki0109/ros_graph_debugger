@@ -1,6 +1,6 @@
 """`ros2 run ros_graph_debugger agent` — spin the collectors and serve the UI.
 
-rclpy spins on a background thread with a multi-threaded executor; uvicorn runs
+rclpy spins on a background thread with a single-threaded executor; uvicorn runs
 the FastAPI app on the main thread. They communicate only through the
 thread-safe RuntimeGraphStore.
 """
