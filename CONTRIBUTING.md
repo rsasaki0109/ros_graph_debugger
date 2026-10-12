@@ -31,6 +31,11 @@ ros2 run ros_graph_debugger rgd serve --demo # no-ROS demo replay
 The suite is designed to run without a live ROS graph (no DDS required) — pure
 logic, in-process rclpy endpoint checks, and a uvicorn-in-thread server.
 
+The separate [real Nav2 planner/controller scenario](docs/navigation_validation.md)
+checks moving goals, stopped DDS, recovery, an actual bag and real C++ tracing
+on Jazzy. Run complete suites in shared-network containers sequentially: the
+HTTP tests use fixed ports.
+
 ```bash
 python3 -m pytest test/ -v
 node --check ros_graph_debugger/web/app.js
@@ -53,6 +58,27 @@ continuing, proving analysis keeps updating independently of simulation time.
 Recordings, JSON evidence and reports are saved under the output directory;
 CI includes them in `integration-humble` / `integration-jazzy` artifacts.
 Readiness is polled, and child process groups are stopped on completion/failure.
+
+### Real Nav2 lifecycle recovery
+
+The `Nav2 Integration` workflow runs the distribution's actual Nav2 map_server
+on Humble and Jazzy. With the workspace built and sourced as above:
+
+```bash
+sudo apt-get install ros-$ROS_DISTRO-nav2-map-server ros-$ROS_DISTRO-nav-msgs \
+  ros-$ROS_DISTRO-rosbag2-storage-default-plugins
+python3 test/integration/run_nav2_scenario.py --output /tmp/rgd-nav2
+```
+
+Use a fresh output directory. This scenario fixes `ROS_DOMAIN_ID=93` and uses
+loopback port 3952 (`--port` overrides it); run one scenario at a time on this
+domain. It verifies an inactive server's diagnosis, actual map delivery after
+activation, the same assertion passing after recovery, and a recorder receiving
+the retained map after activation. See [the validation contract and artifact
+guide](docs/nav2_validation.md). It runs separately from `pytest test/`, polls
+readiness, stops its child process groups, and has a 120-second runner budget
+within the five-minute CI job. CI saves logs, recordings, reports, the structured
+diff and real bag even on failure as `nav2-humble` / `nav2-jazzy`.
 
 ### Multiprocess ROS integration
 
@@ -102,6 +128,61 @@ under the output directory. CI uploads them even on failure as
 `last-snapshot.json` first for discovery or collection problems. The integration
 job has a five-minute timeout; the runner allows 180 seconds for the scenarios
 and then cleans up. It does not run as part of ordinary `pytest test/`.
+
+### Real LTTng integration
+
+The `trace-integration` CI job records actual rclcpp subscription, timer and
+service callbacks on Humble and Jazzy using userspace LTTng. It needs no kernel
+tracing or privileged container. Install `build-essential`, `cmake`,
+`pkg-config`, `lttng-tools`, `liblttng-ust-dev`, `python3-bt2` and
+`ros-$ROS_DISTRO-std-srvs`, in addition to the agent's dependencies above.
+
+Humble's released `tracetools` library has tracing wrapper symbols but no
+LTTng backend. For this test, build an overlay of the same official 4.1.2
+source, pinned to commit `3c159b382d2d565e26eaa91e39c9ec06a5c6fe88`:
+
+```bash
+# Humble only; stop if the installed tracetools version differs from 4.1.2.
+git clone https://github.com/ros2/ros2_tracing.git /tmp/rgd-tracetools-src
+git -C /tmp/rgd-tracetools-src checkout 3c159b382d2d565e26eaa91e39c9ec06a5c6fe88
+colcon build --base-paths /tmp/rgd-tracetools-src/tracetools \
+  --build-base /tmp/rgd-tracetools-build --install-base /tmp/rgd-tracetools \
+  --packages-select tracetools --executor sequential --cmake-args -DBUILD_TESTING=OFF
+source /tmp/rgd-tracetools/setup.bash
+```
+
+After building and sourcing the ROS workspace, run:
+
+```bash
+ros2 run tracetools status
+cmake -S test/integration/trace_fixture -B /tmp/rgd-trace-fixture
+cmake --build /tmp/rgd-trace-fixture --parallel 2
+python3 test/integration/run_trace_scenario.py \
+  --output /tmp/rgd-trace-test --fixture /tmp/rgd-trace-fixture/trace_fixture
+```
+
+Use a fresh output directory and a container without another session daemon.
+The script owns its foreground `lttng-sessiond`, sessions and child process
+groups, and polls daemon readiness and completed callback counts. It fixes
+domain 92 and loopback port 3951 (`--port` overrides it), with a 150-second
+runner budget inside a five-minute CI job. Do not run concurrently on this
+domain. Infrastructure parameter events are completed before the fixture
+starts; the fixture disables its own parameter notifications so the recorded
+invocations cover exactly the three controlled callback types.
+
+Each callback must have at least eight real invocations. The slow fixture does
+150 ms of intentional work in each callback; the healthy fixture does none.
+Both use the unchanged default 100 ms callback budget. The test verifies CTF
+process IDs, node/topic attribution, zero unattributed invocations, CLI output,
+and the agent's direct-CTF and NDJSON input paths. `rgd assert` must fail for
+slow callbacks and pass for healthy callbacks, with the recorded `kind` and
+numeric evidence checked as well. Missing tracing support is a failure.
+
+CI always uploads `trace-humble` / `trace-jazzy`, including raw CTF, callback
+NDJSON, conversion counts, agent/fixture/daemon logs, assertion JSON, the
+recording and reports. These fixtures and tools are test-only and do not add
+installed-package dependencies. rclpy does not emit the rclcpp callback
+tracepoints; this test validates C++ callback tracing specifically.
 
 ## Guidelines
 

@@ -1,5 +1,7 @@
 """Regression diff between two recordings — pure, no ROS."""
 
+import pytest
+
 from ros_graph_debugger.diff import diff_reports, render_diff_markdown
 from ros_graph_debugger.diff_image import render_diff_svg, write_diff_image
 from ros_graph_debugger.recording import make_header
@@ -8,6 +10,22 @@ from ros_graph_debugger.replay import build_demo_recording
 
 PROFILE = {'name': 'autoware', 'groups': {
     'perception': {'topic_patterns': ['^/perception/.*']}}}
+
+
+@pytest.mark.parametrize('recovered', [True, False])
+def test_diff_preserves_frame_evidence_for_tf_issues(recovered):
+    header = make_header(100.0, 1.0, PROFILE)
+    good = _snap(100.0, 10.0, 20.0, False)
+    bad = _snap(100.0, 10.0, 20.0, False)
+    frames = [('map', 'odom'), ('odom', 'base_footprint')]
+    bad['issues'] = [{'kind': 'tf_stale', 'severity': 'critical',
+                      'title': f'TF {parent} -> {child} is stale',
+                      'related_frames': [parent, child]}
+                     for parent, child in frames]
+    baseline, current = (bad, good) if recovered else (good, bad)
+    result = diff_reports(build_report(header, [baseline]), build_report(header, [current]))
+    issues = result['resolved_issues' if recovered else 'new_issues']
+    assert [i['related_frames'] for i in issues if i['kind'] == 'tf_stale'] == [list(f) for f in frames]
 
 
 def _snap(ts, objects_rate, det_cb_p95, bottleneck):
