@@ -1,0 +1,178 @@
+{
+  "scope": "Jazzy unmodified Autoware components with public DLR replay inputs; deliberately omitted IMU; not original full-stack or accuracy validation",
+  "sources": [
+    {
+      "repository": "autowarefoundation/autoware_core",
+      "commit": "f25f83c632c1984ec276c894c41857d4abc0dad8",
+      "url": "https://codeload.github.com/autowarefoundation/autoware_core/tar.gz/f25f83c632c1984ec276c894c41857d4abc0dad8",
+      "bytes": 42703885,
+      "local_sha256": "234744570f6828d7bcefefc54c6e7da7886abab1a57d1d2dfac488cf884f394b"
+    },
+    {
+      "repository": "autowarefoundation/autoware_utils",
+      "commit": "9cb6f102ab4fce01a1ba1b847c9a57e822184268",
+      "url": "https://codeload.github.com/autowarefoundation/autoware_utils/tar.gz/9cb6f102ab4fce01a1ba1b847c9a57e822184268",
+      "bytes": 394654,
+      "local_sha256": "cfc86cce48d812a5549fc2c9b9e66fdb54935fb59602b64f467215d0524d7856"
+    },
+    {
+      "repository": "autowarefoundation/autoware_cmake",
+      "commit": "7796130d9fe9e45d8ec5e24815db9364dc4300f0",
+      "url": "https://codeload.github.com/autowarefoundation/autoware_cmake/tar.gz/7796130d9fe9e45d8ec5e24815db9364dc4300f0",
+      "bytes": 24858,
+      "local_sha256": "74aecd1b077531e6f9add4021e37d583bcc4a911c84f24883191a73337d9782f"
+    },
+    {
+      "repository": "autowarefoundation/autoware_msgs",
+      "commit": "bb8e7bf5d97168663e0e7b357929e4fcdbd3a967",
+      "bytes": 173438,
+      "local_sha256": "ef85ef1adc9813574e46554dc107c30308ac86ff88e2dbca5331d06300160977"
+    },
+    {
+      "repository": "autowarefoundation/autoware_internal_msgs",
+      "commit": "4144effa727d194554ad78d343683201bbbbc427",
+      "bytes": 25966,
+      "local_sha256": "7024bdcada474001f0668c4d0fbb259d710bbbda11a69c7ec17cf45b692428e3"
+    }
+  ],
+  "input_audit": {
+    "sqlite_sha256": "224683a07c61e21a0ae416d9fec80e558cffde76534f340b96492f6772a28797",
+    "message_counts": {
+      "/awsim/ground_truth/localization/kinematic_state": 3470,
+      "/awsim/ground_truth/vehicle/pose": 3469,
+      "/initialpose": 1,
+      "/localization/pose_twist_fusion_filter/biased_pose_with_covariance": 2817,
+      "/sensing/camera/traffic_light/camera_info": 476,
+      "/sensing/camera/traffic_light/image_raw": 461,
+      "/sensing/gnss/pose": 58,
+      "/sensing/gnss/pose_with_covariance": 58,
+      "/sensing/imu/tamagawa/imu_raw": 1735,
+      "/tf_static": 2,
+      "/vehicle/status/velocity_status": 1735
+    },
+    "first_receive_ns": 68666677922,
+    "last_receive_ns": 126483354065
+  },
+  "executed_scenario_sha256": "012a6fcc9bc095a42206a4598f4d9a365c517f443d4285d961964e51e06ae6f2",
+  "phases": {
+    "healthy": {
+      "assert_exit": 0,
+      "output_receipts_during_assert": 184,
+      "playback_start_offset_s": 0.0,
+      "recorded_snapshots": 7,
+      "settled_samples": 5,
+      "rate_range_hz": {
+        "/sensing/imu/tamagawa/imu_raw": [
+          30.0,
+          30.0
+        ],
+        "/sensing/vehicle_velocity_converter/twist_with_covariance": [
+          30.0,
+          30.0
+        ],
+        "/localization/twist_estimator/twist_with_covariance": [
+          30.0,
+          30.02
+        ]
+      },
+      "recording_sha256": "5b57c1f914a0feff758a0c514d67b461b1545e7139c91733ae358dee14571628",
+      "assert_sha256": "27e4c07cbfcd2447c97e84fa07e85f89488e3ccd1ae450f8b43c54cc0517a1fa",
+      "report_sha256": "cbb496d77af3f59ce8485a6109a8e55c1d113dda90bd3e54ed122d94e44c10e4",
+      "issue_kinds": [
+        "no_publisher",
+        "no_subscriber"
+      ]
+    },
+    "missing-imu": {
+      "assert_exit": 1,
+      "output_receipts_during_assert": 0,
+      "playback_start_offset_s": 7.377633922999999,
+      "recorded_snapshots": 7,
+      "settled_samples": 5,
+      "rate_range_hz": {
+        "/sensing/imu/tamagawa/imu_raw": [
+          30.0,
+          30.0
+        ],
+        "/sensing/vehicle_velocity_converter/twist_with_covariance": [
+          29.98,
+          30.0
+        ],
+        "/localization/twist_estimator/twist_with_covariance": [
+          30.0,
+          30.0
+        ]
+      },
+      "recording_sha256": "3c02ae8f82823a58509ff14cef380519c193690cfedf906e755f6c3a8e9cf709",
+      "assert_sha256": "080df823168df1a90b797d6ec98d0b0d0d09d8315e3e8be84ffbf7abd3c8dbe9",
+      "report_sha256": "7cb50d7d8ef900f9ce82d54585757e5865f2a6350603bef037b10a2cebfba02a",
+      "issue_kinds": [
+        "diagnostics_error",
+        "no_publisher",
+        "no_subscriber",
+        "topic_stale"
+      ]
+    },
+    "recovered": {
+      "assert_exit": 0,
+      "output_receipts_during_assert": 182,
+      "playback_start_offset_s": 16.383398293000003,
+      "recorded_snapshots": 7,
+      "settled_samples": 5,
+      "rate_range_hz": {
+        "/sensing/imu/tamagawa/imu_raw": [
+          30.0,
+          30.0
+        ],
+        "/sensing/vehicle_velocity_converter/twist_with_covariance": [
+          30.0,
+          30.01
+        ],
+        "/localization/twist_estimator/twist_with_covariance": [
+          30.0,
+          30.02
+        ]
+      },
+      "recording_sha256": "cbda344e11ae7c383b6cd4d4fd70cf73baf1d0ffd8aa0d903ac89833f122cbd2",
+      "assert_sha256": "27e4c07cbfcd2447c97e84fa07e85f89488e3ccd1ae450f8b43c54cc0517a1fa",
+      "report_sha256": "b289ef96f8a0300d1bf37f0cd036cebebc9fa35ce8aacfc0c2eed37f596f9092",
+      "issue_kinds": [
+        "no_publisher",
+        "no_subscriber"
+      ]
+    }
+  },
+  "independent_receipt_audit": {
+    "count": 470,
+    "all_stamps_in_unmodified_public_inputs": true,
+    "all_stamps_nondecreasing": true,
+    "frame_id": "base_link",
+    "all_values_finite": true,
+    "receipts_sha256": "47aa19226d690e4fda706d6ba867ff903843ae1a2f306d52cc8147a2311ab6b6",
+    "raw_diagnostics_sha256": "3f277d90970c692b61d5adc55d97f44277fbe88adbd6f534e7bca08a1d87ac9b"
+  },
+  "recovery_diff": {
+    "verdict": "improved",
+    "remaining_health": "degraded",
+    "resolved_issue_kinds": [
+      "diagnostics_error",
+      "no_publisher",
+      "topic_stale"
+    ],
+    "sha256": "eab9149ec209e39ecc7be3ecaa37981c1e9cdc578f89eb9455cf1ab8ad0ae7c2"
+  },
+  "rate_semantics": "Live rates retain the last received sample window during silence; stale issues and independent zero receipts establish interruption.",
+  "cpp_artifacts_sha256": [
+    "1812fe5b6965baf3158367ba975e0b445ad12434485eeb1c10e18972bb8df652  /autoware_ws/install/autoware_gyro_odometer/lib/autoware_gyro_odometer/autoware_gyro_odometer_node",
+    "d6c41744b711a93daa7e935fd1fcd0c35a8dd5a9d1f8e7a67264e4c02bddf8dc  /autoware_ws/install/autoware_gyro_odometer/lib/libautoware_gyro_odometer.so",
+    "c4266536d7a58f698df5134042b6ca8ea299aed1b159055a109fb05187ec2003  /autoware_ws/install/autoware_vehicle_velocity_converter/lib/autoware_vehicle_velocity_converter/autoware_vehicle_velocity_converter_node",
+    "8c561447c227f71f9f26f576da5cc4143be7ff98fc413e155280348921356e26  /autoware_ws/install/autoware_vehicle_velocity_converter/lib/libautoware_vehicle_velocity_converter.so"
+  ],
+  "system_packages_manifest_sha256": "45fc9a0ecd9dd488dc7c00d4e3dda559813f4fd96bfc09b7494cf1f5d71594c7",
+  "limits": [
+    "actual component run on Jazzy only",
+    "/tf no_publisher warning retained for static-only listener",
+    "replay QoS and clock are explicit controls",
+    "upstream algorithm tests, localization accuracy, original graph, whole-stack overhead and fresh-install reuse unmeasured"
+  ]
+}

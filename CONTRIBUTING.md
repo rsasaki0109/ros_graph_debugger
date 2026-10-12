@@ -36,6 +36,11 @@ checks moving goals, stopped DDS, recovery, an actual bag and real C++ tracing
 on Jazzy. Run complete suites in shared-network containers sequentially: the
 HTTP tests use fixed ports.
 
+The optional [public-input Autoware scenario](docs/autoware-public-input-validation.md)
+runs pinned, unchanged C++ vehicle conversion and gyro odometry nodes with the
+public DLR bag, checks IMU omission and recovery, and retains diagnostic and
+delivery evidence. Its upstream build/data prerequisites are test-only.
+
 ```bash
 python3 -m pytest test/ -v
 node --check ros_graph_debugger/web/app.js
