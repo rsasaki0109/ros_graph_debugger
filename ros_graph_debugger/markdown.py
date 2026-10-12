@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from .health import health_line
 from .measurement import RATE_DELIVERY_NOTE, RATE_SCOPE_LABELS, rate_measurement_scope
+from .model import callback_source_label
 from .pipeline import resolve_focus, trace_pipeline_path
 
 
@@ -86,12 +87,13 @@ def _path_line(full: dict, focus: str) -> str | None:
         return None
     names = {n['id']: (n.get('name') or n['id']) for n in full['nodes']}
 
-    def node_disp(nid, cb=None):
+    def node_disp(nid, cb=None, source=None):
         label = names.get(nid, nid)
         s = f'**{label}**' if nid == path['pivot'] else label
         if isinstance(cb, (int, float)):
             slow = nid == path.get('cb_bottleneck_node')
-            s += f' [cb {cb:.0f} ms{" ⟵ slowest cb" if slow else ""}]'
+            s += (f' [duration {cb:.0f} ms; {callback_source_label(source)}'
+                  f'{" ⟵ slowest duration" if slow else ""}]')
         return s
 
     parts = [node_disp(path['nodes'][0])]
@@ -99,7 +101,7 @@ def _path_line(full: dict, focus: str) -> str | None:
         rate = _fmt_rate(h['rate_hz'])
         mark = ' ⟵ slowest' if h['topic'] == path['bottleneck_topic'] else ''
         parts.append(f'{h["topic"]} ({rate}{mark})')
-        parts.append(node_disp(h['to'], h.get('cb_p95_ms')))
+        parts.append(node_disp(h['to'], h.get('cb_p95_ms'), h.get('cb_source')))
     return ' → '.join(parts)
 
 
@@ -227,22 +229,30 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
             lines.append(f'- {n["id"]}: **{n["lifecycle_state"]}**')
         lines.append('')
 
-    # --- Callbacks (Tier C tracing), slowest first. ---
+    # --- Duration observations, preserving their measurement source. ---
     callbacks = [c for c in d.get('callbacks', [])
                  if isinstance(c.get('p95_ms'), (int, float))]
     if callbacks:
         callbacks.sort(key=lambda c: -c['p95_ms'])
-        lines.append('## Callbacks (execution time, slowest first)')
-        lines.append('| node | callback | p95 | mean | samples |')
-        lines.append('|---|---|---|---|---|')
+        lines.append('## Callbacks / processing durations (slowest first)')
+        lines.append('| node | callback | source | p95 | mean | samples |')
+        lines.append('|---|---|---|---|---|---|')
         for c in callbacks[:8]:
             mean = c.get('mean_ms')
+            source = callback_source_label(c.get('source'))
             lines.append(f'| {c["node"]} | {c.get("callback", "—")} | '
+                         f'{source} | '
                          f'{c["p95_ms"]:.0f} ms | '
                          f'{mean:.0f} ms | {c.get("count", "—")} |'
                          if isinstance(mean, (int, float)) else
                          f'| {c["node"]} | {c.get("callback", "—")} | '
+                         f'{source} | '
                          f'{c["p95_ms"]:.0f} ms | — | {c.get("count", "—")} |')
+        lines.append('')
+        lines.append('Only paired callback traces measure callback start/end '
+                     'wall time. Application reports follow publisher semantics; '
+                     'missing source stays unknown. These durations do not '
+                     'establish the cause of downstream rate loss.')
         lines.append('')
 
     # --- Topic statistics we could not tie to a topic (Tier B). ---

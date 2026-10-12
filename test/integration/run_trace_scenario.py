@@ -57,6 +57,7 @@ def validate_conversion(directory, mode, fixture_pid):
     expected = {f'sub {node}/input', 'timer 200 ms', f'srv {node}/reset'}
     assert {c.callback for c in stats if c.node == node} == expected, stats
     assert all(c.node == node and c.count >= MIN_INVOCATIONS for c in stats), stats
+    assert all(c.source == 'trace' for c in stats), stats
     assert all(c.p95_ms >= 150 if mode == 'slow' else c.p95_ms < 100 for c in stats), stats
     (directory / 'callback-stats.json').write_text(json.dumps([asdict(c) for c in stats], indent=2))
     return stats
@@ -95,6 +96,7 @@ def validate_diagnosis(directory, mode, stats):
                 for c in stats}
             for issue in issues:
                 assert issue['related_nodes'] == [node], issue
+                assert 'duration source: paired callback trace' in issue['evidence'], issue
                 assert any(p95 in issue['evidence'] and samples in issue['evidence']
                            for p95, samples in expected_evidence), issue
             assert sum(i['related_topics'] == [node + '/input'] for i in issues) == 1

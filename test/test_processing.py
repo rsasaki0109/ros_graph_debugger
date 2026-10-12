@@ -37,6 +37,7 @@ def test_stats_window():
     [s] = p.stats()
     assert (s.node, s.callback, s.topic) == (CTRL, 'processing_time', CTRL_TOPIC)
     assert (s.count, s.mean_ms, s.max_ms) == (4, 35.0, 50.0)
+    assert s.source == 'application_report'
 
 
 def test_autoware_profile_budget_flags_a_slow_controller():
@@ -86,6 +87,7 @@ def test_bag_windows_carry_processing_time():
     first = next(c for c in snaps[0]['callbacks'] if c['node'] == CTRL)
     last = next(c for c in snaps[-1]['callbacks'] if c['node'] == CTRL)
     assert first['p95_ms'] == 5.0 and last['p95_ms'] == 50.0
+    assert first['source'] == last['source'] == 'application_report'
 
 
 def test_agent_subscribes_and_reports_live():

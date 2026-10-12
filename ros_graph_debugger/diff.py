@@ -11,6 +11,8 @@ Pure data-in / dict-out, like `report.py`, so it's fully testable.
 
 from __future__ import annotations
 
+from .model import callback_source, callback_source_label
+
 _HEALTH_RANK = {'ok': 0, 'degraded': 1, 'critical': 2}
 
 
@@ -52,13 +54,29 @@ def diff_reports(base: dict, cur: dict, *, rate_tol: float = 0.2,
     new_issues = issue_rows(cur, c_issues - b_issues)
     resolved_issues = issue_rows(base, b_issues - c_issues)
 
-    bc = {(c['node'], c['callback']): c for c in base.get('callbacks', [])}
-    cc = {(c['node'], c['callback']): c for c in cur.get('callbacks', [])}
+    def callback_key(c):
+        return (c['node'], c['callback'], c.get('topic', ''),
+                callback_source(c.get('source')) or '')
+
+    bc = {callback_key(c): c for c in base.get('callbacks', [])}
+    cc = {callback_key(c): c for c in cur.get('callbacks', [])}
+    callback_incomparable = []
+    identities = {k[:3] for k in bc} & {k[:3] for k in cc}
+    for identity in sorted(identities):
+        before = sorted(k[3] for k in bc if k[:3] == identity)
+        after = sorted(k[3] for k in cc if k[:3] == identity)
+        if before != after:
+            callback_incomparable.append({
+                'node': identity[0], 'callback': identity[1], 'topic': identity[2],
+                'base_sources': [s or None for s in before],
+                'cur_sources': [s or None for s in after],
+            })
     callback_regressions = []
     for k in sorted(set(bc) & set(cc)):
         bp, cp = bc[k]['max_p95'], cc[k]['max_p95']
         if bp > 0 and cp > bp * (1 + cb_tol):
             callback_regressions.append({'node': k[0], 'callback': k[1],
+                                         'topic': k[2], 'source': k[3] or None,
                                          'base': round(bp, 1), 'cur': round(cp, 1)})
 
     bh, ch = base.get('health', {}), cur.get('health', {})
@@ -80,6 +98,7 @@ def diff_reports(base: dict, cur: dict, *, rate_tol: float = 0.2,
         'topic_improvements': topic_improvements,
         'new_issues': new_issues, 'resolved_issues': resolved_issues,
         'callback_regressions': callback_regressions,
+        'callback_incomparable': callback_incomparable,
     }
 
 
@@ -96,6 +115,7 @@ def render_diff_markdown(d: dict) -> str:
         regs.append(f'- Rate drop: `{t["name"]}` {t["base"]} → {t["cur"]} Hz ({t["pct"]}%)')
     for c in d['callback_regressions']:
         regs.append(f'- Slower callback: `{c["node"]}` {c["callback"]} '
+                    f'({callback_source_label(c.get("source"))}) '
                     f'{c["base"]} → {c["cur"]} ms')
     for i in d['new_issues']:
         regs.append(f'- New issue: [{i["kind"]}] {i["title"]}')
@@ -113,4 +133,15 @@ def render_diff_markdown(d: dict) -> str:
         out += imps
         out.append('')
 
+    if d.get('callback_incomparable'):
+        out.append('## Duration comparison limits')
+        for c in d['callback_incomparable']:
+            before = ', '.join(callback_source_label(s) for s in c['base_sources'])
+            after = ', '.join(callback_source_label(s) for s in c['cur_sources'])
+            out.append(f'- `{c["node"]}` {c["callback"]}: sources changed '
+                       f'({before} → {after}); unmatched duration series were '
+                       'not assessed for regression.')
+        out.append('Only matching sources were compared. Unknown provenance '
+                   'does not establish identical measurement methods.')
+        out.append('')
     return '\n'.join(out)

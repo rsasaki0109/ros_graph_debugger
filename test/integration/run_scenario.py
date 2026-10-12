@@ -155,8 +155,11 @@ def validate_live(directory, mode):
     assert any(i['kind'] == 'slow_callback'
                and '/control/integration/processing' in i['related_nodes']
                and '/control/integration/processing/debug/processing_time_ms' in i['related_topics']
-               and 'p95: 120 ms (limit 15 ms)' in i['evidence'] for i in issues)
+               and 'p95: 120 ms (limit 15 ms)' in i['evidence']
+               and 'duration source: application-reported processing time' in i['evidence']
+               for i in issues)
     assert any(c['callback'] == 'processing_time' and c['p95_ms'] == 120
+               and c.get('source') == 'application_report'
                and c['node'] == '/control/integration/processing'
                for s in settled for c in s['callbacks'])
     assert any(i['kind'] == 'lifecycle_not_active'

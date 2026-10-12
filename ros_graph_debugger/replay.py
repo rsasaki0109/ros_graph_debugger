@@ -265,10 +265,11 @@ def build_demo_recording(frames: int = 40):
                 {
                 'id': f'demo_cb_{i}', 'severity': 'critical', 'kind': 'slow_callback',
                 'title': 'Slow callback in /detector',
-                'explanation': 'Callback "sub /sensing/camera/image_raw" runs 210 ms at '
-                               'p95, above the 100 ms budget; it can throttle everything '
-                               'downstream of this node.',
-                'evidence': ['p95: 210 ms (limit 100 ms)', 'mean: 116 ms', 'samples: 100'],
+                'explanation': 'Synthetic callback "sub /sensing/camera/image_raw" '
+                               'has a 210 ms p95, above the 100 ms budget. '
+                               'This scripted observation is not a real callback trace.',
+                'evidence': ['p95: 210 ms (limit 100 ms)', 'duration source: synthetic',
+                             'mean: 116 ms', 'samples: 100'],
                 'suggested_actions': ['Profile the callback body',
                                       'Move heavy work off the executor thread'],
                 'related_nodes': ['/detector'],

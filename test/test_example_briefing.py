@@ -32,4 +32,5 @@ def test_sample_showcases_the_headline_features():
     assert 'Slow callback in /detector' in md
     # focused view adds the pipeline path with rate + callback bottlenecks
     assert '## Pipeline path' in md
-    assert '⟵ slowest' in md and '⟵ slowest cb' in md
+    assert '⟵ slowest' in md and '⟵ slowest duration' in md
+    assert 'synthetic' in md

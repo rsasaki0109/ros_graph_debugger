@@ -266,7 +266,7 @@ def analyze(store: RuntimeGraphStore, thresholds,
                                'If it is a lifecycle node, check it is active'],
             related_nodes=list(e['clients'])))
 
-    # 12: slow callbacks (latency Tier C, from tracing).
+    # 12: duration budgets, retaining trace/application/synthetic provenance.
     issues.extend(_slow_callbacks(callbacks, thresholds, counter))
 
     # 14: bottleneck inference — healthy input, hot node, dropping output.
@@ -277,8 +277,8 @@ def analyze(store: RuntimeGraphStore, thresholds,
 
 
 def _slow_callbacks(callbacks, thresholds, counter) -> list[Issue]:
-    """Flag callbacks whose p95 execution time exceeds the threshold — the
-    measured (Tier C) counterpart to the inferred bottleneck rule."""
+    """Apply the existing duration budget without inferring a measurement source."""
+    from .model import callback_source_label
     out: list[Issue] = []
     for c in callbacks:
         p95 = c.p95_ms
@@ -287,6 +287,8 @@ def _slow_callbacks(callbacks, thresholds, counter) -> list[Issue]:
             continue
         severity = CRITICAL if p95 > 2 * limit else WARNING
         evidence = [f'p95: {p95:.0f} ms (limit {limit:.0f} ms)']
+        source = callback_source_label(c.source)
+        evidence.append(f'duration source: {source}')
         if c.mean_ms is not None:
             evidence.append(f'mean: {c.mean_ms:.0f} ms')
         if c.count:
@@ -295,9 +297,10 @@ def _slow_callbacks(callbacks, thresholds, counter) -> list[Issue]:
             id=counter.next('slow_callback'), severity=severity,
             kind='slow_callback',
             title=f'Slow callback in {c.node}',
-            explanation=f'Callback "{c.callback}" runs {p95:.0f} ms at p95, above '
-                        f'the {limit:.0f} ms budget; it can throttle everything '
-                        'downstream of this node.',
+            explanation=f'Duration "{c.callback}" is {p95:.0f} ms at p95 '
+                        f'({source}), above the {limit:.0f} ms budget. '
+                        'This measurement alone does not establish the '
+                        'cause of downstream rate loss.',
             evidence=evidence,
             suggested_actions=['Profile the callback body',
                                'Move heavy work off the executor thread',

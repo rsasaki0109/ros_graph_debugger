@@ -11,15 +11,23 @@ The agent reads an **NDJSON** file — one JSON object per **callback
 invocation**:
 
 ```json
-{"node": "/perception/detector", "callback": "sub /image_raw", "topic": "/image_raw", "duration_ms": 18.4}
-{"node": "/perception/detector", "callback": "sub /image_raw", "topic": "/image_raw", "duration_ms": 21.0}
+{"node": "/perception/detector", "callback": "sub /image_raw", "topic": "/image_raw", "duration_ms": 18.4, "source": "trace"}
+{"node": "/perception/detector", "callback": "sub /image_raw", "topic": "/image_raw", "duration_ms": 21.0, "source": "trace"}
 ```
 
 - `node` (required) — fully-qualified node name.
-- `duration_ms` (required) — wall time inside the callback for this invocation.
+- `duration_ms` (required) — duration for this observation in milliseconds;
+  paired traces measure wall time between callback start and end.
 - `topic` (optional) — the subscription topic; `callback` defaults to
   `sub <topic>` when omitted.
 - `callback` (optional) — a human label (e.g. `timer`).
+- `source` (optional) — `trace`, `application_report`, `synthetic`, or `null`
+  (unknown). The CTF converter writes `trace` after pairing callback start/end
+  events. Processing-time subscriptions and bag analysis write
+  `application_report`; scripted demo callbacks write `synthetic`. Imported
+  NDJSON source is declared metadata, not authenticated provenance. Old rows
+  without it remain unknown; neither the filename nor a `processing_time`
+  label establishes the source.
 
 Load it with:
 
@@ -27,9 +35,29 @@ Load it with:
 ros2 run ros_graph_debugger agent --profile autoware --trace-file run.ndjson
 ```
 
-The agent aggregates rows by `(node, callback, topic)` into count/mean/p95/max
+The agent aggregates rows by `(node, callback, topic, source)` into count/mean/p95/max
 (`tracing.aggregate_callback_durations`) and the issue engine checks each p95
 against the profile's `max_callback_ms` budget.
+
+Snapshots retain all existing callback fields and add `source`. The existing
+`slow_callback` kind, severity and budgets are unchanged; its evidence now
+identifies the duration source. An application report follows the publisher's
+definition of processing time and may cover a cycle or several callbacks. It
+does not establish callback start/end time or explain downstream rate loss.
+
+MCP `get_callbacks`, Markdown briefings and Markdown/HTML reports expose the
+source. Reports keep different sources/topics in separate series, and `rgd diff`
+only compares callback maxima with matching node, label, topic and source.
+Changed source sets appear as `callback_incomparable` in the diff JSON and as
+comparison limits in Markdown. Unknown-to-unknown comparisons retain the legacy
+behavior but do not establish identical measurement methods.
+Legacy recordings remain readable and their missing source stays unknown;
+unrecognized source values are displayed as unknown. Pipeline numeric fields
+`cb_p95_ms` are retained and accompanied by `cb_source` (a per-sample array in
+timelines). The existing subscription-first, processing-time fallback applies.
+For several subscription observations the largest p95 is selected, not summed;
+equal maxima from different sources have unknown attribution. Independent p95s
+are not an end-to-end execution time.
 
 ## Capturing a trace
 
@@ -69,8 +97,8 @@ example:
 ```
 wrote 18342 callback invocations to run.ndjson (41 callbacks resolved, 0 invocations without a resolvable owner)
 slowest callbacks (p95):
-     212.4 ms  /perception/detector  sub /sensing/camera/image_raw  (n=903)
-      14.9 ms  /control/controller  timer 33.3333 ms  (n=2701)
+     212.4 ms  /perception/detector  sub /sensing/camera/image_raw  (n=903; paired callback trace)
+      14.9 ms  /control/controller  timer 33.3333 ms  (n=2701; paired callback trace)
 ```
 
 What is resolved, per process (handles are pointers, so everything is keyed by

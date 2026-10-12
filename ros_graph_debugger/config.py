@@ -32,12 +32,12 @@ class Thresholds:
     tf_stale_ms: float = 1000.0
     high_cpu_percent: float = 90.0
     high_rss_bytes: float = 2_000_000_000
-    slow_callback_ms: float = 100.0  # callback p95 above this is flagged (Tier C)
+    slow_callback_ms: float = 100.0  # trace/application duration p95 budget
 
     # Exact-topic expectations (highest priority).
     expected_min_rate: dict[str, float] = field(default_factory=dict)
     expected_max_age_ms: dict[str, float] = field(default_factory=dict)
-    # Per-topic callback execution budget (Tier C); falls back to slow_callback_ms.
+    # Per-topic duration budget; falls back to slow_callback_ms.
     expected_callback_ms: dict[str, float] = field(default_factory=dict)
     # Regex-pattern expectations: list of (pattern, value), first match wins.
     min_rate_patterns: list[tuple[str, float]] = field(default_factory=list)

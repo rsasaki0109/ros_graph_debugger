@@ -22,7 +22,7 @@ unless noted. The same surface is served in replay mode (`rgd serve`), except
 | GET | `/api/v1/topics` | topic list with rate/bandwidth/size/age/QoS |
 | GET | `/api/v1/tf` | TF edges with staleness |
 | GET | `/api/v1/diagnostics` | latest `/diagnostics` statuses |
-| GET | `/api/v1/callbacks` | per-callback execution-time stats (Tier C tracing; `[]` when no trace source) |
+| GET | `/api/v1/callbacks` | duration stats with `source` (paired trace, application report, synthetic or unknown; `[]` when none) |
 | GET | `/api/v1/statistics` | rclcpp topic statistics (Tier B) per subscriber node and metric, with the topic each was attributed to (`[]` when none) |
 | GET | `/api/v1/issues` | detected issues (sorted by severity) |
 | GET | `/api/v1/summary` | one-line health rollup (`{verdict: ok\|degraded\|critical, counts, headline, issue_count}`) |
@@ -123,7 +123,7 @@ pattern.
   "edges":   [{ "from_node", "to_node", "topic", "status" }],
   "tf_edges":[{ "parent", "child", "age_ms", "status" }],
   "callbacks":[{ "node", "callback", "topic", "count",
-                 "mean_ms", "p95_ms", "max_ms" }],
+                 "mean_ms", "p95_ms", "max_ms", "source" }],
   "services":[{ "name", "servers", "clients" }],   // parameter services omitted
   "actions": [{ "name", "servers", "clients" }],   // from <action>/_action/send_goal
   "statistics":[{ "node", "source", "topic", "attribution", "metric", "unit",
@@ -153,6 +153,15 @@ posts to `/config` so an AI can set a topic's expected-rate floor at runtime.
 It is a thin client of the REST API; point it at a non-default agent with
 `RGD_BASE`.
 
+
+`callbacks[].source` is `trace` (paired start/end callback wall time),
+`application_report` (publisher-defined processing time), `synthetic`, or `null`
+(unknown). Imported NDJSON source is declared metadata, not authenticated
+provenance. Missing legacy fields and unrecognized values stay unknown; a label
+such as `processing_time` does not establish provenance. Existing duration
+budgets and the `slow_callback` kind are retained. Pipeline hops add `cb_source`
+beside the existing `cb_p95_ms`; timeline hops carry matching per-sample arrays.
+See [tracing.md](tracing.md) for collection and reporting semantics.
 
 `topics[].rate_measurement_scope` identifies where rate samples were observed:
 `probe_receipt` for the agent's live subscription, `subscriber_statistics` for

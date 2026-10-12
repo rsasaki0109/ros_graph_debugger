@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import json
 
-from .model import CallbackStat
+from .model import CallbackStat, callback_source
 
 
 def _percentile(values, pct: float):
@@ -39,7 +39,9 @@ def aggregate_callback_durations(rows) -> list[CallbackStat]:
     This is the real work a tracing adapter does: ``rows`` is an iterable of
     ``{node, callback?, topic?, duration_ms}`` (one per callback invocation, as
     a CTF trace yields), grouped by (node, callback, topic) into count / mean /
-    p95 / max. ``callback`` defaults to ``sub <topic>`` when absent."""
+    p95 / max. Optional ``source`` is retained; missing metadata stays unknown.
+    Different sources are never pooled. ``callback`` defaults to ``sub <topic>``
+    when absent. A duration row alone is not evidence of a paired trace."""
     groups: dict[tuple, dict] = {}
     for r in rows:
         node = r.get('node')
@@ -48,18 +50,19 @@ def aggregate_callback_durations(rows) -> list[CallbackStat]:
             continue
         topic = r.get('topic', '') or ''
         callback = r.get('callback') or (f'sub {topic}' if topic else 'callback')
-        key = (node, callback, topic)
+        source = callback_source(r.get('source'))
+        key = (node, callback, topic, source)
         g = groups.setdefault(key, {'durations': []})
         g['durations'].append(float(dur))
 
     out: list[CallbackStat] = []
-    for (node, callback, topic), g in groups.items():
+    for (node, callback, topic, source), g in groups.items():
         d = g['durations']
         out.append(CallbackStat(
-            node=node, callback=callback, topic=topic, count=len(d),
+            node=node, callback=callback, topic=topic, count=len(d), source=source,
             mean_ms=round(sum(d) / len(d), 1), p95_ms=_percentile(d, 95),
             max_ms=round(max(d), 1)))
-    out.sort(key=lambda c: (c.node, c.callback))
+    out.sort(key=lambda c: (c.node, c.callback, c.topic, c.source or ''))
     return out
 
 
@@ -192,6 +195,8 @@ def trace_events_to_rows(events) -> tuple[list[dict], dict]:
                           't_ns': e.get('t_ns')})
     paired = pair_callback_events(marks)
     rows = rows_with_owners(paired, owners)
+    for row in rows:
+        row['source'] = 'trace'
     return rows, {'events': len(events), 'callbacks_resolved': len(owners),
                   'invocations': len(paired), 'attributed': len(rows),
                   'unattributed': len(paired) - len(rows)}
@@ -221,8 +226,8 @@ def callbacks_from_trace_file(path: str) -> list[CallbackStat]:
     ``path`` is either a ``ros2 trace`` session directory (CTF, read with
     babeltrace2 via ``trace_convert``) or an NDJSON file with one
     ``{"node","callback","topic","duration_ms"}`` object per invocation (what
-    ``rgd trace convert`` writes). ros_graph_debugger then treats it exactly
-    like the synthetic source."""
+    ``rgd trace convert`` writes, including ``source``). Imported source is a
+    declaration, not authenticated provenance. Legacy rows remain unknown."""
     import os
     if os.path.isdir(path):
         from .trace_convert import callbacks_from_trace_dir
@@ -253,6 +258,7 @@ def synthesize_callbacks(nodes, *, slow_node: str | None = None,
             p95 = slow_p95_ms if slow else base_p95_ms
             out.append(CallbackStat(
                 node=nid, callback=f'sub {topic}', topic=topic, count=100,
+                source='synthetic',
                 mean_ms=round(p95 * 0.55, 1), p95_ms=round(p95, 1),
                 max_ms=round(p95 * 1.4, 1)))
     return out

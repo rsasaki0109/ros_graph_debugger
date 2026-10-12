@@ -12,6 +12,7 @@ import html
 import re
 
 from .measurement import RATE_DELIVERY_NOTE, RATE_SCOPE_LABELS, rate_measurement_scope
+from .model import callback_source, callback_source_label
 from .pipeline import pipeline_timeline, spark
 from .recording import header_age_clock_note
 
@@ -104,10 +105,12 @@ def build_report(header: dict, snapshots: list[dict],
             p95 = c.get('p95_ms')
             if not isinstance(p95, (int, float)):
                 continue
-            key = (c.get('node', ''), c.get('callback', ''))
+            source = callback_source(c.get('source'))
+            key = (c.get('node', ''), c.get('callback', ''), c.get('topic', ''), source)
             rec = callbacks.setdefault(key, {
                 'node': c.get('node', ''), 'callback': c.get('callback', ''),
-                'topic': c.get('topic', ''), 'max_p95': 0.0, 'max_mean': 0.0,
+                'topic': c.get('topic', ''), 'source': source,
+                'max_p95': 0.0, 'max_mean': 0.0,
                 'seen': 0})
             rec['seen'] += 1
             rec['max_p95'] = max(rec['max_p95'], p95)
@@ -211,6 +214,14 @@ def build_report(header: dict, snapshots: list[dict],
         'readiness': readiness,
         'pipeline': pipeline_timeline(snapshots, path_focus),
     }
+
+
+def _duration_sources(hop) -> str:
+    values = hop.get('cb_p95_ms', [])
+    sources = hop.get('cb_source', [None] * len(values))
+    labels = {callback_source_label(source) for value, source in zip(values, sources)
+              if isinstance(value, (int, float))}
+    return ', '.join(sorted(labels)) or '—'
 
 
 def _range(values) -> str:
@@ -333,27 +344,33 @@ def render_markdown(summary: dict) -> str:
         out.append('`!` marks samples where the focus was blamed; each sparkline '
                    'has its own scale.')
         out.append('')
-        out.append('| hop | rate (Hz) | rate over time | consumer cb p95 (ms) '
-                   '| cb p95 over time |')
-        out.append('|---|---|---|---|---|')
+        out.append('| hop | rate (Hz) | rate over time | consumer duration p95 (ms) '
+                   '| duration p95 over time | sources |')
+        out.append('|---|---|---|---|---|---|')
         width = 40
         out.append('| *blamed* | | `' + spark([1 if b else 0 for b in p['blamed']],
                                               width).replace('▁', '·')
-                   .replace('█', '!') + '` | | |')
+                   .replace('█', '!') + '` | | | |')
         for h in p['hops']:
             out.append(f'| {h["topic"]} → {h["to"]} | {_range(h["rate_hz"])} | '
                        f'`{spark(h["rate_hz"], width)}` | {_range(h["cb_p95_ms"])} | '
-                       f'`{spark(h["cb_p95_ms"], width)}` |')
+                       f'`{spark(h["cb_p95_ms"], width)}` | {_duration_sources(h)} |')
         out.append('')
 
     if summary.get('callbacks'):
-        out.append('## Slowest callbacks (max p95 over the recording)')
-        out.append('| node | callback | max p95 | max mean |')
-        out.append('|---|---|---|---|')
+        out.append('## Slowest callbacks / processing durations (max p95 per source)')
+        out.append('| node | callback | source | max p95 | max mean |')
+        out.append('|---|---|---|---|---|')
         for c in summary['callbacks']:
             mean = f'{c["max_mean"]:.0f} ms' if c['max_mean'] else '—'
             out.append(f'| {c["node"]} | {c["callback"]} | '
+                       f'{callback_source_label(c.get("source"))} | '
                        f'{c["max_p95"]:.0f} ms | {mean} |')
+        out.append('')
+        out.append('Application reports follow publisher semantics; only paired '
+                   'callback traces measure callback start/end wall time. '
+                   'Missing source stays unknown. Pipeline sources may change '
+                   'over time; inspect the per-sample cb_source values.')
         out.append('')
 
     if summary['tf_stale']:
@@ -512,14 +529,15 @@ def render_html(summary: dict) -> str:
             f'<td>{_range(h["rate_hz"])} Hz<br>'
             f'{_series_svg(h["rate_hz"], "#58a6ff", p["blamed"])}</td>'
             f'<td>{_range(h["cb_p95_ms"])} ms<br>'
-            f'{_series_svg(h["cb_p95_ms"], "#d29922", p["blamed"])}</td></tr>'
+            f'{_series_svg(h["cb_p95_ms"], "#d29922", p["blamed"])}</td>'
+            f'<td>{e(_duration_sources(h))}</td></tr>'
             for h in p['hops'])
         return (f'<h2>Pipeline path over time <span class="muted">— focus: '
                 f'{e(p["target"])}</span></h2>'
                 f'<p class="muted">{" → ".join(e(n) for n in p["nodes"])}. '
                 'Red bands: samples where the focus was blamed; each series has '
                 'its own scale.</p>'
-                '<table><tr><th>hop</th><th>rate</th><th>consumer callback p95</th>'
+                '<table><tr><th>hop</th><th>rate</th><th>consumer duration p95</th><th>sources</th>'
                 f'</tr>{rows}</table>')
 
     def callback_section():
@@ -527,10 +545,15 @@ def render_html(summary: dict) -> str:
             return ''
         rows = ''.join(
             f'<tr><td>{e(c["node"])}</td><td>{e(c["callback"])}</td>'
+            f'<td>{e(callback_source_label(c.get("source")))}</td>'
             f'<td>{c["max_p95"]:.0f} ms</td>'
             f'<td>{(str(round(c["max_mean"])) + " ms") if c["max_mean"] else "—"}</td></tr>'
             for c in summary['callbacks'])
-        return ('<h2>Slowest callbacks</h2><table><tr><th>node</th><th>callback</th>'
+        return ('<h2>Slowest callbacks / processing durations (per source)</h2>'
+                '<p>Application reports follow publisher semantics; only paired '
+                'callback traces measure callback start/end wall time. '
+                'Missing source stays unknown.</p>'
+                '<table><tr><th>node</th><th>callback</th><th>source</th>'
                 f'<th>max p95</th><th>max mean</th></tr>{rows}</table>')
 
     def tf_rows():
