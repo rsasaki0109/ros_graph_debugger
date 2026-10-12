@@ -55,6 +55,10 @@ age must be unavailable; 20 ms stamps pass the unchanged Autoware contract,
 300 ms stamps produce `stale_data` and exit 1, and recovery passes again.
 The fault/recovery checks repeat with `/clock` stopped and message delivery
 continuing, proving analysis keeps updating independently of simulation time.
+The same run records a real bag containing `/clock` and Odometry, then checks
+offline header ages through all five phases with the same 30 Hz / 100 ms
+contract. The offline clock basis is recorded in `header_age_clock`; arrival
+and freshness windows still use bag receive time.
 Recordings, JSON evidence and reports are saved under the output directory;
 CI includes them in `integration-humble` / `integration-jazzy` artifacts.
 Readiness is polled, and child process groups are stopped on completion/failure.
