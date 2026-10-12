@@ -45,6 +45,7 @@ def diff_reports(base: dict, cur: dict, *, rate_tol: float = 0.2,
                 'kind': k, 'title': t,
                 'related_nodes': issue.get('related_nodes', []),
                 'related_topics': issue.get('related_topics', []),
+                'related_frames': issue.get('related_frames', []),
             })
         return rows
 

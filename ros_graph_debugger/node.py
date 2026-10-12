@@ -78,11 +78,14 @@ class _TopicProbe:
         self.received_stamps: deque[int] = deque(maxlen=window)
         self.sizes: deque[int] = deque(maxlen=window)
         self.ages: deque[float] = deque(maxlen=window)  # header.stamp ages (ms)
+        self.last_seen_time: float | None = None
         # None=unknown, True=has header, False=headerless (stop deserializing).
         self.has_header = None
 
     def add(self, size: int, age_ms: float | None = None,
             received_timestamp_ns: int = 0) -> None:
+        # Polling metrics must not refresh an inactive publisher's last receipt.
+        self.last_seen_time = time.time()
         self.stamps.append(time.monotonic())
         self.received_stamps.append(received_timestamp_ns)
         self.sizes.append(size)
@@ -111,7 +114,7 @@ class _TopicProbe:
             'avg_msg_size_bytes': round(avg, 1) if avg is not None else None,
             'p95_msg_size_bytes': _percentile(self.sizes, 95),
             'bandwidth_bps': round(bw, 1) if bw is not None else None,
-            'last_seen_time': time.time() if self.stamps else None,
+            'last_seen_time': self.last_seen_time,
             'header_age_ms': _percentile(self.ages, 50),
             'header_age_p95_ms': _percentile(self.ages, 95),
         }

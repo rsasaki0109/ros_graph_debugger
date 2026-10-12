@@ -105,6 +105,82 @@ jobs:
           path: integration-artifacts/
           if-no-files-found: warn
 
+  trace-integration:
+    name: real LTTng integration (ROS 2 ${{ matrix.ros_distro }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        ros_distro: [humble, jazzy]
+    container:
+      image: ros:${{ matrix.ros_distro }}-ros-base
+    env:
+      ROS_DOMAIN_ID: '92'
+    steps:
+      - uses: actions/checkout@v4
+      # Humble's released tracetools has wrapper symbols but no LTTng backend.
+      # Overlay the same official version with UST enabled; never fake events.
+      - name: Get Humble tracetools 4.1.2 source
+        if: matrix.ros_distro == 'humble'
+        uses: actions/checkout@v4
+        with:
+          repository: ros2/ros2_tracing
+          ref: 3c159b382d2d565e26eaa91e39c9ec06a5c6fe88
+          path: .trace-source
+          sparse-checkout: tracetools
+      - name: Install tracing dependencies
+        shell: bash
+        run: |
+          set -e
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential cmake pkg-config lttng-tools liblttng-ust-dev python3-bt2 \
+            python3-pip python3-colcon-common-extensions \
+            ros-${{ matrix.ros_distro }}-std-msgs \
+            ros-${{ matrix.ros_distro }}-std-srvs \
+            ros-${{ matrix.ros_distro }}-tf2-msgs \
+            ros-${{ matrix.ros_distro }}-diagnostic-msgs \
+            ros-${{ matrix.ros_distro }}-statistics-msgs \
+            ros-${{ matrix.ros_distro }}-lifecycle-msgs
+          pip3 install --break-system-packages fastapi uvicorn websockets pydantic psutil pyyaml \
+            || pip3 install fastapi uvicorn websockets pydantic psutil pyyaml
+      - name: Build and test real callback traces
+        shell: bash
+        run: |
+          set -e
+          source /opt/ros/${{ matrix.ros_distro }}/setup.bash
+          if [[ "$ROS_DISTRO" == humble ]]; then
+            # Keep the overlay ABI aligned with the distro's released library.
+            python3 - <<'PY'
+          import os
+          import xml.etree.ElementTree as ET
+          source = ET.parse('.trace-source/tracetools/package.xml').findtext('version')
+          installed = ET.parse('/opt/ros/' + os.environ['ROS_DISTRO'] + '/share/tracetools/package.xml').findtext('version')
+          assert source == installed, (source, installed)
+          PY
+            colcon build --base-paths .trace-source/tracetools \
+              --build-base .trace-overlay-build --install-base .trace-overlay \
+              --packages-select tracetools --executor sequential \
+              --cmake-args -DBUILD_TESTING=OFF
+            source .trace-overlay/setup.bash
+          fi
+          # Fail explicitly if the selected ROS binaries cannot emit real UST events.
+          ros2 run tracetools status
+          colcon build --packages-select ros_graph_debugger --executor sequential
+          source install/setup.bash
+          cmake -S test/integration/trace_fixture -B .trace-fixture-build
+          cmake --build .trace-fixture-build --parallel 2
+          python3 test/integration/run_trace_scenario.py \
+            --output trace-artifacts --fixture .trace-fixture-build/trace_fixture
+      - name: Save real traces and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trace-${{ matrix.ros_distro }}
+          path: trace-artifacts/
+          if-no-files-found: warn
+
   web-check:
     name: web assets
     runs-on: ubuntu-latest

@@ -7,7 +7,9 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 ## [Unreleased]
 
 ### Added
+- **Real LTTng integration CI** — Humble/Jazzy record rclcpp subscription, timer and service callbacks and verify conversion, attribution and slow/healthy agent diagnosis, preserving raw traces and failure diagnostics.
 - **Multiprocess ROS integration CI** — Humble/Jazzy exercise real DDS, slow/healthy pipelines, lifecycle, missing services/actions, deadline QoS, processing time, and recorded rosbag analysis, with failure artifacts.
+- **Real Nav2 navigation evidence** — Jazzy verifies actual planner/controller goals, stopped TF and topic delivery, recovery, matching live recordings and real bag analysis, plus C++ LTTng callback attribution with explicit coverage counts.
 - **Full QoS compatibility** — `qos_mismatch` now covers every request/offer
   policy DDS checks: reliability, durability, **deadline**, **liveliness kind**
   and **liveliness lease duration** (the cases rmw reports as
@@ -46,6 +48,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
   bag's clock with the profile / `--expect` expectations. One-shot topics
   (a static TF, a latched map) are never reported stale.
 
+- **Real Nav2 recovery CI** — Humble/Jazzy verify map_server's inactive diagnosis, activation, actual map delivery, before/after reports and diff, and a late recorder receiving the retained map in a real bag.
+
 ### Changed
 - `analysis.analyze()` takes an optional `now` (the analysis clock), and the
   profile → thresholds merge is shared as `profile.apply_profile()`.
@@ -54,6 +58,7 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 - **Process CPU measurements** — reuse nonblocking CPU baselines per live PID, mark initial/unavailable samples unknown, sample shared processes once, and clear exited/unmapped process metrics; Humble/Jazzy integration covers real CPU load and recovery.
 - **Observer executor overhead** — dispatch collectors directly on their spin thread, avoiding worker-pool contention and observer-induced rate drops during high-frequency clock/TF replay while retaining Humble receive timestamps.
 - **Simulation-clock message age** — agent accepts standard ROS arguments and measures header age on its ROS clock, preventing old bag stamps from becoming false `stale_data` during `/clock` replay; collector timers continue before or during paused `/clock`, while arrival-rate and receipt-freshness clocks stay in real time.
+- Live probe receipt times no longer refresh when metrics are polled, so stopped publishers raise `topic_stale`; report/diff JSON retain `related_frames` for structured TF recovery checks.
 - **Live probe rate** — use middleware receive timestamps rather than delayed Python callback execution times, preserving raw message information on Humble and native callbacks on Jazzy; invalid timestamps fall back to a complete monotonic window without mixing clocks.
 - **Healthy demo contrast** — target 12.5 Hz for the detector while retaining the minimum 10 Hz contract and the original slow/toggle cadence, so nominal timer jitter does not invalidate the healthy fixture.
 
