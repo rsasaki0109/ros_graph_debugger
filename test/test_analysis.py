@@ -176,3 +176,20 @@ def test_callback_wait_is_probe_evidence_without_changing_rate_verdict():
     store.update_topic_metrics('/output', rate_measurement_scope='bag_recording')
     issue = next(i for i in analyze(store, threshold) if i.kind == 'rate_drop')
     assert not any(e.startswith('probe receive-to-callback') for e in issue.evidence)
+
+
+def test_source_receipt_gap_is_clock_evidence_without_a_latency_verdict():
+    store = RuntimeGraphStore()
+    store.set_graph({}, {'/output': TopicInfo(name='/output')})
+    store.update_topic_metrics('/output', rate_hz=4, rate_measurement_scope='probe_receipt',
+                               probe_source_receipt_gap_p95_ms=-20,
+                               probe_source_receipt_gap_samples=5, probe_source_receipt_gap_window_samples=5)
+    threshold = Thr(expected_min_rate={'/output': 10})
+    issue = next(i for i in analyze(store, threshold) if i.kind == 'rate_drop')
+    assert issue.severity == 'warning'
+    assert 'probe source-to-receipt timestamp gap p95: -20.0 ms (system timestamps; 5/5 samples; clock synchronization: unknown)' in issue.evidence
+    store.update_topic_metrics('/output', rate_hz=12.5, probe_source_receipt_gap_p95_ms=5000)
+    assert not {'rate_drop', 'bottleneck', 'slow_callback'} & _kinds(analyze(store, threshold))
+    store.update_topic_metrics('/output', rate_hz=4, rate_measurement_scope='bag_recording')
+    issue = next(i for i in analyze(store, threshold) if i.kind == 'rate_drop')
+    assert not any(e.startswith('probe source-to-receipt') for e in issue.evidence)

@@ -77,6 +77,7 @@ class _TopicProbe:
         self.stamps: deque[float] = deque(maxlen=window)
         self.received_stamps: deque[int] = deque(maxlen=window)
         self.callback_delays: deque[float | None] = deque(maxlen=window)
+        self.source_receipt_gaps: deque[float | None] = deque(maxlen=window)
         self.sizes: deque[int] = deque(maxlen=window)
         self.ages: deque[float] = deque(maxlen=window)  # header.stamp ages (ms)
         self.last_seen_time: float | None = None
@@ -84,7 +85,8 @@ class _TopicProbe:
         self.has_header = None
 
     def add(self, size: int, age_ms: float | None = None,
-            received_timestamp_ns: int = 0, callback_timestamp_ns: int = 0) -> None:
+            received_timestamp_ns: int = 0, callback_timestamp_ns: int = 0,
+            source_timestamp_ns: int = 0) -> None:
         # Polling metrics must not refresh an inactive publisher's last receipt.
         self.last_seen_time = time.time()
         self.stamps.append(time.monotonic())
@@ -94,6 +96,11 @@ class _TopicProbe:
             delay = (callback_timestamp_ns - received_timestamp_ns) / 1e6
         # Keep missing/future stamps in the window; never turn them into zero wait.
         self.callback_delays.append(delay)
+        # These timestamps can belong to different hosts. Retain signed clock
+        # differences; neither ordering nor clock synchronization is established.
+        self.source_receipt_gaps.append(
+            (received_timestamp_ns - source_timestamp_ns) / 1e6
+            if received_timestamp_ns > 0 and source_timestamp_ns > 0 else None)
         self.sizes.append(size)
         if age_ms is not None:
             self.ages.append(age_ms)
@@ -122,6 +129,10 @@ class _TopicProbe:
             if self.callback_delays and all(d is not None for d in self.callback_delays) else None,
             'probe_callback_delay_samples': sum(d is not None for d in self.callback_delays),
             'probe_callback_delay_window_samples': len(self.callback_delays),
+            'probe_source_receipt_gap_p95_ms': _percentile(self.source_receipt_gaps, 95)
+            if self.source_receipt_gaps and all(g is not None for g in self.source_receipt_gaps) else None,
+            'probe_source_receipt_gap_samples': sum(g is not None for g in self.source_receipt_gaps),
+            'probe_source_receipt_gap_window_samples': len(self.source_receipt_gaps),
             'avg_msg_size_bytes': round(avg, 1) if avg is not None else None,
             'p95_msg_size_bytes': _percentile(self.sizes, 95),
             'bandwidth_bps': round(bw, 1) if bw is not None else None,
@@ -357,7 +368,8 @@ class DebuggerNode(Node):
                     _probe.has_header = False
             received = (info or {}).get('received_timestamp', 0) or 0
             _probe.add(size, age, received_timestamp_ns=received,
-                       callback_timestamp_ns=callback_timestamp_ns)
+                       callback_timestamp_ns=callback_timestamp_ns,
+                       source_timestamp_ns=(info or {}).get('source_timestamp', 0) or 0)
 
         try:
             sub = self.create_subscription(

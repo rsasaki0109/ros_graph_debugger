@@ -168,3 +168,62 @@ Actual stdio MCP replay preserved the original JSON fields and rendered the
 new gap separately from header age; older live/bag recordings rendered no
 probe gap. This is evidence transport and observer timing, not publisher-side
 execution time or human investigation-time improvement.
+
+## DDS source-to-receipt timestamp difference
+
+Live probes also expose `probe_source_receipt_gap_p95_ms`, computed as the
+middleware receive timestamp minus the middleware source timestamp. RMW defines
+both as rcutils Unix-epoch nanosecond time points; the exact capture points in
+publishing and receiving are implementation dependent. These are current live
+middleware stamps, including stamps from a bag player, not the original bag's
+recording time or sensor header time.
+
+Unlike the local receipt-to-callback gap, this signed difference may span two
+host clocks. The agent does not establish clock synchronization or publisher
+identity for each receipt. Positive, zero and negative differences are retained;
+neither sign proves transport behavior. Clock skew/adjustments can affect the
+measurement. It is not measured network latency, sensor age, publisher callback
+duration or a per-publisher delivery counter. No new issue or budget uses it.
+
+`probe_source_receipt_gap_samples` counts pairs with both timestamps positive;
+`probe_source_receipt_gap_window_samples` counts all receipts in the same bounded
+window. Any missing/nonpositive timestamp makes the whole-window p95 unknown
+until that receipt expires. Negative differences remain valid and are not
+clamped to zero. Existing bag/statistics/older recordings lack this measurement.
+Focused Markdown/MCP shows DDS stamp gap, probe wait and header age separately,
+with an explicit statement that clock synchronization is unknown. Probe-scoped
+rate issue evidence includes the available gap and pair coverage, without
+changing the rate threshold, verdict or severity.
+
+The DDS gap and local probe wait percentiles are computed independently.
+Adding their p95 values does not give an end-to-end p95.
+
+The existing controlled observer-stall scenario now captures the publisher's
+system times immediately before/after every publish call. On the tested same
+host/default Fast DDS, all 30 middleware source timestamps must fall within their
+matching publish call. Source-to-receipt differences must remain between zero
+and 100 ms while the independent receipt-to-entry p95 exceeds 300 ms, then
+recovers below 100 ms. Metric p95 and coverage must match the raw pairs in the
+held/recovered five-receipt windows. This is a strict test of the distinction on
+Humble/Jazzy, not a clock-synchronization guarantee for remote machines. All
+previous receipt-rate, sequence, ROS-clock and cleanup checks remain required.
+
+Before these numbered messages, the publisher sends a separate warmup marker
+until the receiver confirms a real DDS receipt. Discovery endpoint counts alone
+did not establish first-message delivery: an initial Humble run observed a
+122.9 ms source-to-receipt difference for message 0, while the remaining messages
+were roughly 0.06–0.12 ms. That failed run is retained. The readiness handshake
+establishes the measurement precondition without relaxing the 30-message or
+timing checks and without fixed startup sleeps.
+
+A live replay of the original public camera/Clock bag retained the independent
+RELIABLE receiver's strict 70/70-frame gate with zero duplicates. Ten measured
+agent snapshots showed DDS stamp gap p95 3.9–4.0 ms, local probe wait p95 13.0 ms,
+and ROS header age p95 335–357 ms as distinct observations. Agent probes remained
+BEST_EFFORT, so the reliable control does not establish their completeness.
+Actual stdio MCP returned the unchanged snapshot and the distinct columns with
+unknown clock synchronization; older bag/live recordings showed no DDS gap.
+Owned replay and measurement groups were reaped. Derived checks and source/code
+hashes are in [probe-source-gap-validation.json](probe-source-gap-validation.json).
+These are one controlled replay's observations, not a performance regression
+benchmark or a measurement of the original Autoware publisher's execution.

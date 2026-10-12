@@ -379,6 +379,10 @@ def _rate_scope_evidence(topic) -> list[str]:
         evidence.append(f'probe receive-to-callback p95: {topic.probe_callback_delay_p95_ms:.1f} ms '
                         f'(system timestamps; {topic.probe_callback_delay_samples}/'
                         f'{topic.probe_callback_delay_window_samples} samples)')
+    if scope == 'probe_receipt' and topic.probe_source_receipt_gap_p95_ms is not None:
+        evidence.append(f'probe source-to-receipt timestamp gap p95: {topic.probe_source_receipt_gap_p95_ms:.1f} ms '
+                        f'(system timestamps; {topic.probe_source_receipt_gap_samples}/'
+                        f'{topic.probe_source_receipt_gap_window_samples} samples; clock synchronization: unknown)')
     return evidence
 
 

@@ -161,11 +161,11 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
 
     # --- Topic table. ---
     lines.append('## Topics')
-    lines.append('| topic | type | pub | sub | rate | rate scope | probe wait p95 | age p95 | bandwidth | qos | status |')
-    lines.append('|---|---|---|---|---|---|---|---|---|---|---|')
+    lines.append('| topic | type | pub | sub | rate | rate scope | DDS stamp gap p95 | probe wait p95 | age p95 | bandwidth | qos | status |')
+    lines.append('|---|---|---|---|---|---|---|---|---|---|---|---|')
     for t in sorted(d['topics'], key=lambda x: x['name']):
         age = t.get('header_age_p95_ms')
-        lines.append('| {name} | {type} | {p} | {s} | {rate} | {scope} | {wait} | {age} | {bw} | {qos} | '
+        lines.append('| {name} | {type} | {p} | {s} | {rate} | {scope} | {gap} | {wait} | {age} | {bw} | {qos} | '
                      '{status} |'.format(
                          name=t['name'],
                          type=t['type'].split('/')[-1] if t['type'] else '—',
@@ -174,6 +174,8 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
                          + (' (stats)' if t.get('rate_source') == 'statistics'
                             and t.get('rate_hz') is not None else ''),
                          scope=RATE_SCOPE_LABELS[rate_measurement_scope(t)],
+                         gap=f'{t["probe_source_receipt_gap_p95_ms"]:.1f} ms'
+                         if isinstance(t.get('probe_source_receipt_gap_p95_ms'), (int, float)) else '—',
                          wait=f'{t["probe_callback_delay_p95_ms"]:.1f} ms'
                          if isinstance(t.get('probe_callback_delay_p95_ms'), (int, float)) else '—',
                          age=f'{age:.0f} ms' if isinstance(age, (int, float)) else '—',
@@ -182,10 +184,14 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
                          status=t.get('status', 'unknown')))
     lines.append('')
 
-    if any(isinstance(t.get('rate_hz'), (int, float)) for t in d['topics']):
+    if any(isinstance(t.get(key), (int, float)) for t in d['topics']
+           for key in ('rate_hz', 'probe_callback_delay_p95_ms', 'probe_source_receipt_gap_p95_ms')):
         lines += [RATE_DELIVERY_NOTE,
                   'Probe wait uses local system timestamps from middleware receipt to Python '
-                  'callback entry; it excludes the probe callback body and is affected by clock adjustments.', '']
+                  'callback entry; it excludes the probe callback body and is affected by clock adjustments.',
+                  'DDS stamp gap is the signed middleware receipt minus source system timestamp; '
+                  'clock synchronization is unknown. Clock skew or adjustments can affect either sign; '
+                  'this is not a measured network latency or publisher callback duration.', '']
 
     # --- Nodes with process metrics, when known. ---
     metric_nodes = [n for n in d['nodes'] if n.get('cpu_percent') is not None]

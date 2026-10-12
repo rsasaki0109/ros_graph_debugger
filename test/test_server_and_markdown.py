@@ -238,3 +238,18 @@ def test_briefing_names_rate_location_even_without_issues(scope, label):
     assert f'| 4.2 Hz | {label} |' in md
     assert 'Delivery completeness and publisher-side throughput are unknown' in md
     assert 'low rate alone does not prove a slow publishing callback' in md
+
+
+def test_briefing_separates_signed_dds_gap_probe_wait_and_header_age():
+    store = _store()
+    store.update_topic_metrics('/objects', rate_hz=None, probe_source_receipt_gap_p95_ms=-20,
+                               probe_callback_delay_p95_ms=450, header_age_p95_ms=1300)
+    md = snapshot_to_markdown(store.snapshot(), focus='/objects')
+    assert '| DDS stamp gap p95 | probe wait p95 | age p95 |' in md
+    assert '| -20.0 ms | 450.0 ms | 1300 ms |' in md
+    assert 'clock synchronization is unknown' in md
+    assert 'not a measured network latency or publisher callback duration' in md
+    # Old snapshots have no metadata. Never fabricate a zero gap.
+    old = store.snapshot().to_dict()
+    del old['topics'][0]['probe_source_receipt_gap_p95_ms']
+    assert '| — | 450.0 ms | 1300 ms |' in snapshot_to_markdown(old)

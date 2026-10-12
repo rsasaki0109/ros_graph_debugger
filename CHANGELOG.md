@@ -6,6 +6,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ## [Unreleased]
 
+- Expose signed DDS source-to-receipt timestamp gaps separately from local probe waiting and header age, preserving unknown coverage and clock synchronization.
+
 - Measure live probe receive-to-callback system-time gaps with explicit unknown coverage, and validate condition-controlled observer backlog in Humble/Jazzy integration.
 
 - Retain complete issue evidence and count rate measurement sources in Markdown/HTML recording reports, with explicit unknown delivery completeness in AI briefings.

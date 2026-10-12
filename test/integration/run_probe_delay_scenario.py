@@ -23,16 +23,27 @@ if a.role:
  node=Node('dispatch_'+a.role,parameter_overrides=[Parameter('use_sim_time',value=True)])
  ex=ProbeExecutor();ex.add_node(node)
  rows=[]
+ warmups=[]
+ WARMUP=2**64-1
  probe=_TopicProbe(window=5)
  qos=QoSProfile(depth=100,reliability=ReliabilityPolicy.RELIABLE)
  if a.role=='publisher':
   pub=node.create_publisher(UInt64,'/dispatch/counter',qos)
   def tick():
    if pub.get_subscription_count()!=1 or len(rows)>=30:return
+   # Endpoint discovery alone does not establish first-message delivery. Warm
+   # up the real DDS path and wait for an actual receipt before numbered data.
+   if not (a.output/'ready').exists():
+    warmups.append({'wall_ns':time.time_ns()})
+    pub.publish(UInt64(data=WARMUP))
+    warmups[-1]['after_publish_ns']=time.time_ns()
+    (a.output/'warmup-publisher.json').write_text(json.dumps(warmups))
+    return
    if rows and not (a.output/'blocked').exists():return
    seq=len(rows)
    rows.append({'seq':seq,'wall_ns':time.time_ns(),'monotonic':time.monotonic()})
    pub.publish(UInt64(data=seq))
+   rows[-1]['after_publish_ns']=time.time_ns()
    if len(rows)==12:(a.output/'release').write_text('12 sent')
    if len(rows)==30:(a.output/'publisher.json').write_text(json.dumps(rows))
   from rclpy.clock import Clock,ClockType
@@ -40,7 +51,12 @@ if a.role:
  else:
   def cb(raw,info):
    entry=time.time_ns();mono=time.monotonic();seq=deserialize_message(raw,UInt64).data
-   probe.add(len(raw),received_timestamp_ns=info['received_timestamp'],callback_timestamp_ns=entry)
+   if seq==WARMUP:
+    warmups.append({'callback_ns':entry,'info':info})
+    (a.output/'warmup-receiver.json').write_text(json.dumps(warmups))
+    (a.output/'ready').write_text('DDS warmup received')
+    return
+   probe.add(len(raw),received_timestamp_ns=info['received_timestamp'],callback_timestamp_ns=entry,source_timestamp_ns=info['source_timestamp'])
    rows.append({'seq':seq,'callback_ns':entry,'callback_monotonic':mono,'ros_time_ns':node.get_clock().now().nanoseconds,'info':info,'delay_ms':(entry-info['received_timestamp'])/1e6,'probe_metrics':probe.metrics()})
    if seq==0:
     (a.output/'blocked').write_text('entered callback 0')
@@ -70,8 +86,14 @@ else:
    p.check();assert time.monotonic()<deadline,'native capability timeout';time.sleep(0.02)
   rx=json.loads((a.output/'receiver.json').read_text());tx=json.loads((a.output/'publisher.json').read_text())
   assert [r['seq'] for r in rx]==list(range(30))
+  assert json.loads((a.output/'warmup-receiver.json').read_text()),'actual DDS readiness required'
   assert all(r['ros_time_ns']==0 for r in rx),'ROS Clock must remain uninitialized'
   assert all(r['info']['received_timestamp']>0 for r in rx)
+  # These are two processes on the SAME host/system clock. Do not generalize
+  # this ordering to remote publishers with unsynchronized host clocks.
+  assert all(t['wall_ns']<=r['info']['source_timestamp']<=t['after_publish_ns'] for t,r in zip(tx,rx))
+  gaps=[(r['info']['received_timestamp']-r['info']['source_timestamp'])/1e6 for r in rx]
+  assert all(0<=gap<100 for gap in gaps),gaps
   delayed=[r for r in rx if 1<=r['seq']<=5]
   assert max(r['delay_ms'] for r in delayed)>300,'receive timestamp does not expose controlled backlog'
   assert all(r['delay_ms']>=0 for r in rx)
@@ -81,6 +103,9 @@ else:
   assert recovered['probe_callback_delay_p95_ms']<100,recovered
   assert held['probe_callback_delay_samples']==held['probe_callback_delay_window_samples']==5
   assert recovered['probe_callback_delay_samples']==recovered['probe_callback_delay_window_samples']==5
+  for metrics,window in ((held,gaps[1:6]),(recovered,gaps[-5:])):
+   assert metrics['probe_source_receipt_gap_p95_ms']==round(max(window),1)
+   assert metrics['probe_source_receipt_gap_samples']==metrics['probe_source_receipt_gap_window_samples']==5
   assert held['rate_hz']>10 and recovered['rate_hz']>10,'DDS rate must retain its contract despite observer wait'
   summary={'rmw':__import__('rclpy').get_rmw_implementation_identifier(),'received':len(rx),'delayed_ms':[r['delay_ms'] for r in delayed],'tail_ms':[r['delay_ms'] for r in rx[-5:]],'ros_clock_uninitialized':True,'held_probe':held,'recovered_probe':recovered}
   (a.output/'summary.json').write_text(json.dumps(summary,indent=2));print(json.dumps(summary))
