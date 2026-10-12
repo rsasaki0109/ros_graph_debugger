@@ -6,6 +6,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ## [Unreleased]
 
+- Add real-source investigation tasks with frame-bound citations, explicit unsupported conclusions and next checks, plus Humble/Jazzy CLI/MCP and negative-control validation.
+
 - Expose signed DDS source-to-receipt timestamp gaps separately from local probe waiting and header age, preserving unknown coverage and clock synchronization.
 
 - Measure live probe receive-to-callback system-time gaps with explicit unknown coverage, and validate condition-controlled observer backlog in Humble/Jazzy integration.

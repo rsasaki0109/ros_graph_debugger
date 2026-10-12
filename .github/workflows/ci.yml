@@ -106,6 +106,40 @@ jobs:
           path: integration-artifacts/
           if-no-files-found: warn
 
+  investigation:
+    name: frozen investigation evidence (ROS 2 ${{ matrix.ros_distro }})
+    needs: integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        ros_distro: [humble, jazzy]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test-only replay and MCP dependencies
+        run: RGD_PYPI_BUILD=1 python -m pip install -e '.[web]' 'mcp==1.30.0'
+      - uses: actions/download-artifact@v4
+        with:
+          name: integration-${{ matrix.ros_distro }}
+          path: investigation-source
+      - name: Prepare cases and verify original evidence
+        run: |
+          python test/benchmarks/investigation_cases.py prepare --integration investigation-source --output investigation-bundle
+          python test/benchmarks/validate_investigation.py --bundle investigation-bundle --output investigation-validation
+      - name: Save tasks, citations, responses and negative controls
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: investigation-${{ matrix.ros_distro }}
+          path: |
+            investigation-bundle/
+            investigation-validation/
+          if-no-files-found: error
+
   trace-integration:
     name: real LTTng integration (ROS 2 ${{ matrix.ros_distro }})
     runs-on: ubuntu-latest
