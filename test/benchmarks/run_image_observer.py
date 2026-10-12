@@ -190,9 +190,11 @@ def case(output, mode, args, rows):
             save(output/'result.json', result)
         return result
     finally:
-        save(output/'samples.json', samples)
-        save(output/'snapshots.json', snapshots)
-        processes.close()
+        try:
+            save(output/'samples.json', samples)
+            save(output/'snapshots.json', snapshots)
+        finally:
+            processes.close()
         cleanup = group_stats({n:c.pid for n,c in processes.children})
         save(output/'cleanup.json', cleanup)
         assert all(not s['pids'] for s in cleanup.values()), cleanup
