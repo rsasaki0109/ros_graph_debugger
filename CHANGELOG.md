@@ -18,6 +18,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 - Preserve exact imported callback trace boundaries and CTF clock identity in conversion, snapshots and reports, keeping incomplete windows unknown and distinguishing historical timing from current activity.
 
+- Grade exact declared trace windows and same-row clock citations in investigation cases, rejecting current-activity, clock-alignment, phase and capture-completeness claims from imported durations.
+
 - Grade duration values, declared sources and same-row citations in investigation tasks, rejecting application/trace/synthetic confusion and unknown provenance inference against real ROS/LTTng recordings.
 
 - Distinguish traced, application-reported, synthetic and unknown duration sources in diagnostic evidence, MCP, pipelines and reports without pooling or comparing different sources.

@@ -1,0 +1,405 @@
+{
+  "public_source_cases": {
+    "cases": [
+      {
+        "label": "complete",
+        "target": "/gyro_odometer",
+        "source": "/workspace/trace-measurement-window-validation/imported/run.rgd.json",
+        "source_sha256": "0814c50317097fc7b25e6ea3a2de188d81980e650ae2310e0e794f56a41c3a8e",
+        "snapshot_index": 0,
+        "window_claims": 15,
+        "case_id": "case-001",
+        "evidence_sha256": "854b6db935f68210bbab1da487740f7c32a7f27a3f4d99547f881ab27a81505d",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_runtime_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": null,
+        "full_markdown_exact": true,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 19,
+        "model_invoked": false,
+        "source_unchanged": true,
+        "scoring_cli_reference_exit": 0,
+        "scoring_cli_negative_exit": 1
+      },
+      {
+        "label": "complete",
+        "target": "/vehicle_velocity_converter",
+        "source": "/workspace/trace-measurement-window-validation/imported/run.rgd.json",
+        "source_sha256": "0814c50317097fc7b25e6ea3a2de188d81980e650ae2310e0e794f56a41c3a8e",
+        "snapshot_index": 0,
+        "window_claims": 6,
+        "case_id": "case-001",
+        "evidence_sha256": "854b6db935f68210bbab1da487740f7c32a7f27a3f4d99547f881ab27a81505d",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_runtime_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": null,
+        "full_markdown_exact": true,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 19,
+        "model_invoked": false,
+        "source_unchanged": true,
+        "scoring_cli_reference_exit": 0,
+        "scoring_cli_negative_exit": 1
+      },
+      {
+        "label": "legacy",
+        "target": "/gyro_odometer",
+        "source": "/workspace/autoware-callback-trace-validation/imported/run.rgd.json",
+        "source_sha256": "265a1a5b64fc5c78bb731208f48df9df160f0220aba3970c8dcf038463225e00",
+        "snapshot_index": 0,
+        "window_claims": 15,
+        "case_id": "case-001",
+        "evidence_sha256": "43938219a215eb033acffbcec361c2c03d8ddcf55c996bc971e88f051d852eec",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_runtime_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": null,
+        "full_markdown_exact": true,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 18,
+        "model_invoked": false,
+        "source_unchanged": true,
+        "scoring_cli_reference_exit": 0,
+        "scoring_cli_negative_exit": 1
+      },
+      {
+        "label": "legacy",
+        "target": "/vehicle_velocity_converter",
+        "source": "/workspace/autoware-callback-trace-validation/imported/run.rgd.json",
+        "source_sha256": "265a1a5b64fc5c78bb731208f48df9df160f0220aba3970c8dcf038463225e00",
+        "snapshot_index": 0,
+        "window_claims": 6,
+        "case_id": "case-001",
+        "evidence_sha256": "43938219a215eb033acffbcec361c2c03d8ddcf55c996bc971e88f051d852eec",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_runtime_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": null,
+        "full_markdown_exact": true,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 18,
+        "model_invoked": false,
+        "source_unchanged": true,
+        "scoring_cli_reference_exit": 0,
+        "scoring_cli_negative_exit": 1
+      }
+    ],
+    "unique_original_source_files": 2,
+    "model_invoked": false,
+    "scope": "Frozen actual imported whole-capture metadata; 2 original frames used for 4 target tasks. No new C++ experiment, phase alignment, current health or model-accuracy proof."
+  },
+  "existing_cases": {
+    "scope": "transport and structured rubric calibration; no AI accuracy measurement",
+    "model_invoked": false,
+    "completed_cases": [
+      {
+        "case_id": "case-001",
+        "evidence_sha256": "b3ba5b50731feac1993c789ec3be02883fc40b1eadaea2e8caf0f7082854f908",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_node_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": true,
+        "full_markdown_exact": null,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 7,
+        "model_invoked": false
+      },
+      {
+        "case_id": "case-002",
+        "evidence_sha256": "b3ba5b50731feac1993c789ec3be02883fc40b1eadaea2e8caf0f7082854f908",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_node_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": true,
+        "full_markdown_exact": null,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 18,
+        "model_invoked": false
+      },
+      {
+        "case_id": "case-003",
+        "evidence_sha256": "3f3ef97f449e6e4512b9e5f41f24a22fe1e897789525c3870c5269092481d6dd",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_node_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": true,
+        "full_markdown_exact": null,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 7,
+        "model_invoked": false
+      },
+      {
+        "case_id": "case-004",
+        "evidence_sha256": "3f3ef97f449e6e4512b9e5f41f24a22fe1e897789525c3870c5269092481d6dd",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_node_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": true,
+        "full_markdown_exact": null,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 18,
+        "model_invoked": false
+      },
+      {
+        "case_id": "case-005",
+        "evidence_sha256": "82e238c3d58f492a4590a7a828bd14024017464504d83ea0bd3ad1cb958053d2",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_node_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": true,
+        "full_markdown_exact": null,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 7,
+        "model_invoked": false
+      },
+      {
+        "case_id": "case-006",
+        "evidence_sha256": "ba58f996f3653b723398c9f3f583dda160c40981e4328358fb6fcb57e28265f5",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_node_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": true,
+        "full_markdown_exact": null,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 7,
+        "model_invoked": false
+      },
+      {
+        "case_id": "case-007",
+        "evidence_sha256": "81eac5339c9c01cd215af7f98a0fca7c1ba6bf9d0e6df548f81f755de8f58154",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_node_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": true,
+        "full_markdown_exact": null,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 7,
+        "model_invoked": false
+      },
+      {
+        "case_id": "case-008",
+        "evidence_sha256": "5f9e8ebd9e94ccb19071e8fafd147789f539e146522fc27e617bd7b3ed5213b0",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_node_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": true,
+        "full_markdown_exact": null,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 7,
+        "model_invoked": false
+      },
+      {
+        "case_id": "case-009",
+        "evidence_sha256": "b4877ce8dfb382b80455ad7dfa63c7c311af65426145e6dc095ff68e0539a5f2",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_node_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": true,
+        "full_markdown_exact": null,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 18,
+        "model_invoked": false
+      },
+      {
+        "case_id": "case-010",
+        "evidence_sha256": "1517ba0ef5b945ee155939b3cea8f306dc38cbf277d7b228ebc108a97fa36dab",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_node_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": true,
+        "full_markdown_exact": null,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 18,
+        "model_invoked": false
+      },
+      {
+        "case_id": "case-011",
+        "evidence_sha256": "e4b6119f3dd36e01ebb21b506ed435c6f7e7c8b5bc119907cf8c1cc4c3d3e0d0",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_node_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": true,
+        "full_markdown_exact": null,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 18,
+        "model_invoked": false
+      },
+      {
+        "case_id": "case-012",
+        "evidence_sha256": "1d3119262d2fd794f53f9020f51d25598f5f58c93a95757ce2cf6c4c3bc27711",
+        "cli_snapshot_exact": true,
+        "mcp_snapshot_and_metadata_exact": true,
+        "mcp_callbacks_exact": true,
+        "briefing_tool": "get_node_briefing",
+        "markdown_exact": true,
+        "focused_markdown_exact": true,
+        "full_markdown_exact": null,
+        "scripted_reference_passed": true,
+        "deliberate_invalid_answers_rejected": 18,
+        "model_invoked": false
+      }
+    ]
+  },
+  "latest_rubrics": {
+    "cases": [
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/existing-bundle",
+        "case_id": "case-001",
+        "rubric_unchanged": true,
+        "rejected": 7,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/existing-bundle",
+        "case_id": "case-002",
+        "rubric_unchanged": true,
+        "rejected": 18,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/existing-bundle",
+        "case_id": "case-003",
+        "rubric_unchanged": true,
+        "rejected": 7,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/existing-bundle",
+        "case_id": "case-004",
+        "rubric_unchanged": true,
+        "rejected": 18,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/existing-bundle",
+        "case_id": "case-005",
+        "rubric_unchanged": true,
+        "rejected": 7,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/existing-bundle",
+        "case_id": "case-006",
+        "rubric_unchanged": true,
+        "rejected": 7,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/existing-bundle",
+        "case_id": "case-007",
+        "rubric_unchanged": true,
+        "rejected": 7,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/existing-bundle",
+        "case_id": "case-008",
+        "rubric_unchanged": true,
+        "rejected": 7,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/existing-bundle",
+        "case_id": "case-009",
+        "rubric_unchanged": true,
+        "rejected": 18,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/existing-bundle",
+        "case_id": "case-010",
+        "rubric_unchanged": true,
+        "rejected": 18,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/existing-bundle",
+        "case_id": "case-011",
+        "rubric_unchanged": true,
+        "rejected": 18,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/existing-bundle",
+        "case_id": "case-012",
+        "rubric_unchanged": true,
+        "rejected": 18,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/complete-gyro_odometer/bundle",
+        "case_id": "case-001",
+        "rubric_unchanged": true,
+        "rejected": 19,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/complete-vehicle_velocity_converter/bundle",
+        "case_id": "case-001",
+        "rubric_unchanged": true,
+        "rejected": 19,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/legacy-gyro_odometer/bundle",
+        "case_id": "case-001",
+        "rubric_unchanged": true,
+        "rejected": 18,
+        "model_invoked": false
+      },
+      {
+        "bundle": "/workspace/trace-window-investigation-validation/legacy-vehicle_velocity_converter/bundle",
+        "case_id": "case-001",
+        "rubric_unchanged": true,
+        "rejected": 18,
+        "model_invoked": false
+      }
+    ],
+    "total": 16,
+    "rejected": 224,
+    "scope": "Latest test helper recalibration of original transported frames; no repeated transport or model evaluation."
+  },
+  "new_unit_cases": 25,
+  "base_main": "982e0343e4194e825fa959076d30b02831408330",
+  "cpp_capture_producer": "dbddd94b655183a5e539f518920cc76f72d94cb5",
+  "imported_window_source": "23c4bffa380b0c1358904576815b96e0d666c5cd",
+  "legacy_import_source": "e9af7f89b4d3c4aae4a6332916eccd7a0fcd76bf",
+  "helper_sha256": {
+    "test/benchmarks/investigation_cases.py": "9fac270574c5760b61ac352823acefdee746246bbcd95f6be7ec7dc928ebc41b",
+    "test/benchmarks/validate_investigation.py": "3d40e6718eec741b21ef39e1b92a3ecf079c6ef44c556a5e74fa6d99b16f9099"
+  },
+  "raw_artifact_root": "/workspace/trace-window-investigation-validation",
+  "scope": "Transport and fixed rubric calibration only; no model, free-text grading, current Autoware health, phase alignment, tracing overhead, human-time/adoption or cloud restore proof."
+}
