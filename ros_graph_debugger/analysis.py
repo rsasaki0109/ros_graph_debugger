@@ -187,18 +187,20 @@ def analyze(store: RuntimeGraphStore, thresholds,
                 kind='diagnostics_error',
                 title=f'Diagnostics ERROR: {name}',
                 explanation=st.message or 'Component reported an error.',
-                evidence=[f'level: {st.level}', f'hardware_id: {st.hardware_id}'],
+                evidence=[f'level: {st.level}', f'hardware_id: {st.hardware_id}',
+                          f'diagnostic name: {name}', 'node attribution: unknown'],
                 suggested_actions=['Inspect the reporting component'],
-                related_nodes=[name]))
+                related_diagnostics=[name]))
         elif st.level == 1:
             issues.append(Issue(
                 id=counter.next('diagnostics'), severity=WARNING,
                 kind='diagnostics_warn',
                 title=f'Diagnostics WARN: {name}',
                 explanation=st.message or 'Component reported a warning.',
-                evidence=[f'level: {st.level}'],
+                evidence=[f'level: {st.level}', f'diagnostic name: {name}',
+                          'node attribution: unknown'],
                 suggested_actions=['Inspect the reporting component'],
-                related_nodes=[name]))
+                related_diagnostics=[name]))
 
     # 11: high CPU / RSS.
     for node_id, n in nodes.items():

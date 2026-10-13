@@ -131,7 +131,7 @@ pattern.
                   "window_stop" }],
   "issues":  [{ "severity", "kind", "title", "explanation",
                 "evidence", "suggested_actions",
-                "related_nodes", "related_topics", "related_frames" }]
+                "related_nodes", "related_topics", "related_frames", "related_diagnostics" }]
 }
 ```
 
@@ -153,6 +153,15 @@ posts to `/config` so an AI can set a topic's expected-rate floor at runtime.
 It is a thin client of the REST API; point it at a non-default agent with
 `RGD_BASE`.
 
+
+`issues[].related_diagnostics` references `diagnostics[].name`, an opaque
+diagnostic-task label. It is separate from ROS node IDs in `related_nodes`.
+Diagnostic WARN/ERROR issues preserve their kind, severity and original evidence,
+but no longer use the task label as a node ID. They state `node attribution:
+unknown`: a label, hardware ID, matching graph name, or sole currently observed
+diagnostic publisher does not establish the origin of a particular status.
+Older recordings retain their original fields/values and are not rewritten.
+Federation prefixes diagnostic references exactly like diagnostic names.
 
 `callbacks[].source` is `trace` (paired start/end callback wall time),
 `application_report` (publisher-defined processing time), `synthetic`, or `null`

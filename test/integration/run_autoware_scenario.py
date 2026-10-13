@@ -68,7 +68,10 @@ def validate_snapshot(sample, phase):
     if phase == 'missing-imu':
         assert not topics[IMU]['publishers'], topics[IMU]
         assert diagnostic['level'] == 2 and 'IMU msg is timeout' in diagnostic['message'], diagnostic
-        assert any(i['kind'] == 'diagnostics_error' and DIAGNOSTIC in i['related_nodes']
+        assert any(i['kind'] == 'diagnostics_error'
+                   and i.get('related_diagnostics') == [DIAGNOSTIC]
+                   and i['related_nodes'] == []
+                   and 'node attribution: unknown' in i['evidence']
                    and 'level: 2' in i['evidence'] for i in issues), issues
         assert any(i['kind'] == 'no_publisher' and IMU in i['related_topics']
                    and GYRO in i['related_nodes'] and 'publishers: 0' in i['evidence']

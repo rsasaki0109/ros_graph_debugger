@@ -6,6 +6,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ## [Unreleased]
 
+- Keep diagnostic task references separate from ROS node IDs, preserving diagnostic severity and explicit unknown node attribution across briefings and federation.
+
 - Add an opt-in public-input Autoware component scenario that verifies IMU omission, diagnostic evidence, stopped output and recovery with pinned unmodified upstream sources.
 
 - Grade duration values, declared sources and same-row citations in investigation tasks, rejecting application/trace/synthetic confusion and unknown provenance inference against real ROS/LTTng recordings.

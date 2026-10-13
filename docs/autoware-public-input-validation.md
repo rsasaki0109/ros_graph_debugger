@@ -91,6 +91,31 @@ assertion. Issue checks use `kind`, related nodes/topics and evidence. Recovery
 must resolve all three fault kinds without new issues. Full diagnostics with
 upstream key/value evidence are captured separately from RGD's snapshot fields.
 
+Diagnostic task labels are not ROS node IDs. The scenario requires the exact
+`gyro_odometer: gyro_odometer_status` reference in `related_diagnostics`,
+diagnostic level 2, the IMU timeout message, and explicit unknown node attribution.
+It rejects that label in `related_nodes` and also rejects guessing
+`/gyro_odometer` from the label, hardware ID or currently sole diagnostic publisher.
+The independent missing-IMU and stale-output issues still require their real
+`/gyro_odometer` node/topic references. Diagnostic kind, severity, all rate
+thresholds and zero-delivery checks are retained.
+
+Diagnostic references receive the same federation prefix as `diagnostics[].name`.
+The full snapshot/briefing retains unknown-origin diagnostics; a node-focused
+briefing does not infer which node produced them. Use the full diagnostic
+collection alongside the focused graph evidence. Existing recordings, including
+the original experiment's diagnostic label in `related_nodes`, stay unchanged.
+
+Markdown and HTML recording reports include diagnostic issues separately from
+bottlenecks, preserving severity, frequency, full representative evidence and
+diagnostic-task references. Missing references in legacy records or summaries
+remain unknown. Recorded observations and the health rollup are unchanged.
+
+Measured reference/transport/report results and source fingerprints are in
+[diagnostic-reference-results.json](diagnostic-reference-results.json). These
+checks retain the original failed reference as evidence and repeat the strict
+public CPP healthy/omission/recovery scenario with the corrected references.
+
 The bag has no offered QoS recorded. Default rosbag2 playback offered volatile
 `/tf_static`, which did not match the standard transient-local TF listener.
 The scenario explicitly sets reliable/transient-local/keep-all for replayed

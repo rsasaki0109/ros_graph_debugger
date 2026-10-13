@@ -88,6 +88,7 @@ def build_report(header: dict, snapshots: list[dict],
                 'last_index': idx, 'evidence': issue.get('evidence', []),
                 'suggested_actions': issue.get('suggested_actions', []),
                 'related_nodes': issue.get('related_nodes', []),
+                'related_diagnostics': issue.get('related_diagnostics'),
                 'related_topics': issue.get('related_topics', []),
                 'related_frames': issue.get('related_frames', [])})
             cat['count'] += 1
@@ -327,6 +328,22 @@ def render_markdown(summary: dict) -> str:
                 out.append(f'  - e.g. {"; ".join(b["evidence"])}')
     out.append('')
 
+    diagnostic_issues = [i for i in summary.get('issue_catalog', [])
+                         if i['kind'] in ('diagnostics_error', 'diagnostics_warn')]
+    if diagnostic_issues:
+        out.append('## Diagnostic issues (representative samples)')
+        for issue in diagnostic_issues:
+            out.append(f'- **[{issue["max_severity"].upper()}]** {issue["title"]} '
+                       f'— seen in {issue["pct"]}% of samples')
+            refs = issue.get('related_diagnostics')
+            out.append('  - Diagnostic tasks: ' + (', '.join(refs) if refs else 'unknown'))
+            if issue['evidence']:
+                out.append('  - e.g. ' + '; '.join(issue['evidence']))
+        out.append('Diagnostic task and hardware labels do not establish ROS node '
+                   'attribution. References and evidence are from a representative '
+                   'sample; legacy missing references stay unknown.')
+        out.append('')
+
     if summary['bandwidth_top']:
         out.append('## Highest bandwidth topics')
         out.append('| topic | max bandwidth | max p95 size |')
@@ -500,6 +517,24 @@ def render_html(summary: dict) -> str:
                 f'<div class="ev">{ev}</div></div>')
         return ''.join(rows)
 
+    def diagnostic_section():
+        issues = [i for i in summary.get('issue_catalog', [])
+                  if i['kind'] in ('diagnostics_error', 'diagnostics_warn')]
+        if not issues:
+            return ''
+        rows = ['<h2>Diagnostic issues (representative samples)</h2>']
+        for issue in issues:
+            refs = issue.get('related_diagnostics')
+            tasks = ', '.join(refs) if refs else 'unknown'
+            rows.append('<div class="issue"><b>' + e(issue['title']) + '</b>'
+                        + f'<span class="pct">{issue["pct"]}% of samples</span>'
+                        + '<div class="ev">Diagnostic tasks: ' + e(tasks) + '</div>'
+                        + '<div class="ev">' + e('; '.join(issue['evidence'])) + '</div></div>')
+        rows.append('<p class="muted">Diagnostic task and hardware labels do not '
+                    'establish ROS node attribution. References and evidence are '
+                    'from a representative sample; legacy missing references stay unknown.</p>')
+        return ''.join(rows)
+
     def bandwidth_rows():
         rows = []
         for t in summary['bandwidth_top']:
@@ -606,6 +641,7 @@ th{{color:#8b949e;font-weight:600}}
 <div class="tl">{_timeline_svg(summary['timeline'])}</div>
 <h2>Top bottlenecks</h2>
 {bottleneck_rows()}
+{diagnostic_section()}
 <h2>Highest bandwidth topics</h2>
 <table><tr><th>topic</th><th>max bandwidth</th><th>max p95 size</th></tr>{bandwidth_rows()}</table>
 {pipeline_section()}
