@@ -43,6 +43,11 @@ node --check ros_graph_debugger/web/app.js
 
 CI runs the same on Humble and Jazzy (`.github/workflows/ci.yml`).
 
+For exact CLI/MCP snapshot and recording-header collection timings, see
+[the recording collection baseline](docs/recording-collection.md). Downstream
+investigation CI retains timings and responses as artifacts; evidence equality
+and cleanup are required, and speed is not a pass/fail contract.
+
 The multiprocess job also checks `/clock` startup and message-age recovery:
 
 ```bash

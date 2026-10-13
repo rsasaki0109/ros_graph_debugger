@@ -134,6 +134,8 @@ jobs:
         run: |
           python test/benchmarks/investigation_cases.py prepare --integration investigation-source --trace-recordings investigation-traces --output investigation-bundle
           python test/benchmarks/validate_investigation.py --bundle investigation-bundle --output investigation-validation
+      - name: Measure exact snapshot and header collection
+        run: python test/benchmarks/measure_collection.py --bundle investigation-bundle --output collection-validation --repeats 3
       - name: Save tasks, citations, responses and negative controls
         if: always()
         uses: actions/upload-artifact@v4
@@ -142,6 +144,7 @@ jobs:
           path: |
             investigation-bundle/
             investigation-validation/
+            collection-validation/
           if-no-files-found: error
 
   trace-integration:
