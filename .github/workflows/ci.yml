@@ -212,6 +212,8 @@ jobs:
           cmake --build .trace-fixture-build --parallel 2
           python3 test/integration/run_trace_scenario.py \
             --output trace-artifacts --fixture .trace-fixture-build/trace_fixture
+          python3 test/integration/run_trace_loss_scenario.py \
+            --output trace-artifacts/loss-validation --fixture .trace-fixture-build/trace_loss_fixture
       - name: Save real traces and diagnostics
         if: always()
         uses: actions/upload-artifact@v4

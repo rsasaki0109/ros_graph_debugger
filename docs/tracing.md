@@ -128,6 +128,27 @@ uses the distro library. See [CONTRIBUTING.md](../CONTRIBUTING.md#real-lttng-int
 for the commands and diagnostic artifacts. This does not validate callbacks
 from rclpy or constitute an Autoware/Nav2 system test.
 
+## Reported CTF data loss
+
+`rgd trace convert` rejects a CTF trace when babeltrace2 reports discarded
+**events or packets**, including a notification whose count is unknown. It
+exits 2 before writing callback rows; an existing `--out` file is preserved,
+so check the exit status before consuming that path as a new result.
+`agent --trace-file <session>` also exits 2 before starting ROS or its HTTP
+server. Incomplete callback populations can bias count/mean/p95/max and must
+not become ordinary healthy-looking statistics.
+
+The error identifies the first notification's unit and reported count. Try
+larger LTTng sub-buffers or fewer enabled events, then make a fresh capture.
+There is no option to ignore the notification. This does not establish that a
+trace without notifications is complete: events outside the capture window,
+unmatched start/end events, missing registration chains and already-exported
+NDJSON have separate limits. NDJSON contains no original CTF loss metadata.
+
+Humble and Jazzy CI exercise real rclcpp timer callbacks in both a counted
+normal capture and a deliberately overflowing capture. See the
+[real LTTng integration commands](../CONTRIBUTING.md#real-lttng-integration).
+
 ## Converting — other tools
 
 Anything that emits one `{"node", "topic", "callback"?, "duration_ms"}` object
