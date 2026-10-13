@@ -216,6 +216,11 @@ jobs:
             --output trace-artifacts/loss-validation --fixture .trace-fixture-build/trace_loss_fixture
           python3 test/integration/run_trace_loss_scenario.py --loss-unit packets \
             --output trace-artifacts/packet-loss-validation --fixture .trace-fixture-build/trace_loss_fixture
+          # Re-read the completed captures and corrupt copies after all producers exit.
+          python3 test/integration/audit_trace_loss.py --loss-unit events \
+            --capture trace-artifacts/loss-validation --output trace-artifacts/loss-audit
+          python3 test/integration/audit_trace_loss.py --loss-unit packets \
+            --capture trace-artifacts/packet-loss-validation --output trace-artifacts/packet-loss-audit
       - name: Save real traces and diagnostics
         if: always()
         uses: actions/upload-artifact@v4

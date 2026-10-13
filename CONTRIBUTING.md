@@ -214,6 +214,27 @@ The normal capture must retain all 5,500 invocations; the loss capture must
 report actual discarded-packet messages and make CLI/agent loading exit 2
 without overwriting existing output. Warm checks, raw CTF, packet counts and
 cleanup evidence are saved under `trace-artifacts/packet-loss-validation`.
+
+After the capture processes exit, audit their saved evidence with the same
+system Python/babeltrace2 and sourced ROS environment:
+
+```bash
+python3 test/integration/audit_trace_loss.py --loss-unit events \
+  --capture /tmp/rgd-trace-loss-test --output /tmp/rgd-trace-loss-audit
+python3 test/integration/audit_trace_loss.py --loss-unit packets \
+  --capture /tmp/rgd-trace-packet-test --output /tmp/rgd-trace-packet-audit
+```
+
+Each output must be new and outside its capture directory. This command reads
+raw callback start/end pairs and discard notifications independently of the
+collector, compares saved counts/exports/cleanup, and repeats CLI/agent loading
+into separate outputs. It rejects six corrupted copies: hidden loss, false
+invocation counts, false CLI success, overwritten output, truncated export and
+surviving children. Original capture SHA-256 hashes must remain unchanged.
+CI saves audit results, repeated-command logs and the hash manifest alongside
+the captures. Cleanup metadata describes the capture's historical teardown;
+the audit does not infer historical process state from recycled PIDs.
+
 Run these scenarios sequentially, including against other local domain-94 tests.
 
 The subscription/timer/service runner owns its foreground `lttng-sessiond`, sessions and child process
