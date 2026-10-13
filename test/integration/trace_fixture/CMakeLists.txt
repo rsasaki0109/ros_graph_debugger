@@ -13,3 +13,7 @@ ament_target_dependencies(trace_fixture rclcpp std_msgs std_srvs)
 add_executable(trace_loss_fixture trace_loss_fixture.cpp)
 target_compile_features(trace_loss_fixture PRIVATE cxx_std_17)
 ament_target_dependencies(trace_loss_fixture rclcpp)
+
+add_executable(trace_reentrant_fixture trace_reentrant_fixture.cpp)
+target_compile_features(trace_reentrant_fixture PRIVATE cxx_std_17)
+ament_target_dependencies(trace_reentrant_fixture rclcpp std_msgs)

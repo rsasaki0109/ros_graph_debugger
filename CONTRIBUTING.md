@@ -193,6 +193,8 @@ python3 test/integration/run_trace_loss_scenario.py \
   --output /tmp/rgd-trace-loss-test --fixture /tmp/rgd-trace-fixture/trace_loss_fixture
 python3 test/integration/run_trace_loss_scenario.py --loss-unit packets \
   --output /tmp/rgd-trace-packet-test --fixture /tmp/rgd-trace-fixture/trace_loss_fixture
+python3 test/integration/run_trace_thread_scenario.py \
+  --output /tmp/rgd-trace-thread-test --fixture /tmp/rgd-trace-fixture/trace_reentrant_fixture
 ```
 
 Use a fresh output directory and a container without another session daemon.
@@ -236,6 +238,16 @@ the captures. Cleanup metadata describes the capture's historical teardown;
 the audit does not infer historical process state from recycled PIDs.
 
 Run these scenarios sequentially, including against other local domain-94 tests.
+
+The reentrant-thread test uses domain 96, records `vpid` and `vtid`, and requires
+two overlapping invocations of the same real subscription callback on distinct
+executor threads. File output records independent thread IDs and callback wall
+times. The converter and CLI export must match raw per-thread start/end pairs;
+the agent's directory loader must aggregate those same rows. Condition-variable
+gates coordinate callbacks; the three 100 ms intervals deliberately space the
+workload to expose incorrect crossing pairs. They are not startup waits. The
+runner has a 60-second budget, bounded subprocesses and owned-group cleanup;
+raw CTF, measurements, CLI logs and teardown proof remain in the trace artifact.
 
 The subscription/timer/service runner owns its foreground `lttng-sessiond`, sessions and child process
 groups, and polls daemon readiness and completed callback counts. It fixes
