@@ -151,6 +151,8 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
                 + i.get('related_frames', [])
             if related:
                 lines.append('- Related: ' + ', '.join(related))
+            if i.get('related_diagnostics'):
+                lines.append('- Diagnostics: ' + ', '.join(i['related_diagnostics']))
             lines.append('')
 
     # --- Pipeline path: the constraining route through the focus. ---

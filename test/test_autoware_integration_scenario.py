@@ -39,8 +39,9 @@ def sample(phase):
             {'parent': 'base_link', 'child': 'sensor_kit_base_link', 'static': True, 'status': 'ok'},
             {'parent': 'sensor_kit_base_link', 'child': 'tamagawa/imu_link', 'static': True, 'status': 'ok'}],
         'issues': [
-            {'kind': 'diagnostics_error', 'related_nodes': [scenario.DIAGNOSTIC],
-             'related_topics': [], 'evidence': ['level: 2']},
+            {'kind': 'diagnostics_error', 'related_nodes': [],
+             'related_diagnostics': [scenario.DIAGNOSTIC],
+             'related_topics': [], 'evidence': ['level: 2', 'node attribution: unknown']},
             {'kind': 'no_publisher', 'related_nodes': [scenario.GYRO],
              'related_topics': [scenario.IMU], 'evidence': ['publishers: 0']},
             {'kind': 'topic_stale', 'related_nodes': [scenario.GYRO],
@@ -87,6 +88,8 @@ def test_healthy_rejects_missing_or_contradictory_evidence(failure):
 @pytest.mark.parametrize('failure', [
     'input_still_published', 'unrelated_diagnostic', 'wrong_error',
     'missing_issue', 'wrong_kind', 'wrong_topic', 'wrong_node', 'wrong_evidence',
+    'label_as_node', 'inferred_node', 'wrong_diagnostic_reference', 'missing_diagnostic_reference',
+    'missing_attribution_evidence',
 ])
 def test_missing_imu_requires_attributed_fault_evidence(failure):
     capture = sample('missing-imu')
@@ -104,6 +107,16 @@ def test_missing_imu_requires_attributed_fault_evidence(failure):
         capture['issues'][1]['related_topics'] = ['/another/input']
     elif failure == 'wrong_node':
         capture['issues'][2]['related_nodes'] = ['/another/node']
+    elif failure == 'label_as_node':
+        capture['issues'][0]['related_nodes'] = [scenario.DIAGNOSTIC]
+    elif failure == 'inferred_node':
+        capture['issues'][0]['related_nodes'] = [scenario.GYRO]
+    elif failure == 'wrong_diagnostic_reference':
+        capture['issues'][0]['related_diagnostics'] = ['another diagnostic']
+    elif failure == 'missing_diagnostic_reference':
+        capture['issues'][0].pop('related_diagnostics')
+    elif failure == 'missing_attribution_evidence':
+        capture['issues'][0]['evidence'] = ['level: 2']
     else:
         capture['issues'][1]['evidence'] = ['publishers: 1']
     with pytest.raises((AssertionError, StopIteration)):
