@@ -68,7 +68,12 @@ if a.role:
   node.create_subscription(UInt64,'/dispatch/counter',with_message_info(cb),qos,raw=True)
  try:
   deadline=time.monotonic()+12
-  while time.monotonic()<deadline:ex.spin_once(timeout_sec=0.02)
+  while time.monotonic()<deadline:
+   ex.spin_once(timeout_sec=0.02)
+   if a.role=='receiver' and len(rows)==30 and not (a.output/'silence.json').exists():
+    metrics=probe.metrics()
+    if metrics['probe_last_sample_age_ms']>=200:
+     (a.output/'silence.json').write_text(json.dumps(metrics))
   raise TimeoutError('parent did not finish before child budget')
  except (KeyboardInterrupt,ExternalShutdownException):
   pass
@@ -82,7 +87,7 @@ else:
   p.start('receiver',[sys.executable,__file__,'--output',str(a.output),'--role','receiver'])
   p.start('publisher',[sys.executable,__file__,'--output',str(a.output),'--role','publisher'])
   deadline=time.monotonic()+10
-  while not all((a.output/f'{n}.json').exists() for n in ('receiver','publisher')):
+  while not all((a.output/f'{n}.json').exists() for n in ('receiver','publisher','silence')):
    p.check();assert time.monotonic()<deadline,'native capability timeout';time.sleep(0.02)
   rx=json.loads((a.output/'receiver.json').read_text());tx=json.loads((a.output/'publisher.json').read_text())
   assert [r['seq'] for r in rx]==list(range(30))
@@ -107,7 +112,18 @@ else:
    assert metrics['probe_source_receipt_gap_p95_ms']==round(max(window),1)
    assert metrics['probe_source_receipt_gap_samples']==metrics['probe_source_receipt_gap_window_samples']==5
   assert held['rate_hz']>10 and recovered['rate_hz']>10,'DDS rate must retain its contract despite observer wait'
-  summary={'rmw':__import__('rclpy').get_rmw_implementation_identifier(),'received':len(rx),'delayed_ms':[r['delay_ms'] for r in delayed],'tail_ms':[r['delay_ms'] for r in rx[-5:]],'ros_clock_uninitialized':True,'held_probe':held,'recovered_probe':recovered}
+  for metrics,window in ((held,rx[1:6]),(recovered,rx[-5:])):
+   span=(window[-1]['info']['received_timestamp']-window[0]['info']['received_timestamp'])/1e6
+   assert metrics['probe_rate_window_clock']=='rmw_received_timestamp'
+   assert metrics['probe_rate_window_samples']==5
+   assert metrics['probe_rate_window_duration_ms']==round(span,3)
+   assert metrics['rate_hz']==round(4000/span,2)
+   # Processing queued data can be recent while its RMW receipt is old.
+   assert 0<=metrics['probe_last_sample_age_ms']<100
+  silence=json.loads((a.output/'silence.json').read_text())
+  assert silence['probe_last_sample_age_ms']>=200
+  assert {k:v for k,v in silence.items() if k!='probe_last_sample_age_ms'}=={k:v for k,v in recovered.items() if k!='probe_last_sample_age_ms'}
+  summary={'rmw':__import__('rclpy').get_rmw_implementation_identifier(),'received':len(rx),'delayed_ms':[r['delay_ms'] for r in delayed],'tail_ms':[r['delay_ms'] for r in rx[-5:]],'ros_clock_uninitialized':True,'held_probe':held,'recovered_probe':recovered,'silent_probe':silence}
   (a.output/'summary.json').write_text(json.dumps(summary,indent=2));print(json.dumps(summary))
  finally:
   p.close()

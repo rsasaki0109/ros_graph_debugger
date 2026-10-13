@@ -107,8 +107,11 @@ class _TopicProbe:
 
     def metrics(self) -> dict:
         rate = None
+        span = None
+        rate_clock = None
         if len(self.stamps) >= 2:
             span = self.stamps[-1] - self.stamps[0]
+            rate_clock = 'callback_monotonic'
             # RMW stamps receipt before the executor runs our callback. Avoid
             # interpreting graph/analysis work in the observer as a slow publisher.
             received = tuple(self.received_stamps)
@@ -116,15 +119,29 @@ class _TopicProbe:
                     a <= b for a, b in zip(received, received[1:])) \
                     and received[-1] > received[0]:
                 span = (received[-1] - received[0]) / 1e9
+                rate_clock = 'rmw_received_timestamp'
             # Missing or non-monotonic RMW timestamps fall back to the complete
             # monotonic callback window; never mix these two clock domains.
             if span > 0:
                 rate = (len(self.stamps) - 1) / span
+            else:
+                span = None
+                rate_clock = None
+        # This is sample-processing freshness, not the age of the RMW receipt.
+        # Use one local monotonic clock, independently of ROS/system time and
+        # the clock selected for rate. Polling must not extend the rate window.
+        sample_age = (time.monotonic() - self.stamps[-1]) * 1000 if self.stamps else None
+        if sample_age is not None and sample_age < 0:
+            sample_age = None
         avg = sum(self.sizes) / len(self.sizes) if self.sizes else None
         bw = (avg * rate) if (avg is not None and rate is not None) else None
         return {
             'rate_hz': round(rate, 2) if rate is not None else None,
             'rate_measurement_scope': 'probe_receipt',
+            'probe_rate_window_samples': len(self.stamps),
+            'probe_rate_window_duration_ms': round(span * 1000, 3) if span is not None else None,
+            'probe_rate_window_clock': rate_clock,
+            'probe_last_sample_age_ms': round(sample_age, 1) if sample_age is not None else None,
             'probe_callback_delay_p95_ms': _percentile(self.callback_delays, 95)
             if self.callback_delays and all(d is not None for d in self.callback_delays) else None,
             'probe_callback_delay_samples': sum(d is not None for d in self.callback_delays),
