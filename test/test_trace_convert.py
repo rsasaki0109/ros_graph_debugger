@@ -8,6 +8,7 @@ read back through `trace_convert` / `rgd trace convert`.
 
 import json
 import random
+import uuid
 
 import pytest
 
@@ -19,6 +20,8 @@ from ros_graph_debugger.tracing import (
 )
 
 MS = 1_000_000
+CLOCK_UUID = uuid.UUID('4f3ccacf-8e09-45a6-8083-1761c14b6027')
+CLOCK = f'ctf_ns_from_origin:{CLOCK_UUID}'
 
 # Two processes deliberately reuse the same pointer values: handles are only
 # unique per process, so attribution must key on (pid, handle).
@@ -87,11 +90,15 @@ EXPECTED_ROWS = [
     {'node': '/perception/detector', 'callback': 'sub /image_raw',
      'topic': '/image_raw', 'duration_ms': 30.0},
 ]
-EXPECTED_ROWS = [dict(row, source='trace') for row in EXPECTED_ROWS]
+EXPECTED_ROWS = [dict(row, source='trace', start_ns=start * MS, end_ns=end * MS,
+                      clock=CLOCK)
+                 for row, (start, end) in zip(EXPECTED_ROWS,
+                                              [(100, 120), (121, 125), (130, 131),
+                                               (140, 145), (200, 230)])]
 
 
 def _events():
-    return [{'name': n, 'pid': pid, 't_ns': t, 'fields': dict(f)}
+    return [{'name': n, 'pid': pid, 't_ns': t, 'clock': CLOCK, 'fields': dict(f)}
             for n, pid, t, f in SESSION]
 
 
@@ -192,7 +199,7 @@ def _write_ctf(path):
             ctx = tc.create_structure_field_class()
             ctx.append_member('vpid', tc.create_signed_integer_field_class(32))
             sc = tc.create_stream_class(
-                default_clock_class=self._create_clock_class(frequency=10**9),
+                default_clock_class=self._create_clock_class(frequency=10**9, uuid=CLOCK_UUID),
                 supports_packets=True,
                 packets_have_beginning_default_clock_snapshot=True,
                 packets_have_end_default_clock_snapshot=True,

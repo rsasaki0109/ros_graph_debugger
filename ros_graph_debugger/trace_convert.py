@@ -58,10 +58,13 @@ def read_ctf_events(path: str) -> Iterator[dict]:
         if not event.name.startswith('ros2:'):
             continue
         payload = event.payload_field
+        clock_uuid = msg.default_clock_snapshot.clock_class.uuid
         yield {
             'name': event.name,
             'pid': _vpid(event),
             't_ns': msg.default_clock_snapshot.ns_from_origin,
+            # Without a UUID, do not assert a shared clock domain across streams.
+            'clock': f'ctf_ns_from_origin:{clock_uuid}' if clock_uuid is not None else None,
             'fields': {k: _value(v) for k, v in payload.items()}
             if payload is not None else {},
         }

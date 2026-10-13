@@ -172,6 +172,16 @@ tracing or privileged container. Install `build-essential`, `cmake`,
 `pkg-config`, `lttng-tools`, `liblttng-ust-dev`, `python3-bt2` and
 `ros-$ROS_DISTRO-std-srvs`, in addition to the agent's dependencies above.
 
+The scenario verifies exact callback start/end bounds and CTF clock identity
+through conversion, agent snapshots and recordings, as well as the unchanged
+healthy/slow duration budgets. Imported windows describe the captured
+invocations; they do not establish current node activity or ROS-clock alignment.
+Pure compatibility and unknown-window cases run in `test/test_trace_window.py`.
+
+The [public Autoware window validation](docs/trace-window-validation.md) also
+compares an existing actual C++ capture against unrounded raw events and checks
+historical import through CLI, HTTP, recordings and stdio MCP.
+
 Humble's released `tracetools` library has tracing wrapper symbols but no
 LTTng backend. For this test, build an overlay of the same official 4.1.2
 source, pinned to commit `3c159b382d2d565e26eaa91e39c9ec06a5c6fe88`:

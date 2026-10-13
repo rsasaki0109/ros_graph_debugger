@@ -125,7 +125,8 @@ pattern.
   "edges":   [{ "from_node", "to_node", "topic", "status" }],
   "tf_edges":[{ "parent", "child", "age_ms", "status" }],
   "callbacks":[{ "node", "callback", "topic", "count",
-                 "mean_ms", "p95_ms", "max_ms", "source" }],
+                 "mean_ms", "p95_ms", "max_ms", "source",
+                 "trace_window_start_ns", "trace_window_end_ns", "trace_window_clock" }],
   "services":[{ "name", "servers", "clients" }],   // parameter services omitted
   "actions": [{ "name", "servers", "clients" }],   // from <action>/_action/send_goal
   "statistics":[{ "node", "source", "topic", "attribution", "metric", "unit",
@@ -188,6 +189,16 @@ such as `processing_time` does not establish provenance. Existing duration
 budgets and the `slow_callback` kind are retained. Pipeline hops add `cb_source`
 beside the existing `cb_p95_ms`; timeline hops carry matching per-sample arrays.
 See [tracing.md](tracing.md) for collection and reporting semantics.
+
+`callbacks[].trace_window_start_ns`, `trace_window_end_ns` and
+`trace_window_clock` preserve the minimum callback start and maximum end of
+all invocations used in an imported trace aggregate. A complete group on one
+declared CTF clock has integer nanosecond bounds and
+`ctf_ns_from_origin:<clock UUID>`; missing, invalid, mixed or non-trace metadata
+leaves all three `null`. Missing legacy fields remain absent on replay.
+These historical bounds do not refresh with the snapshot timestamp, establish
+current node activity, authenticate the input, prove capture completeness or
+establish alignment with ROS/header clocks.
 
 `topics[].rate_measurement_scope` identifies where rate samples were observed:
 `probe_receipt` for the agent's live subscription, `subscriber_statistics` for

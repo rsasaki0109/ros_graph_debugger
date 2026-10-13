@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import json
 
-from .model import CallbackStat, callback_source
+from .model import CallbackStat, callback_source, callback_trace_window
 
 
 def _percentile(values, pct: float):
@@ -40,6 +40,9 @@ def aggregate_callback_durations(rows) -> list[CallbackStat]:
     ``{node, callback?, topic?, duration_ms}`` (one per callback invocation, as
     a CTF trace yields), grouped by (node, callback, topic) into count / mean /
     p95 / max. Optional ``source`` is retained; missing metadata stays unknown.
+    ``start_ns/end_ns/clock`` optionally describe exact paired boundaries.
+    Bounds are emitted only when every accepted invocation has valid bounds
+    on the same declared CTF clock; incomplete/mixed metadata stays unknown.
     Different sources are never pooled. ``callback`` defaults to ``sub <topic>``
     when absent. A duration row alone is not evidence of a paired trace."""
     groups: dict[tuple, dict] = {}
@@ -52,16 +55,25 @@ def aggregate_callback_durations(rows) -> list[CallbackStat]:
         callback = r.get('callback') or (f'sub {topic}' if topic else 'callback')
         source = callback_source(r.get('source'))
         key = (node, callback, topic, source)
-        g = groups.setdefault(key, {'durations': []})
+        g = groups.setdefault(key, {'durations': [], 'windows': []})
         g['durations'].append(float(dur))
+        g['windows'].append(callback_trace_window(dict(
+            source=source, trace_window_start_ns=r.get('start_ns'),
+            trace_window_end_ns=r.get('end_ns'), trace_window_clock=r.get('clock'))))
 
     out: list[CallbackStat] = []
     for (node, callback, topic, source), g in groups.items():
         d = g['durations']
+        windows = g['windows']
+        complete = all(w is not None for w in windows)
+        same_clock = complete and len({w['clock'] for w in windows}) == 1
         out.append(CallbackStat(
             node=node, callback=callback, topic=topic, count=len(d), source=source,
             mean_ms=round(sum(d) / len(d), 1), p95_ms=_percentile(d, 95),
-            max_ms=round(max(d), 1)))
+            max_ms=round(max(d), 1),
+            trace_window_start_ns=min(w['start_ns'] for w in windows) if same_clock else None,
+            trace_window_end_ns=max(w['end_ns'] for w in windows) if same_clock else None,
+            trace_window_clock=windows[0]['clock'] if same_clock else None))
     out.sort(key=lambda c: (c.node, c.callback, c.topic, c.source or ''))
     return out
 
@@ -72,7 +84,8 @@ def pair_callback_events(events) -> list[dict]:
     This is the core of a CTF/LTTng adapter, kept pure so it is unit-tested
     without babeltrace2. ``events`` is an iterable of
     ``{kind: 'start'|'end', handle, t_ns}`` in time order; returns one
-    ``{handle, duration_ms, t_ns}`` per matched pair. A per-handle stack handles
+    ``{handle, duration_ms, t_ns, end_ns, clock}`` per matched pair. A per-handle,
+    per-clock stack handles
     reentrancy; unmatched ends are ignored, unmatched starts are dropped."""
     pending: dict[object, list] = {}
     rows: list[dict] = []
@@ -81,13 +94,15 @@ def pair_callback_events(events) -> list[dict]:
         t = e.get('t_ns')
         if handle is None or not isinstance(t, (int, float)):
             continue
+        clock = e.get('clock') if isinstance(e.get('clock'), str) else None
+        key = (handle, clock)
         if e.get('kind') == 'start':
-            pending.setdefault(handle, []).append(t)
+            pending.setdefault(key, []).append(t)
         elif e.get('kind') == 'end':
-            stack = pending.get(handle)
+            stack = pending.get(key)
             if stack:
                 t0 = stack.pop()
-                rows.append({'handle': handle, 't_ns': t0,
+                rows.append({'handle': handle, 't_ns': t0, 'end_ns': t, 'clock': clock,
                              'duration_ms': round((t - t0) / 1e6, 3)})
     return rows
 
@@ -105,6 +120,8 @@ def rows_with_owners(duration_rows, owners) -> list[dict]:
             continue
         out.append({'node': o['node'], 'callback': o.get('callback', ''),
                     'topic': o.get('topic', ''), 'duration_ms': r['duration_ms']})
+        if 't_ns' in r and 'end_ns' in r:
+            out[-1].update(start_ns=r['t_ns'], end_ns=r['end_ns'], clock=r.get('clock'))
     return out
 
 
@@ -182,7 +199,7 @@ def resolve_callback_owners(events) -> dict:
 
 def trace_events_to_rows(events) -> tuple[list[dict], dict]:
     """Turn a session's ``{name, pid, t_ns, fields}`` events into per-invocation
-    ``{node, callback, topic, duration_ms}`` rows (the NDJSON interchange
+    ``{node, callback, topic, duration_ms, start_ns, end_ns, clock}`` rows (the NDJSON interchange
     format), plus counts that say how much of the trace was usable."""
     events = sorted(events, key=lambda e: e.get('t_ns') or 0)
     owners = resolve_callback_owners(events)
@@ -192,7 +209,7 @@ def trace_events_to_rows(events) -> tuple[list[dict], dict]:
         if name in ('callback_start', 'callback_end'):
             marks.append({'kind': 'start' if name == 'callback_start' else 'end',
                           'handle': (e.get('pid'), e['fields'].get('callback')),
-                          't_ns': e.get('t_ns')})
+                          't_ns': e.get('t_ns'), 'clock': e.get('clock')})
     paired = pair_callback_events(marks)
     rows = rows_with_owners(paired, owners)
     for row in rows:
