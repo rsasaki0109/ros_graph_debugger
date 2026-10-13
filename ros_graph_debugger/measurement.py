@@ -16,4 +16,6 @@ def rate_measurement_scope(topic: dict) -> str:
 RATE_DELIVERY_NOTE = (
     'Rates describe observed messages. Delivery completeness and publisher-side '
     'throughput are unknown; a low rate alone does not prove a slow publishing callback.'
+    ' A live probe retains its last sample window during silence; use sample '
+    'freshness and stale-topic evidence to check whether delivery has stopped.'
 )

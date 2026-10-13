@@ -1,0 +1,433 @@
+{
+  "scope": "Live probe rate-window provenance and monotonic sample-processing freshness; no publisher activity or delivery completeness inference",
+  "public_bag_sqlite_sha256": "224683a07c61e21a0ae416d9fec80e558cffde76534f340b96492f6772a28797",
+  "scenario_source_commit": "c37170b54b7ce842bc0b3d3f96b150bfb0caa348",
+  "scenario_source_sha256": "012a6fcc9bc095a42206a4598f4d9a365c517f443d4285d961964e51e06ae6f2",
+  "native_suites": {
+    "jazzy": {
+      "passed": 418,
+      "skipped": 0
+    },
+    "humble": {
+      "passed": 417,
+      "skipped": 1,
+      "skip_reason": "existing optional MCAP storage plugin unavailable"
+    }
+  },
+  "public_cpp": {
+    "scenario": {
+      "healthy": {
+        "assert_exit": 0,
+        "output_receipts_during_assert": 184,
+        "playback_start_offset_s": 0.0
+      },
+      "missing-imu": {
+        "assert_exit": 1,
+        "output_receipts_during_assert": 0,
+        "playback_start_offset_s": 7.407982827
+      },
+      "recovered": {
+        "assert_exit": 0,
+        "output_receipts_during_assert": 170,
+        "playback_start_offset_s": 16.878125763
+      }
+    },
+    "phases": {
+      "healthy": {
+        "recording_sha256": "f3eddbba9ce041599c13cc217d835729775c95397ecc7dc9dab5159c768ebbd7",
+        "values": [
+          {
+            "rate_hz": 30.0,
+            "probe_rate_window_samples": 27,
+            "probe_rate_window_duration_ms": 866.648,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 5.9
+          },
+          {
+            "rate_hz": 29.99,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1633.701,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 4.2
+          },
+          {
+            "rate_hz": 30.0,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1633.222,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 4.9
+          },
+          {
+            "rate_hz": 29.99,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1633.897,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 4.7
+          },
+          {
+            "rate_hz": 30.0,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1633.229,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 5.0
+          },
+          {
+            "rate_hz": 30.0,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1633.191,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 4.3
+          },
+          {
+            "rate_hz": 30.0,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1633.318,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 4.9
+          }
+        ]
+      },
+      "missing-imu": {
+        "recording_sha256": "74ed15a43a9234fb0ab7744732ca9340f361dba240985260b36f06a154d6623b",
+        "values": [
+          {
+            "rate_hz": 30.01,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1632.681,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 3638.5
+          },
+          {
+            "rate_hz": 30.01,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1632.681,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 4637.6
+          },
+          {
+            "rate_hz": 30.01,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1632.681,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 5640.5
+          },
+          {
+            "rate_hz": 30.01,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1632.681,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 6637.8
+          },
+          {
+            "rate_hz": 30.01,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1632.681,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 7638.2
+          },
+          {
+            "rate_hz": 30.01,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1632.681,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 8638.3
+          },
+          {
+            "rate_hz": 30.01,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1632.681,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 9638.5
+          }
+        ]
+      },
+      "recovered": {
+        "recording_sha256": "61bfc8168d9491a94ff6bf00699d948e31a3514f1203e41473b8fe6e2dda3a61",
+        "values": [
+          {
+            "rate_hz": 30.0,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1633.243,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 23.2
+          },
+          {
+            "rate_hz": 30.0,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1633.271,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 24.2
+          },
+          {
+            "rate_hz": 30.0,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1633.483,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 23.8
+          },
+          {
+            "rate_hz": 23.71,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 2066.79,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 27.8
+          },
+          {
+            "rate_hz": 23.7,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 2067.14,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 24.6
+          },
+          {
+            "rate_hz": 30.0,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1633.604,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 23.7
+          },
+          {
+            "rate_hz": 30.0,
+            "probe_rate_window_samples": 50,
+            "probe_rate_window_duration_ms": 1633.182,
+            "probe_rate_window_clock": "rmw_received_timestamp",
+            "probe_last_sample_age_ms": 23.7
+          }
+        ]
+      }
+    },
+    "receipt_audit": {
+      "count": 445,
+      "input_associated_stamps": true,
+      "nondecreasing_stamps": true,
+      "all_finite": true,
+      "frame": "base_link",
+      "sha256": "c5e9a49ed932ccb2739c66d4159695a438c725350fee08e36cbd9fc48de816ac"
+    },
+    "recovery_diff": "improved"
+  },
+  "transport": [
+    {
+      "case": "healthy",
+      "recording_sha256": "f3eddbba9ce041599c13cc217d835729775c95397ecc7dc9dab5159c768ebbd7",
+      "probe_values": {
+        "probe_rate_window_samples": 50,
+        "probe_rate_window_duration_ms": 1633.318,
+        "probe_rate_window_clock": "rmw_received_timestamp",
+        "probe_last_sample_age_ms": 4.9
+      },
+      "rate_hz": 30.0,
+      "legacy": false,
+      "cli_http_mcp_snapshot_exact": true,
+      "http_mcp_focused_markdown_exact": true,
+      "cli_report_exact": true,
+      "replay_preserves_captured_age": true,
+      "model_invoked": false
+    },
+    {
+      "case": "missing-imu",
+      "recording_sha256": "74ed15a43a9234fb0ab7744732ca9340f361dba240985260b36f06a154d6623b",
+      "probe_values": {
+        "probe_rate_window_samples": 50,
+        "probe_rate_window_duration_ms": 1632.681,
+        "probe_rate_window_clock": "rmw_received_timestamp",
+        "probe_last_sample_age_ms": 9638.5
+      },
+      "rate_hz": 30.01,
+      "legacy": false,
+      "cli_http_mcp_snapshot_exact": true,
+      "http_mcp_focused_markdown_exact": true,
+      "cli_report_exact": true,
+      "replay_preserves_captured_age": true,
+      "model_invoked": false
+    },
+    {
+      "case": "recovered",
+      "recording_sha256": "61bfc8168d9491a94ff6bf00699d948e31a3514f1203e41473b8fe6e2dda3a61",
+      "probe_values": {
+        "probe_rate_window_samples": 50,
+        "probe_rate_window_duration_ms": 1633.182,
+        "probe_rate_window_clock": "rmw_received_timestamp",
+        "probe_last_sample_age_ms": 23.7
+      },
+      "rate_hz": 30.0,
+      "legacy": false,
+      "cli_http_mcp_snapshot_exact": true,
+      "http_mcp_focused_markdown_exact": true,
+      "cli_report_exact": true,
+      "replay_preserves_captured_age": true,
+      "model_invoked": false
+    },
+    {
+      "case": "legacy-missing-imu",
+      "recording_sha256": "3c02ae8f82823a58509ff14cef380519c193690cfedf906e755f6c3a8e9cf709",
+      "probe_values": {
+        "probe_rate_window_samples": null,
+        "probe_rate_window_duration_ms": null,
+        "probe_rate_window_clock": null,
+        "probe_last_sample_age_ms": null
+      },
+      "rate_hz": 30.0,
+      "legacy": true,
+      "cli_http_mcp_snapshot_exact": true,
+      "http_mcp_focused_markdown_exact": true,
+      "cli_report_exact": true,
+      "replay_preserves_captured_age": true,
+      "model_invoked": false
+    }
+  ],
+  "native_dds": {
+    "jazzy": {
+      "rmw": "rmw_fastrtps_cpp",
+      "received": 30,
+      "ros_clock_uninitialized": true,
+      "held_probe": {
+        "rate_hz": 20.01,
+        "rate_measurement_scope": "probe_receipt",
+        "probe_rate_window_samples": 5,
+        "probe_rate_window_duration_ms": 199.941,
+        "probe_rate_window_clock": "rmw_received_timestamp",
+        "probe_last_sample_age_ms": 0.0,
+        "probe_callback_delay_p95_ms": 513.1,
+        "probe_callback_delay_samples": 5,
+        "probe_callback_delay_window_samples": 5,
+        "probe_source_receipt_gap_p95_ms": 0.1,
+        "probe_source_receipt_gap_samples": 5,
+        "probe_source_receipt_gap_window_samples": 5,
+        "avg_msg_size_bytes": 12.0,
+        "p95_msg_size_bytes": 12.0,
+        "bandwidth_bps": 240.1,
+        "last_seen_time": 1791852078.0216143,
+        "header_age_ms": null,
+        "header_age_p95_ms": null
+      },
+      "recovered_probe": {
+        "rate_hz": 20.0,
+        "rate_measurement_scope": "probe_receipt",
+        "probe_rate_window_samples": 5,
+        "probe_rate_window_duration_ms": 199.975,
+        "probe_rate_window_clock": "rmw_received_timestamp",
+        "probe_last_sample_age_ms": 0.0,
+        "probe_callback_delay_p95_ms": 0.2,
+        "probe_callback_delay_samples": 5,
+        "probe_callback_delay_window_samples": 5,
+        "probe_source_receipt_gap_p95_ms": 0.1,
+        "probe_source_receipt_gap_samples": 5,
+        "probe_source_receipt_gap_window_samples": 5,
+        "avg_msg_size_bytes": 12.0,
+        "p95_msg_size_bytes": 12.0,
+        "bandwidth_bps": 240.0,
+        "last_seen_time": 1791852078.9067695,
+        "header_age_ms": null,
+        "header_age_p95_ms": null
+      },
+      "silent_probe": {
+        "rate_hz": 20.0,
+        "rate_measurement_scope": "probe_receipt",
+        "probe_rate_window_samples": 5,
+        "probe_rate_window_duration_ms": 199.975,
+        "probe_rate_window_clock": "rmw_received_timestamp",
+        "probe_last_sample_age_ms": 204.0,
+        "probe_callback_delay_p95_ms": 0.2,
+        "probe_callback_delay_samples": 5,
+        "probe_callback_delay_window_samples": 5,
+        "probe_source_receipt_gap_p95_ms": 0.1,
+        "probe_source_receipt_gap_samples": 5,
+        "probe_source_receipt_gap_window_samples": 5,
+        "avg_msg_size_bytes": 12.0,
+        "p95_msg_size_bytes": 12.0,
+        "bandwidth_bps": 240.0,
+        "last_seen_time": 1791852078.9067695,
+        "header_age_ms": null,
+        "header_age_p95_ms": null
+      },
+      "summary_sha256": "46a63bdcb88af0c83783adec14fa228ca3ff4ca8dcc0f8a21d2c9a862935f85c",
+      "owned_groups_reaped": true
+    },
+    "humble": {
+      "rmw": "rmw_fastrtps_cpp",
+      "received": 30,
+      "ros_clock_uninitialized": true,
+      "held_probe": {
+        "rate_hz": 20.0,
+        "rate_measurement_scope": "probe_receipt",
+        "probe_rate_window_samples": 5,
+        "probe_rate_window_duration_ms": 200.014,
+        "probe_rate_window_clock": "rmw_received_timestamp",
+        "probe_last_sample_age_ms": 0.0,
+        "probe_callback_delay_p95_ms": 502.2,
+        "probe_callback_delay_samples": 5,
+        "probe_callback_delay_window_samples": 5,
+        "probe_source_receipt_gap_p95_ms": 0.1,
+        "probe_source_receipt_gap_samples": 5,
+        "probe_source_receipt_gap_window_samples": 5,
+        "avg_msg_size_bytes": 12.0,
+        "p95_msg_size_bytes": 12.0,
+        "bandwidth_bps": 240.0,
+        "last_seen_time": 1791852144.1751397,
+        "header_age_ms": null,
+        "header_age_p95_ms": null
+      },
+      "recovered_probe": {
+        "rate_hz": 20.0,
+        "rate_measurement_scope": "probe_receipt",
+        "probe_rate_window_samples": 5,
+        "probe_rate_window_duration_ms": 200.016,
+        "probe_rate_window_clock": "rmw_received_timestamp",
+        "probe_last_sample_age_ms": 0.0,
+        "probe_callback_delay_p95_ms": 0.2,
+        "probe_callback_delay_samples": 5,
+        "probe_callback_delay_window_samples": 5,
+        "probe_source_receipt_gap_p95_ms": 0.1,
+        "probe_source_receipt_gap_samples": 5,
+        "probe_source_receipt_gap_window_samples": 5,
+        "avg_msg_size_bytes": 12.0,
+        "p95_msg_size_bytes": 12.0,
+        "bandwidth_bps": 240.0,
+        "last_seen_time": 1791852145.0723376,
+        "header_age_ms": null,
+        "header_age_p95_ms": null
+      },
+      "silent_probe": {
+        "rate_hz": 20.0,
+        "rate_measurement_scope": "probe_receipt",
+        "probe_rate_window_samples": 5,
+        "probe_rate_window_duration_ms": 200.016,
+        "probe_rate_window_clock": "rmw_received_timestamp",
+        "probe_last_sample_age_ms": 203.1,
+        "probe_callback_delay_p95_ms": 0.2,
+        "probe_callback_delay_samples": 5,
+        "probe_callback_delay_window_samples": 5,
+        "probe_source_receipt_gap_p95_ms": 0.1,
+        "probe_source_receipt_gap_samples": 5,
+        "probe_source_receipt_gap_window_samples": 5,
+        "avg_msg_size_bytes": 12.0,
+        "p95_msg_size_bytes": 12.0,
+        "bandwidth_bps": 240.0,
+        "last_seen_time": 1791852145.0723376,
+        "header_age_ms": null,
+        "header_age_p95_ms": null
+      },
+      "summary_sha256": "6edfa583dd1f7cbc3b6900321985d65a93dc07aa8c05cd701fa99a6df9e8b42b",
+      "owned_groups_reaped": true
+    }
+  },
+  "tested_source_sha256": {
+    "ros_graph_debugger/node.py": "01488191c3653e89bbded766f0fa4b075e5c663138674eea325f1244c9a4b21e",
+    "ros_graph_debugger/model.py": "58da46c838a7f69d5a59263ef92313abf6e8f46adfc9fbd047ced6de233b1df6",
+    "ros_graph_debugger/markdown.py": "24961782fe2c2b620a384d23958e3197ed28bd13322dcf0311e4314d3ad5e196",
+    "ros_graph_debugger/measurement.py": "6d65175e787eb93449730ec5c64480d44f43e0e322f47b0162f84bec8b946292",
+    "test/test_probe_rate_window.py": "0fff2f434850a764128fcd3bf111b790ceb7bb2284474158d984ccdbf9786686",
+    "test/test_probe_timestamps.py": "48822f87b4265a27c1e37115e403eab85270384c59322043115741e581d582dd",
+    "test/test_server_and_markdown.py": "fa005025f2ffa2e0ec57dd51f9a2ddcfc5e3420d53e28967ddff5455b68b8cf6",
+    "test/integration/run_probe_delay_scenario.py": "ca5e92245d6b42d9dd5c91c37f4be677a9e7949d914943c27545a3cabba5e4b5"
+  },
+  "limitations": [
+    "Last-sample age measures processing time, not middleware receipt or publisher activity; backlog can keep it recent",
+    "Live rate/bandwidth retain last bounded sample window during silence; unchanged stale-topic checks remain required",
+    "Captured age does not advance during replay",
+    "Legacy/bag/statistics probe-window measurements remain unavailable",
+    "Actual Autoware component execution on Jazzy only; original whole stack and accuracy unmeasured",
+    "No model invoked; actual model accuracy, human investigation time and adoption unmeasured"
+  ]
+}

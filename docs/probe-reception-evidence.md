@@ -24,6 +24,51 @@ The default live window contains 50 received samples, rather than 50 seconds.
 Bag rates use the configured time window. None of these rates certifies all
 messages published during that interval were received or recorded.
 
+## Sample window and processing freshness
+
+Live probe rates retain the last bounded sample window during silence. A stored
+30 Hz rate can coexist with zero new deliveries and a `topic_stale` issue.
+`probe_rate_window_samples`, `probe_rate_window_duration_ms` and
+`probe_rate_window_clock` identify the count, first-to-last span and clock used
+by that rate. RMW receipt timestamps are used only when the complete window is
+valid and nondecreasing with a positive span; otherwise the complete local
+monotonic sample-time window is used. The clock and duration stay unknown when
+no rate can be computed. A zero sample count is a measured empty live probe;
+missing or null fields are unknown, including older recordings and other rate
+sources.
+
+`probe_last_sample_age_ms` measures local monotonic elapsed time since the probe
+processed its latest sample, at metric collection. It can advance while the
+sample count, interval and rate remain unchanged. Processing a queued message
+can reset this age even after a publisher has stopped: it is not middleware
+receipt freshness, publisher activity or header age. Replay preserves the
+recorded value rather than aging it using the replay machine's clock.
+
+Snapshot Markdown and focused AI briefings show these values separately from
+the rate and latency measures. Recording reports also explain retained live
+windows; they do not invent this metadata for older snapshots. Existing
+thresholds and stale-topic checks remain unchanged. No delivery completeness,
+loss count or publisher-side throughput is inferred.
+
+The cached Humble and Jazzy DDS scenarios independently verified the rate span
+against native receive timestamps, observer-backlog processing, and silence
+while ROS Clock remained uninitialized. The same strict scenario is part of
+the existing multiprocess integration job, with its five-minute budget and
+failure-artifact capture unchanged.
+
+On Jazzy, the public DLR IMU/vehicle bag also ran through unmodified Autoware
+C++ conversion/gyro nodes with normal, omitted-IMU and recovered playback.
+The assertions returned 0/1/0 and an independent observer counted 184/0/170
+outputs during assertions. During the missing-IMU phase, all seven snapshots
+retained 50 samples, a 1632.681 ms interval and 30.01 Hz; processed-sample age
+increased from 3638.5 to 9638.5 ms. Stale-topic, diagnostic-timeout and missing
+publisher evidence remained present. All 445 observed output stamps belonged
+to original public inputs, were nondecreasing, and had finite values in
+`base_link`. This is component replay validation, not the original full stack
+or localization accuracy. CLI, HTTP and actual stdio MCP returned matching
+snapshots/briefings, including legacy missing metadata and captured replay age.
+Fingerprints and measured values: [probe-rate-window-results.json](probe-rate-window-results.json).
+
 `rate_drop` and `bottleneck` keep their existing thresholds, kinds, severity and
 related topics. Evidence now includes the scope and `delivery completeness:
 unknown`. Bottleneck explanations describe a candidate for investigation and

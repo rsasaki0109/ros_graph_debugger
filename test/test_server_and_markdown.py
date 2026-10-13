@@ -253,3 +253,41 @@ def test_briefing_separates_signed_dds_gap_probe_wait_and_header_age():
     old = store.snapshot().to_dict()
     del old['topics'][0]['probe_source_receipt_gap_p95_ms']
     assert '| — | 450.0 ms | 1300 ms |' in snapshot_to_markdown(old)
+
+
+def test_briefing_shows_old_rate_with_separate_sample_processing_silence():
+    store = _store()
+    store.update_topic_metrics('/objects', rate_hz=30, probe_rate_window_samples=50,
+                               probe_rate_window_duration_ms=1633.333,
+                               probe_rate_window_clock='rmw_received_timestamp',
+                               probe_last_sample_age_ms=9000)
+    md = snapshot_to_markdown(store.snapshot(), focus='/objects')
+    assert '| 30.0 Hz |' in md
+    assert '| /objects | 50 | 1633.3 ms | RMW receive timestamps | 9000.0 ms ago |' in md
+    assert 'retains its last sample window during silence' in md
+    assert 'not middleware receipt age, header age or publisher activity' in md
+    old = store.snapshot().to_dict()
+    for t in old['topics']:
+        for k in ('probe_rate_window_samples', 'probe_rate_window_duration_ms',
+                  'probe_rate_window_clock', 'probe_last_sample_age_ms'):
+            t.pop(k, None)
+    assert '## Probe sample windows' not in snapshot_to_markdown(old)
+
+
+@pytest.mark.parametrize('value', [None, True, -1, float('nan'), float('inf'), '0', {}])
+def test_briefing_does_not_turn_invalid_sample_metadata_into_zero(value):
+    store = _store()
+    store.update_topic_metrics('/objects', probe_rate_window_samples=50,
+                               probe_rate_window_duration_ms=value,
+                               probe_rate_window_clock=['unknown'],
+                               probe_last_sample_age_ms=value)
+    md = snapshot_to_markdown(store.snapshot(), focus='/objects')
+    assert '| /objects | 50 | — | unknown | — |' in md
+
+
+def test_briefing_measured_empty_probe_is_distinct_from_unknown():
+    store = _store()
+    store.update_topic_metrics('/objects', rate_hz=None, probe_rate_window_samples=0)
+    md = snapshot_to_markdown(store.snapshot(), focus='/objects')
+    assert '| /objects | 0 | — | unknown | — |' in md
+    assert '| /image |' not in md  # Focus keeps unrelated probe evidence out.

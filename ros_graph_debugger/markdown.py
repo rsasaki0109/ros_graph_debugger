@@ -6,6 +6,8 @@ terse graph/metrics table. Kept small on purpose so it fits a prompt."""
 
 from __future__ import annotations
 
+import math
+
 from .health import health_line
 from .measurement import RATE_DELIVERY_NOTE, RATE_SCOPE_LABELS, rate_measurement_scope
 from .model import callback_source_label
@@ -24,6 +26,11 @@ def _fmt_bw(v):
     if v >= 1e3:
         return f'{v/1e3:.1f} KB/s'
     return f'{v:.0f} B/s'
+
+
+def _fmt_probe_ms(value):
+    return (f'{value:.1f} ms' if type(value) in (int, float)
+            and math.isfinite(value) and value >= 0 else '—')
 
 
 def focus_subgraph(d: dict, focus: str):
@@ -185,6 +192,31 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
                          qos=t.get('qos_status', 'unknown'),
                          status=t.get('status', 'unknown')))
     lines.append('')
+
+    probe_windows = [t for t in d['topics'] if any(t.get(k) is not None for k in (
+        'probe_rate_window_samples', 'probe_rate_window_duration_ms',
+        'probe_rate_window_clock', 'probe_last_sample_age_ms'))]
+    if probe_windows:
+        lines += ['## Probe sample windows',
+                  '| topic | samples | rate window | rate clock | last processed sample |',
+                  '|---|---|---|---|---|']
+        clocks = {'rmw_received_timestamp': 'RMW receive timestamps',
+                  'callback_monotonic': 'local monotonic sample times'}
+        for t in sorted(probe_windows, key=lambda x: x['name']):
+            count = t.get('probe_rate_window_samples')
+            samples = str(count) if type(count) is int and count >= 0 else '—'
+            clock = t.get('probe_rate_window_clock')
+            label = clocks.get(clock, 'unknown') if isinstance(clock, str) else 'unknown'
+            age = _fmt_probe_ms(t.get('probe_last_sample_age_ms'))
+            if age != '—':
+                age += ' ago'
+            lines.append(f'| {t["name"]} | {samples} | '
+                         f'{_fmt_probe_ms(t.get("probe_rate_window_duration_ms"))} | '
+                         f'{label} | {age} |')
+        lines += ['Elapsed sample age uses the local monotonic clock at metric collection; '
+                  'it measures time since the probe processed a sample, not middleware '
+                  'receipt age, header age or publisher activity. A queue backlog can '
+                  'keep sample processing recent after publishing stops.', '']
 
     if any(isinstance(t.get(key), (int, float)) for t in d['topics']
            for key in ('rate_hz', 'probe_callback_delay_p95_ms', 'probe_source_receipt_gap_p95_ms')):

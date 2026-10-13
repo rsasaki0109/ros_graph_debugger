@@ -62,10 +62,11 @@ def test_new_receipt_clears_stale_probe(monkeypatch):
 def test_delayed_callback_uses_middleware_receipt_for_rate(monkeypatch):
     # The last callback is delayed 55 ms by work in the observer. DDS delivery
     # remains exactly 10 Hz, but the old callback-clock rate would be 9.89 Hz.
-    callbacks = iter([100 + i * 0.1 + (0.055 if i == 49 else 0) for i in range(50)])
-    monkeypatch.setattr('ros_graph_debugger.node.time.monotonic', lambda: next(callbacks))
+    callback_clock = [100.0]
+    monkeypatch.setattr('ros_graph_debugger.node.time.monotonic', lambda: callback_clock[0])
     probe = _TopicProbe(window=50)
     for i in range(50):
+        callback_clock[0] = 100 + i * 0.1 + (0.055 if i == 49 else 0)
         probe.add(100, age_ms=12, received_timestamp_ns=1_700_000_000_000_000_000 + i * 100_000_000)
     metrics = probe.metrics()
     assert metrics['rate_hz'] == 10
@@ -83,21 +84,24 @@ def test_delayed_callback_uses_middleware_receipt_for_rate(monkeypatch):
     [1_000_000_000] * 3,               # no measurable receive-time span
 ])
 def test_invalid_receipt_window_uses_only_monotonic_clock(monkeypatch, timestamps):
-    callbacks = iter([10, 10.2, 10.4])
-    monkeypatch.setattr('ros_graph_debugger.node.time.monotonic', lambda: next(callbacks))
+    callback_clock = [10.0]
+    monkeypatch.setattr('ros_graph_debugger.node.time.monotonic', lambda: callback_clock[0])
     probe = _TopicProbe(window=3)
-    for timestamp in timestamps:
+    for i, timestamp in enumerate(timestamps):
+        callback_clock[0] = 10 + i * 0.2
         probe.add(1, received_timestamp_ns=timestamp)
     assert probe.metrics()['rate_hz'] == 5
 
 
 def test_receipt_clock_recovers_when_invalid_samples_leave_window(monkeypatch):
-    callbacks = iter([10, 10.2, 10.4, 10.6])
-    monkeypatch.setattr('ros_graph_debugger.node.time.monotonic', lambda: next(callbacks))
+    callback_clock = [10.0]
+    monkeypatch.setattr('ros_graph_debugger.node.time.monotonic', lambda: callback_clock[0])
     probe = _TopicProbe(window=3)
-    for timestamp in [0, 1_000_000_000, 1_100_000_000]:
+    for i, timestamp in enumerate([0, 1_000_000_000, 1_100_000_000]):
+        callback_clock[0] = 10 + i * 0.2
         probe.add(1, received_timestamp_ns=timestamp)
     assert probe.metrics()['rate_hz'] == 5
+    callback_clock[0] = 10.6
     probe.add(1, received_timestamp_ns=1_200_000_000)
     assert probe.metrics()['rate_hz'] == 10
 
