@@ -144,6 +144,8 @@ def main(argv=None) -> None:
         uvicorn.run(app, host=args.host, port=args.port, log_level='warning')
     finally:
         executor.shutdown()
+        # shutdown() can return while the spin loop still uses native handles.
+        spin_thread.join()
         node.destroy_node()
         if rclpy.ok():
             rclpy.shutdown()
