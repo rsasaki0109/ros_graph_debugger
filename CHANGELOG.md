@@ -14,6 +14,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 - Add frozen investigation cases for retained probe windows and diagnostic task references, preserving unknown legacy fields and rejecting unsupported delivery or node-origin claims.
 
+- Document actual unmodified Autoware callback traces from public-input omission/recovery, with PID-scoped ownership, complete pair accounting and exact historical CLI/MCP import.
+
 - Grade duration values, declared sources and same-row citations in investigation tasks, rejecting application/trace/synthetic confusion and unknown provenance inference against real ROS/LTTng recordings.
 
 - Distinguish traced, application-reported, synthetic and unknown duration sources in diagnostic evidence, MCP, pipelines and reports without pooling or comparing different sources.
