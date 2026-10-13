@@ -48,6 +48,11 @@ node --check ros_graph_debugger/web/app.js
 
 CI runs the same on Humble and Jazzy (`.github/workflows/ci.yml`).
 
+For optional public-input callback-phase investigation tasks, see
+[phase investigation](docs/phase-investigation.md). It preserves original
+recordings and a separate trace-audit sidecar, and validates structured evidence
+claims through the existing CLI/MCP test workflow without invoking a model.
+
 The multiprocess job also checks `/clock` startup and message-age recovery:
 
 ```bash

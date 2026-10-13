@@ -264,7 +264,7 @@ def score(evidence, rubric, answer):
                     errors.append(item['id'] + ': value does not match the cited observation')
                 if wanted.get('value_type') == 'integer' and wanted['status'] == 'observed' \
                         and type(item.get('value')) is not int:
-                    errors.append(item['id'] + ': nanosecond boundary must be an exact integer')
+                    errors.append(item['id'] + ': exact integer required')
                 if item.get('evidence') != wanted['evidence']:
                     errors.append(item['id'] + ': citation refers to the wrong measurement')
                 else:
@@ -288,6 +288,25 @@ def negative_controls(answer):
     bad = copy.deepcopy(answer); bad['claims'][0]['value'] = 'fabricated'; cases['invented_value'] = bad
     bad = copy.deepcopy(answer); bad['limitations'][0]['status'] = 'established'; cases['unsupported_cause'] = bad
     bad = copy.deepcopy(answer); bad['limitations'][0]['next_check'] = 'lower_rate_threshold'; cases['irrelevant_next_check'] = bad
+    phase_claims = [c for c in answer['claims'] if c['id'].startswith('phase_')]
+    if phase_claims:
+        for ident, update, label in (
+            ('phase_0_begin_ns', {'value': float(next(c['value'] for c in phase_claims if c['id'] == 'phase_0_begin_ns'))}, 'float_phase_boundary'),
+            ('phase_0_contained_count', {'evidence': ['/phase_audit/phases/1/callbacks']}, 'wrong_phase_citation'),
+            ('phase_0_clock', {'value': 'ctf_ns_from_origin:00000000-0000-0000-0000-000000000000'}, 'phase_clock_confusion'),
+        ):
+            bad = copy.deepcopy(answer)
+            next(c for c in bad['claims'] if c['id'] == ident).update(update)
+            cases[label] = bad
+        unknown = next((c for c in phase_claims if c['id'].endswith('_p95_ms') and c['status'] == 'unknown'), None)
+        if unknown:
+            bad = copy.deepcopy(answer)
+            next(c for c in bad['claims'] if c['id'] == unknown['id']).update(status='observed', value=0)
+            cases['absent_duration_is_not_zero'] = bad
+        for limitation in answer['limitations']:
+            bad = copy.deepcopy(answer)
+            next(c for c in bad['limitations'] if c['id'] == limitation['id'])['status'] = 'established'
+            cases['phase_overclaim_' + limitation['id']] = bad
     sources = [c for c in answer['claims'] if c['id'].endswith('_declared_source')]
     if sources:
         source = sources[0]

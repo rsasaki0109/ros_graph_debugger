@@ -1,0 +1,162 @@
+{
+  "cases": [
+    {
+      "case_id": "case-001",
+      "node": "/gyro_odometer",
+      "topic": "/sensing/imu/tamagawa/imu_raw",
+      "contained_counts": [
+        184,
+        0,
+        183
+      ],
+      "rejected": 19,
+      "evidence_sha256": "01960acea50c2cb9de163d88171f7bf8cf92a800535481640a545d81ab55d5a2"
+    },
+    {
+      "case_id": "case-002",
+      "node": "/gyro_odometer",
+      "topic": "/sensing/vehicle_velocity_converter/twist_with_covariance",
+      "contained_counts": [
+        184,
+        183,
+        183
+      ],
+      "rejected": 18,
+      "evidence_sha256": "026e4740336eef32ef425c5901e08b18f81c5225f912d7dea90c9b79487ec9d8"
+    },
+    {
+      "case_id": "case-003",
+      "node": "/vehicle_velocity_converter",
+      "topic": "/vehicle/status/velocity_status",
+      "contained_counts": [
+        184,
+        183,
+        183
+      ],
+      "rejected": 18,
+      "evidence_sha256": "4ec02aa661941b76d352c2ff1db57b387807e3cb78fc34f848fcf5ff743749cc"
+    }
+  ],
+  "source_sha256": {
+    "/workspace/autoware-trace-phase-validation/capture/phase-results-raw-clock.json": "dd23de01b9f75e8747266b50b17a99acbcf0dd649ba9914e680629be9d75458a",
+    "/workspace/autoware-trace-phase-validation/capture/scenario/healthy/run.rgd.json": "eab0d381c9999f4074bb4a7e0e864df30311ab87d00c0abffab1732aff9ea737",
+    "/workspace/autoware-trace-phase-validation/capture/scenario/missing-imu/run.rgd.json": "581748e24adb1c3c78ce73516d8f9705a5c6f41cb8fb8735ced11b214e504e86",
+    "/workspace/autoware-trace-phase-validation/capture/scenario/recovered/run.rgd.json": "50b36b3fa95c88796c114113e8b3ce049efcba127b476c523c8426b0075f3984"
+  },
+  "source_files_unchanged": true,
+  "primary_task_count": 3,
+  "unique_original_frames": 3,
+  "transport_views": [
+    {
+      "case_id": "case-001",
+      "evidence_sha256": "01960acea50c2cb9de163d88171f7bf8cf92a800535481640a545d81ab55d5a2",
+      "cli_snapshot_exact": true,
+      "mcp_snapshot_and_metadata_exact": true,
+      "mcp_callbacks_exact": true,
+      "focused_markdown_exact": true,
+      "scripted_reference_passed": true,
+      "deliberate_invalid_answers_rejected": 19,
+      "model_invoked": false
+    },
+    {
+      "case_id": "case-002",
+      "evidence_sha256": "026e4740336eef32ef425c5901e08b18f81c5225f912d7dea90c9b79487ec9d8",
+      "cli_snapshot_exact": true,
+      "mcp_snapshot_and_metadata_exact": true,
+      "mcp_callbacks_exact": true,
+      "focused_markdown_exact": true,
+      "scripted_reference_passed": true,
+      "deliberate_invalid_answers_rejected": 18,
+      "model_invoked": false
+    },
+    {
+      "case_id": "case-003",
+      "evidence_sha256": "4ec02aa661941b76d352c2ff1db57b387807e3cb78fc34f848fcf5ff743749cc",
+      "cli_snapshot_exact": true,
+      "mcp_snapshot_and_metadata_exact": true,
+      "mcp_callbacks_exact": true,
+      "focused_markdown_exact": true,
+      "scripted_reference_passed": true,
+      "deliberate_invalid_answers_rejected": 18,
+      "model_invoked": false
+    },
+    {
+      "case_id": "case-001-healthy",
+      "evidence_sha256": "89b22e9c38c4793ea2a9e78d714c908ddf5c68537614cc1c314a6607c53baaef",
+      "cli_snapshot_exact": true,
+      "mcp_snapshot_and_metadata_exact": true,
+      "mcp_callbacks_exact": true,
+      "focused_markdown_exact": true,
+      "scripted_reference_passed": true,
+      "deliberate_invalid_answers_rejected": 19,
+      "model_invoked": false
+    },
+    {
+      "case_id": "case-001-missing-imu",
+      "evidence_sha256": "5d66009f0d2f07434a053e31b8a7f3f8a0379705c0fcac1f6814525962c9cc4c",
+      "cli_snapshot_exact": true,
+      "mcp_snapshot_and_metadata_exact": true,
+      "mcp_callbacks_exact": true,
+      "focused_markdown_exact": true,
+      "scripted_reference_passed": true,
+      "deliberate_invalid_answers_rejected": 19,
+      "model_invoked": false
+    },
+    {
+      "case_id": "case-002-healthy",
+      "evidence_sha256": "3512e58f5d430be8a23295380503fac61f4942747d82b49e0d9d758c68468630",
+      "cli_snapshot_exact": true,
+      "mcp_snapshot_and_metadata_exact": true,
+      "mcp_callbacks_exact": true,
+      "focused_markdown_exact": true,
+      "scripted_reference_passed": true,
+      "deliberate_invalid_answers_rejected": 18,
+      "model_invoked": false
+    },
+    {
+      "case_id": "case-002-missing-imu",
+      "evidence_sha256": "7e6662ef4e6b740d254116c7e1cd28f51f9876036f0db0b1522e154d8db8cf0f",
+      "cli_snapshot_exact": true,
+      "mcp_snapshot_and_metadata_exact": true,
+      "mcp_callbacks_exact": true,
+      "focused_markdown_exact": true,
+      "scripted_reference_passed": true,
+      "deliberate_invalid_answers_rejected": 18,
+      "model_invoked": false
+    },
+    {
+      "case_id": "case-003-healthy",
+      "evidence_sha256": "3709dead53cbcffe34ed5e8d18f948750491bb11e8c4e64743dc05745305a620",
+      "cli_snapshot_exact": true,
+      "mcp_snapshot_and_metadata_exact": true,
+      "mcp_callbacks_exact": true,
+      "focused_markdown_exact": true,
+      "scripted_reference_passed": true,
+      "deliberate_invalid_answers_rejected": 18,
+      "model_invoked": false
+    },
+    {
+      "case_id": "case-003-missing-imu",
+      "evidence_sha256": "3e9b94921141ab985d90aa44266313ab63b55420e235d9ae0efb3447ab89afa8",
+      "cli_snapshot_exact": true,
+      "mcp_snapshot_and_metadata_exact": true,
+      "mcp_callbacks_exact": true,
+      "focused_markdown_exact": true,
+      "scripted_reference_passed": true,
+      "deliberate_invalid_answers_rejected": 18,
+      "model_invoked": false
+    }
+  ],
+  "scoring_cli_reference_exit": 0,
+  "scoring_cli_overclaim_exit": 1,
+  "model_invoked": false,
+  "scope": "Declared same-raw-clock phase-audit sidecar plus unchanged original last frames/headers. Command envelopes, not settled sampling windows or ROS/header alignment. Scripted calibration, not blind AI accuracy or a new C++ capture.",
+  "code_sha256": {
+    "test/benchmarks/phase_investigation.py": "f8da97a53a4c593945c4f8de59dccd2089998483c958a34b0f218be985c81289",
+    "test/benchmarks/investigation_cases.py": "60aecdedaffb5ed4bb35f7afabe78209f8d5850350a70085687204a303ba05f6",
+    "test/test_phase_investigation.py": "dbb408004648388ada2e9b193fd0dbd4f34183c25e25d9439e9176ef4fe436f5",
+    "test/benchmarks/validate_investigation.py": "a0479de62e66f20874295204edcd2d82a87bd18216587ddd28afa8f75cd32e28"
+  },
+  "capture_source_commit": "4f2817eb29c1db73392d2223cae2cc61b67b3282",
+  "producer_commit": "dbddd94b655183a5e539f518920cc76f72d94cb5"
+}
