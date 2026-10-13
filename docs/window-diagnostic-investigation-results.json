@@ -1,0 +1,782 @@
+{
+  "scope": "Original frozen public Autoware recordings and legacy compatibility; structured claims/transport calibration only",
+  "base_main": "982e0343e4194e825fa959076d30b02831408330",
+  "source_paths_are_local_evaluator_metadata": true,
+  "model_invoked": false,
+  "tests": {
+    "jazzy": {
+      "passed": 423,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "junit_sha256": "7cdebea48b0f1b682e5b1e01ca7e16bafb10c8e5b1b6c249666ffd80f112d028"
+    },
+    "humble": {
+      "passed": 422,
+      "skipped": 1,
+      "failures": 0,
+      "errors": 0,
+      "junit_sha256": "b792fac3eca9f387f115e858d09e1e352b8685aa341632ff26c3c47e3a46313b"
+    }
+  },
+  "new_regression_cases": 23,
+  "source_sha256": {
+    "test/benchmarks/investigation_cases.py": "ac0a0e87322178f6a13ab4dac8dbc11c0beb748e460fa4cbcde53c7ad9f3cd3a",
+    "test/benchmarks/validate_investigation.py": "3d40e6718eec741b21ef39e1b92a3ecf079c6ef44c556a5e74fa6d99b16f9099",
+    "test/test_investigation_window_diagnostics.py": "4db8db37d4c298f6597ecc5efb337d954046aa4777fcef93882507b273d14e9b"
+  },
+  "bundles": {
+    "public-autoware": {
+      "cases": 6,
+      "deliberate_invalid_answers_rejected": 58,
+      "results_sha256": "89340d24230887d51e415e2e8a25409d50529370b871c3bdd899baf58553cc4c",
+      "case_results": [
+        {
+          "case_id": "case-001",
+          "evidence_sha256": "04aae03fa625b4fb86d4f6fa37d87f61b0ea08022b22a2e418879f2fe8f57574",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 11,
+          "model_invoked": false,
+          "source_file": "/workspace/pending-pr-integration-validation/public-cpp/scenario/healthy/run.rgd.json",
+          "source_sha256": "f8d9bf358aaa3a9add401cb614b3c979315e3b2b25cd4b8ea875f28660abccb8",
+          "source_frame_index": 6,
+          "family": "topic_window",
+          "target": "/localization/twist_estimator/twist_with_covariance",
+          "selected_observations": {
+            "probe_rate_window_samples": {
+              "status": "observed",
+              "value": 50,
+              "evidence": [
+                "/snapshot/topics/3/probe_rate_window_samples"
+              ]
+            },
+            "probe_rate_window_duration_ms": {
+              "status": "observed",
+              "value": 1633.347,
+              "evidence": [
+                "/snapshot/topics/3/probe_rate_window_duration_ms"
+              ]
+            },
+            "probe_last_sample_age_ms": {
+              "status": "observed",
+              "value": 33.4,
+              "evidence": [
+                "/snapshot/topics/3/probe_last_sample_age_ms"
+              ]
+            },
+            "probe_rate_window_clock": {
+              "status": "observed",
+              "value": "rmw_received_timestamp",
+              "evidence": [
+                "/snapshot/topics/3/probe_rate_window_clock"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "case-002",
+          "evidence_sha256": "f448a9cb9e6b509c2cabfb1ef912ae57dc0d478f4a82f0e46d36881745ee5700",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 11,
+          "model_invoked": false,
+          "source_file": "/workspace/pending-pr-integration-validation/public-cpp/scenario/missing-imu/run.rgd.json",
+          "source_sha256": "b95670f2621bb132990005756494bbe6dc522507b85bd82a581de4a673025c73",
+          "source_frame_index": 6,
+          "family": "topic_window",
+          "target": "/localization/twist_estimator/twist_with_covariance",
+          "selected_observations": {
+            "probe_rate_window_samples": {
+              "status": "observed",
+              "value": 50,
+              "evidence": [
+                "/snapshot/topics/3/probe_rate_window_samples"
+              ]
+            },
+            "probe_rate_window_duration_ms": {
+              "status": "observed",
+              "value": 1634.279,
+              "evidence": [
+                "/snapshot/topics/3/probe_rate_window_duration_ms"
+              ]
+            },
+            "probe_last_sample_age_ms": {
+              "status": "observed",
+              "value": 10698.5,
+              "evidence": [
+                "/snapshot/topics/3/probe_last_sample_age_ms"
+              ]
+            },
+            "probe_rate_window_clock": {
+              "status": "observed",
+              "value": "rmw_received_timestamp",
+              "evidence": [
+                "/snapshot/topics/3/probe_rate_window_clock"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "case-003",
+          "evidence_sha256": "3c8b8cfec4bf41355b5836e48bb64289dc12e5f00319b034bc407d3e49a87991",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 11,
+          "model_invoked": false,
+          "source_file": "/workspace/pending-pr-integration-validation/public-cpp/scenario/recovered/run.rgd.json",
+          "source_sha256": "290fde1d3492af4f9438d69d30fe57ccb530ae0415d56fbcdd1dcdbe748cac4a",
+          "source_frame_index": 6,
+          "family": "topic_window",
+          "target": "/localization/twist_estimator/twist_with_covariance",
+          "selected_observations": {
+            "probe_rate_window_samples": {
+              "status": "observed",
+              "value": 50,
+              "evidence": [
+                "/snapshot/topics/3/probe_rate_window_samples"
+              ]
+            },
+            "probe_rate_window_duration_ms": {
+              "status": "observed",
+              "value": 1632.56,
+              "evidence": [
+                "/snapshot/topics/3/probe_rate_window_duration_ms"
+              ]
+            },
+            "probe_last_sample_age_ms": {
+              "status": "observed",
+              "value": 30.7,
+              "evidence": [
+                "/snapshot/topics/3/probe_last_sample_age_ms"
+              ]
+            },
+            "probe_rate_window_clock": {
+              "status": "observed",
+              "value": "rmw_received_timestamp",
+              "evidence": [
+                "/snapshot/topics/3/probe_rate_window_clock"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "case-004",
+          "evidence_sha256": "04aae03fa625b4fb86d4f6fa37d87f61b0ea08022b22a2e418879f2fe8f57574",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_runtime_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": null,
+          "full_markdown_exact": true,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 8,
+          "model_invoked": false,
+          "source_file": "/workspace/pending-pr-integration-validation/public-cpp/scenario/healthy/run.rgd.json",
+          "source_sha256": "f8d9bf358aaa3a9add401cb614b3c979315e3b2b25cd4b8ea875f28660abccb8",
+          "source_frame_index": 6,
+          "family": "diagnostics",
+          "target": "gyro_odometer: gyro_odometer_status",
+          "selected_observations": {
+            "diagnostic_observation_count": {
+              "status": "observed",
+              "value": 1,
+              "evidence": [
+                "/snapshot/diagnostics"
+              ]
+            },
+            "diagnostic_0_name": {
+              "status": "observed",
+              "value": "gyro_odometer: gyro_odometer_status",
+              "evidence": [
+                "/snapshot/diagnostics/0/name"
+              ]
+            },
+            "diagnostic_0_level": {
+              "status": "observed",
+              "value": 0,
+              "evidence": [
+                "/snapshot/diagnostics/0/level"
+              ]
+            },
+            "diagnostic_0_message": {
+              "status": "observed",
+              "value": "OK",
+              "evidence": [
+                "/snapshot/diagnostics/0/message"
+              ]
+            },
+            "diagnostic_0_hardware_id": {
+              "status": "observed",
+              "value": "gyro_odometer",
+              "evidence": [
+                "/snapshot/diagnostics/0/hardware_id"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "case-005",
+          "evidence_sha256": "f448a9cb9e6b509c2cabfb1ef912ae57dc0d478f4a82f0e46d36881745ee5700",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_runtime_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": null,
+          "full_markdown_exact": true,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 9,
+          "model_invoked": false,
+          "source_file": "/workspace/pending-pr-integration-validation/public-cpp/scenario/missing-imu/run.rgd.json",
+          "source_sha256": "b95670f2621bb132990005756494bbe6dc522507b85bd82a581de4a673025c73",
+          "source_frame_index": 6,
+          "family": "diagnostics",
+          "target": "gyro_odometer: gyro_odometer_status",
+          "selected_observations": {
+            "diagnostic_observation_count": {
+              "status": "observed",
+              "value": 1,
+              "evidence": [
+                "/snapshot/diagnostics"
+              ]
+            },
+            "diagnostic_0_name": {
+              "status": "observed",
+              "value": "gyro_odometer: gyro_odometer_status",
+              "evidence": [
+                "/snapshot/diagnostics/0/name"
+              ]
+            },
+            "diagnostic_0_level": {
+              "status": "observed",
+              "value": 2,
+              "evidence": [
+                "/snapshot/diagnostics/0/level"
+              ]
+            },
+            "diagnostic_0_message": {
+              "status": "observed",
+              "value": "IMU msg is timeout. imu_dt: 9.048418692[sec], tolerance 0.2[sec]",
+              "evidence": [
+                "/snapshot/diagnostics/0/message"
+              ]
+            },
+            "diagnostic_0_hardware_id": {
+              "status": "observed",
+              "value": "gyro_odometer",
+              "evidence": [
+                "/snapshot/diagnostics/0/hardware_id"
+              ]
+            },
+            "diagnostic_issue_2_kind": {
+              "status": "observed",
+              "value": "diagnostics_error",
+              "evidence": [
+                "/snapshot/issues/2/kind"
+              ]
+            },
+            "diagnostic_issue_2_related_diagnostics": {
+              "status": "observed",
+              "value": [
+                "gyro_odometer: gyro_odometer_status"
+              ],
+              "evidence": [
+                "/snapshot/issues/2/related_diagnostics"
+              ]
+            },
+            "diagnostic_issue_2_related_nodes": {
+              "status": "observed",
+              "value": [],
+              "evidence": [
+                "/snapshot/issues/2/related_nodes"
+              ]
+            },
+            "diagnostic_issue_2_evidence": {
+              "status": "observed",
+              "value": [
+                "level: 2",
+                "hardware_id: gyro_odometer",
+                "diagnostic name: gyro_odometer: gyro_odometer_status",
+                "node attribution: unknown"
+              ],
+              "evidence": [
+                "/snapshot/issues/2/evidence"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "case-006",
+          "evidence_sha256": "3c8b8cfec4bf41355b5836e48bb64289dc12e5f00319b034bc407d3e49a87991",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_runtime_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": null,
+          "full_markdown_exact": true,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 8,
+          "model_invoked": false,
+          "source_file": "/workspace/pending-pr-integration-validation/public-cpp/scenario/recovered/run.rgd.json",
+          "source_sha256": "290fde1d3492af4f9438d69d30fe57ccb530ae0415d56fbcdd1dcdbe748cac4a",
+          "source_frame_index": 6,
+          "family": "diagnostics",
+          "target": "gyro_odometer: gyro_odometer_status",
+          "selected_observations": {
+            "diagnostic_observation_count": {
+              "status": "observed",
+              "value": 1,
+              "evidence": [
+                "/snapshot/diagnostics"
+              ]
+            },
+            "diagnostic_0_name": {
+              "status": "observed",
+              "value": "gyro_odometer: gyro_odometer_status",
+              "evidence": [
+                "/snapshot/diagnostics/0/name"
+              ]
+            },
+            "diagnostic_0_level": {
+              "status": "observed",
+              "value": 0,
+              "evidence": [
+                "/snapshot/diagnostics/0/level"
+              ]
+            },
+            "diagnostic_0_message": {
+              "status": "observed",
+              "value": "OK",
+              "evidence": [
+                "/snapshot/diagnostics/0/message"
+              ]
+            },
+            "diagnostic_0_hardware_id": {
+              "status": "observed",
+              "value": "gyro_odometer",
+              "evidence": [
+                "/snapshot/diagnostics/0/hardware_id"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "legacy-autoware": {
+      "cases": 2,
+      "deliberate_invalid_answers_rejected": 20,
+      "results_sha256": "c326c962d4a377d00b860539d9230b9b2ba68fda0c62f07d3d04d93d53ad00c4",
+      "case_results": [
+        {
+          "case_id": "case-001",
+          "evidence_sha256": "c9feb4077d75fedae188e72aced9f7ca2b7178f3ce2647b2fa9b6673b0b7694a",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 11,
+          "model_invoked": false,
+          "source_file": "/workspace/autoware-gyro-source-validation/run-verified/scenario/missing-imu/run.rgd.json",
+          "source_sha256": "3c02ae8f82823a58509ff14cef380519c193690cfedf906e755f6c3a8e9cf709",
+          "source_frame_index": 6,
+          "family": "topic_window",
+          "target": "/localization/twist_estimator/twist_with_covariance",
+          "selected_observations": {
+            "probe_rate_window_samples": {
+              "status": "unknown",
+              "value": null,
+              "evidence": [
+                "/snapshot/topics/3"
+              ]
+            },
+            "probe_rate_window_duration_ms": {
+              "status": "unknown",
+              "value": null,
+              "evidence": [
+                "/snapshot/topics/3"
+              ]
+            },
+            "probe_last_sample_age_ms": {
+              "status": "unknown",
+              "value": null,
+              "evidence": [
+                "/snapshot/topics/3"
+              ]
+            },
+            "probe_rate_window_clock": {
+              "status": "unknown",
+              "value": null,
+              "evidence": [
+                "/snapshot/topics/3"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "case-002",
+          "evidence_sha256": "c9feb4077d75fedae188e72aced9f7ca2b7178f3ce2647b2fa9b6673b0b7694a",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_runtime_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": null,
+          "full_markdown_exact": true,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 9,
+          "model_invoked": false,
+          "source_file": "/workspace/autoware-gyro-source-validation/run-verified/scenario/missing-imu/run.rgd.json",
+          "source_sha256": "3c02ae8f82823a58509ff14cef380519c193690cfedf906e755f6c3a8e9cf709",
+          "source_frame_index": 6,
+          "family": "diagnostics",
+          "target": "gyro_odometer: gyro_odometer_status",
+          "selected_observations": {
+            "diagnostic_observation_count": {
+              "status": "observed",
+              "value": 1,
+              "evidence": [
+                "/snapshot/diagnostics"
+              ]
+            },
+            "diagnostic_0_name": {
+              "status": "observed",
+              "value": "gyro_odometer: gyro_odometer_status",
+              "evidence": [
+                "/snapshot/diagnostics/0/name"
+              ]
+            },
+            "diagnostic_0_level": {
+              "status": "observed",
+              "value": 2,
+              "evidence": [
+                "/snapshot/diagnostics/0/level"
+              ]
+            },
+            "diagnostic_0_message": {
+              "status": "observed",
+              "value": "IMU msg is timeout. imu_dt: 8.653463566[sec], tolerance 0.2[sec]",
+              "evidence": [
+                "/snapshot/diagnostics/0/message"
+              ]
+            },
+            "diagnostic_0_hardware_id": {
+              "status": "observed",
+              "value": "gyro_odometer",
+              "evidence": [
+                "/snapshot/diagnostics/0/hardware_id"
+              ]
+            },
+            "diagnostic_issue_2_kind": {
+              "status": "observed",
+              "value": "diagnostics_error",
+              "evidence": [
+                "/snapshot/issues/2/kind"
+              ]
+            },
+            "diagnostic_issue_2_related_diagnostics": {
+              "status": "unknown",
+              "value": null,
+              "evidence": [
+                "/snapshot/issues/2"
+              ]
+            },
+            "diagnostic_issue_2_related_nodes": {
+              "status": "observed",
+              "value": [
+                "gyro_odometer: gyro_odometer_status"
+              ],
+              "evidence": [
+                "/snapshot/issues/2/related_nodes"
+              ]
+            },
+            "diagnostic_issue_2_evidence": {
+              "status": "observed",
+              "value": [
+                "level: 2",
+                "hardware_id: gyro_odometer"
+              ],
+              "evidence": [
+                "/snapshot/issues/2/evidence"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "existing": {
+      "cases": 12,
+      "deliberate_invalid_answers_rejected": 102,
+      "results_sha256": "d850febbe37f322fd841be99d0630cbced223623ba199858609033b870540160",
+      "case_results": [
+        {
+          "case_id": "case-001",
+          "evidence_sha256": "b3ba5b50731feac1993c789ec3be02883fc40b1eadaea2e8caf0f7082854f908",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 7,
+          "model_invoked": false,
+          "source_file": "/workspace/callback-source-validation/jazzy-final/source/slow/run.rgd.json",
+          "source_sha256": "fca14b86eb589c855c70b886068e7cb00a879f92a58ad8e18f5ba58427937ed2",
+          "source_frame_index": 6,
+          "family": "topic",
+          "target": "/perception/object_recognition/objects"
+        },
+        {
+          "case_id": "case-002",
+          "evidence_sha256": "b3ba5b50731feac1993c789ec3be02883fc40b1eadaea2e8caf0f7082854f908",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 10,
+          "model_invoked": false,
+          "source_file": "/workspace/callback-source-validation/jazzy-final/source/slow/run.rgd.json",
+          "source_sha256": "fca14b86eb589c855c70b886068e7cb00a879f92a58ad8e18f5ba58427937ed2",
+          "source_frame_index": 6,
+          "family": "duration",
+          "target": "/control/integration/processing"
+        },
+        {
+          "case_id": "case-003",
+          "evidence_sha256": "3f3ef97f449e6e4512b9e5f41f24a22fe1e897789525c3870c5269092481d6dd",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 7,
+          "model_invoked": false,
+          "source_file": "/workspace/callback-source-validation/jazzy-final/source/healthy/run.rgd.json",
+          "source_sha256": "77e932c58e8bf7356d2c041c2fb64164b8f0b0efaa2cbec254747d5432c7c3c4",
+          "source_frame_index": 6,
+          "family": "topic",
+          "target": "/perception/object_recognition/objects"
+        },
+        {
+          "case_id": "case-004",
+          "evidence_sha256": "3f3ef97f449e6e4512b9e5f41f24a22fe1e897789525c3870c5269092481d6dd",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 10,
+          "model_invoked": false,
+          "source_file": "/workspace/callback-source-validation/jazzy-final/source/healthy/run.rgd.json",
+          "source_sha256": "77e932c58e8bf7356d2c041c2fb64164b8f0b0efaa2cbec254747d5432c7c3c4",
+          "source_frame_index": 6,
+          "family": "duration",
+          "target": "/control/integration/processing"
+        },
+        {
+          "case_id": "case-005",
+          "evidence_sha256": "82e238c3d58f492a4590a7a828bd14024017464504d83ea0bd3ad1cb958053d2",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 7,
+          "model_invoked": false,
+          "source_file": "/workspace/callback-source-validation/jazzy-final/source/cpu/warmup.json",
+          "source_sha256": "0e70db3019274894c6846887e4e60e777519703b6d75d4cdacf7e2ed03ad792b",
+          "source_frame_index": 0,
+          "family": "cpu",
+          "target": "/integration/cpu_worker"
+        },
+        {
+          "case_id": "case-006",
+          "evidence_sha256": "ba58f996f3653b723398c9f3f583dda160c40981e4328358fb6fcb57e28265f5",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 7,
+          "model_invoked": false,
+          "source_file": "/workspace/callback-source-validation/jazzy-final/source/cpu/loaded.json",
+          "source_sha256": "9aadaaf7fc59abe4e878fb2d25a66fe1bd007e68135a309441dcfed29bebdffd",
+          "source_frame_index": 0,
+          "family": "cpu",
+          "target": "/integration/cpu_worker"
+        },
+        {
+          "case_id": "case-007",
+          "evidence_sha256": "81eac5339c9c01cd215af7f98a0fca7c1ba6bf9d0e6df548f81f755de8f58154",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 7,
+          "model_invoked": false,
+          "source_file": "/workspace/callback-source-validation/jazzy-final/source/cpu/recovered.json",
+          "source_sha256": "17dc6b56f870167b1b1b29f008261c4222570d45de0a8bff7d805f946325b5c7",
+          "source_frame_index": 0,
+          "family": "cpu",
+          "target": "/integration/cpu_worker"
+        },
+        {
+          "case_id": "case-008",
+          "evidence_sha256": "5f9e8ebd9e94ccb19071e8fafd147789f539e146522fc27e617bd7b3ed5213b0",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 7,
+          "model_invoked": false,
+          "source_file": "/workspace/callback-source-validation/jazzy-final/source/clock/unstarted.json",
+          "source_sha256": "3fa3a10edc9a77c64e655eea0d5430ca669d55205ddc1d6dbf196574eca8a039",
+          "source_frame_index": 0,
+          "family": "topic",
+          "target": "/localization/kinematic_state"
+        },
+        {
+          "case_id": "case-009",
+          "evidence_sha256": "b4877ce8dfb382b80455ad7dfa63c7c311af65426145e6dc095ff68e0539a5f2",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 10,
+          "model_invoked": false,
+          "source_file": "/workspace/callback-source-validation/jazzy-final/trace/slow/run.rgd.json",
+          "source_sha256": "2a1a21a794ce8f846cdda80a678beb9fd86083c5dbedbb246c7cba3f69436500",
+          "source_frame_index": 2,
+          "family": "duration",
+          "target": "/trace_slow"
+        },
+        {
+          "case_id": "case-010",
+          "evidence_sha256": "1517ba0ef5b945ee155939b3cea8f306dc38cbf277d7b228ebc108a97fa36dab",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 10,
+          "model_invoked": false,
+          "source_file": "/workspace/callback-source-validation/jazzy-final/trace/healthy/run.rgd.json",
+          "source_sha256": "c1a3c1b064ab69f992a6e1e8edd4e7d007248478ef8e64606a9b47146c371a93",
+          "source_frame_index": 2,
+          "family": "duration",
+          "target": "/trace_healthy"
+        },
+        {
+          "case_id": "case-011",
+          "evidence_sha256": "e4b6119f3dd36e01ebb21b506ed435c6f7e7c8b5bc119907cf8c1cc4c3d3e0d0",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 10,
+          "model_invoked": false,
+          "source_file": "/workspace/ros-trace-validation/jazzy-ci/scenario/slow/run.rgd.json",
+          "source_sha256": "799069eb315570aefc7f684833bcafa727564f8eb365c35d77047cd83940643a",
+          "source_frame_index": 0,
+          "family": "duration",
+          "target": "/trace_slow"
+        },
+        {
+          "case_id": "case-012",
+          "evidence_sha256": "1d3119262d2fd794f53f9020f51d25598f5f58c93a95757ce2cf6c4c3bc27711",
+          "cli_snapshot_exact": true,
+          "mcp_snapshot_and_metadata_exact": true,
+          "mcp_callbacks_exact": true,
+          "briefing_tool": "get_node_briefing",
+          "markdown_exact": true,
+          "focused_markdown_exact": true,
+          "full_markdown_exact": null,
+          "scripted_reference_passed": true,
+          "deliberate_invalid_answers_rejected": 10,
+          "model_invoked": false,
+          "source_file": "/workspace/duration-investigation-validation/bundle-final/controls/synthetic-demo.rgd.json",
+          "source_sha256": "3219a5cfc4d912fb36bd7ec0cddda03c66f0b9c7307a2eb73e27650b562e0a4c",
+          "source_frame_index": 18,
+          "family": "duration",
+          "target": "/detector"
+        }
+      ]
+    }
+  },
+  "cli_score": {
+    "scripted_reference_exit": 0,
+    "deliberate_overclaims_exit": 1,
+    "scripted_score_sha256": "676d2312102618d1394e514d7b10ed1d70cecf16eb47319aa249be90b5268ce8",
+    "negative_score_sha256": "8f06d4080a00141d2b59ac27adef77542823c38a33cdaaf145fe1b2cfc6dcecb"
+  },
+  "limits": [
+    "Preparation freezes the last frame, not an experiment verifier; healthy/fault/recovery contracts were independently checked before export",
+    "Public original recordings came from two unmodified official Jazzy CPP components under controlled public input replay, not original full stack or localization accuracy",
+    "Legacy fields remain absent/unknown; declared issue references are not authenticated status origin",
+    "Task names/hardware IDs/current sole diagnostic publisher do not establish node attribution",
+    "Processed-sample age is not DDS receipt age or proof of publisher activity",
+    "Recorded source hashes bind local files, not upstream published checksums",
+    "No model accuracy, reasoning-text score, blind experiment, human investigation time, external adoption or fresh-cloud restore measured"
+  ]
+}

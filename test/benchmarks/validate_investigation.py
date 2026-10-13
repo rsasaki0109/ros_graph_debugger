@@ -62,11 +62,14 @@ async def validate_case(bundle, case, output, port):
                         text = ''.join(c.text for c in response.content if c.type == 'text')
                         save(directory / (name + '.json'), json.loads(text))
                         assert json.loads(text) == expected
-                    response = await session.call_tool('get_node_briefing', {'target': case['target']})
+                    briefing_tool = case.get('briefing_tool', 'get_node_briefing')
+                    assert briefing_tool in ('get_node_briefing', 'get_runtime_briefing')
+                    focused = briefing_tool == 'get_node_briefing'
+                    response = await session.call_tool(briefing_tool, {'target': case['target']} if focused else {})
                     assert not response.isError
                     text = ''.join(c.text for c in response.content if c.type == 'text')
                     (directory / 'briefing.md').write_text(text)
-                    expected = snapshot_to_markdown(evidence['snapshot'], focus=case['target'])
+                    expected = snapshot_to_markdown(evidence['snapshot'], focus=case['target'] if focused else None)
                     expected += '\n\n## Header age clock\n\n' + header_age_clock_note(evidence['recording_metadata']['recording_header']) + '\n'
                     assert text == expected
         # The reference response is an explicit scripted oracle, not a model.
@@ -82,7 +85,10 @@ async def validate_case(bundle, case, output, port):
         return {'case_id': ident, 'evidence_sha256': rubric['evidence_sha256'],
                 'cli_snapshot_exact': True, 'mcp_snapshot_and_metadata_exact': True,
                 'mcp_callbacks_exact': True,
-                'focused_markdown_exact': True, 'scripted_reference_passed': True,
+                'briefing_tool': briefing_tool, 'markdown_exact': True,
+                'focused_markdown_exact': True if focused else None,
+                'full_markdown_exact': None if focused else True,
+                'scripted_reference_passed': True,
                 'deliberate_invalid_answers_rejected': len(failures), 'model_invoked': False}
     finally:
         try:

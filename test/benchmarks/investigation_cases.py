@@ -111,6 +111,32 @@ def rubric_for(case_id, evidence, family, target):
                 limits[prefix + '_measured_runtime_duration_from_synthetic_stats'] = 'collect_real_duration_measurements'
             else:
                 limits[prefix + '_callback_start_end_from_unknown_source'] = 'establish_duration_measurement_method'
+    elif family == 'diagnostics':
+        diagnostics = snapshot.get('diagnostics')
+        indexes = [i for i, d in enumerate(diagnostics)
+                   if isinstance(d, dict) and d.get('name') == target] \
+            if isinstance(diagnostics, list) else []
+        claims.append({'id': 'diagnostic_observation_count',
+                       'status': 'observed' if isinstance(diagnostics, list) else 'unknown',
+                       'value': len(indexes) if isinstance(diagnostics, list) else None,
+                       'evidence': ['/snapshot/diagnostics' if isinstance(diagnostics, list) else '/snapshot']})
+        for index in indexes:
+            root = f'/snapshot/diagnostics/{index}'
+            for key in ('name', 'level', 'message', 'hardware_id'):
+                claims.append(field_claim(evidence, f'diagnostic_{index}_{key}', root + '/' + key))
+        # These are declared issue references, not authenticated status origins.
+        for index, issue in enumerate(snapshot['issues']):
+            if issue.get('kind') not in ('diagnostics_error', 'diagnostics_warn'):
+                continue
+            root = f'/snapshot/issues/{index}'
+            for key in ('kind', 'related_diagnostics', 'related_nodes', 'evidence'):
+                claims.append(field_claim(evidence, f'diagnostic_issue_{index}_{key}', root + '/' + key))
+        limits = {
+            'node_origin_from_task_label_or_sole_graph_publisher': 'collect_per_status_origin_mapping',
+            'authenticated_origin_from_declared_issue_references': 'verify_status_origin_provenance',
+            'specific_failure_cause_from_diagnostic_level': 'inspect_inputs_and_component_state',
+            'whole_system_health_from_one_diagnostic_task': 'check_other_system_contracts',
+        }
     elif family == 'cpu':
         index = next(i for i, n in enumerate(snapshot['nodes']) if n['id'] == target)
         root = f'/snapshot/nodes/{index}'
@@ -148,6 +174,18 @@ def rubric_for(case_id, evidence, family, target):
         claims.append(field_claim(evidence, 'recorded_header_age_clock',
                                   '/recording_metadata/recording_header/header_age_clock/selected', allowed=('ros', 'bag')))
         limits = dict(TOPIC_LIMITS)
+        if family == 'topic_window':
+            for key in ('probe_rate_window_samples', 'probe_rate_window_duration_ms',
+                        'probe_last_sample_age_ms'):
+                claims.append(field_claim(evidence, key, root + '/' + key, numeric=True))
+            claims.append(field_claim(evidence, 'probe_rate_window_clock',
+                                      root + '/probe_rate_window_clock',
+                                      allowed=('rmw_received_timestamp', 'callback_monotonic')))
+            limits.update({
+                'current_delivery_from_retained_rate_window': 'compare_independent_receipts_over_time',
+                'dds_receipt_age_from_processed_sample_age': 'inspect_raw_receipt_and_processing_timestamps',
+                'publisher_activity_from_processed_sample_age': 'collect_publisher_identity_and_activity',
+            })
     claims.append({'id': 'issue_kinds', 'status': 'observed',
                    'value': sorted({i['kind'] for i in snapshot['issues']}), 'evidence': ['/snapshot/issues']})
     return {'case_id': case_id, 'evidence_sha256': digest(evidence), 'claims': claims,
@@ -230,6 +268,34 @@ def negative_controls(answer):
                                                    '_downstream_rate_cause_from_p95')))
         limitation['status'] = 'established'
         cases['duration_semantics_overclaim'] = bad
+    observations = {c['id']: c for c in answer['claims']}
+    for ident, label, path in (
+        ('probe_last_sample_age_ms', 'processing_age_as_dds_gap', 'dds_stamp_gap_p95_ms'),
+        ('probe_rate_window_duration_ms', 'window_span_as_header_age', 'header_age_p95_ms'),
+    ):
+        if ident in observations:
+            bad = copy.deepcopy(answer)
+            citation = observations[path]['evidence']
+            if citation == observations[ident]['evidence']:
+                citation = ['/snapshot/issues']
+            next(c for c in bad['claims'] if c['id'] == ident)['evidence'] = citation
+            cases[label] = bad
+    for ident in observations:
+        if ident.startswith('diagnostic_issue_') and ident.endswith('_related_diagnostics'):
+            bad = copy.deepcopy(answer)
+            next(c for c in bad['claims'] if c['id'] == ident)['evidence'] = \
+                observations[ident.removesuffix('_related_diagnostics') + '_related_nodes']['evidence']
+            cases['diagnostic_reference_as_node_reference'] = bad
+            break
+    for ident, label in (
+        ('current_delivery_from_retained_rate_window', 'retained_rate_proves_current_delivery'),
+        ('publisher_activity_from_processed_sample_age', 'processing_age_proves_publisher_activity'),
+        ('node_origin_from_task_label_or_sole_graph_publisher', 'task_label_proves_node_origin'),
+    ):
+        if any(c['id'] == ident for c in answer['limitations']):
+            bad = copy.deepcopy(answer)
+            next(c for c in bad['limitations'] if c['id'] == ident)['status'] = 'established'
+            cases[label] = bad
     return cases
 
 
@@ -255,6 +321,15 @@ def export_case(output, ident, snapshot, header, family, target, source, index, 
         prompt += 'Report each duration and its source from the same callback row; '
         prompt += 'a label or filename does not establish a missing measurement method. '
         prompt += 'An application report need not time a single callback; synthetic data is not measured runtime evidence.\n'
+    elif family == 'topic_window':
+        prompt += '\n\nA probe rate uses a bounded received-sample window that can remain during silence. '
+        prompt += 'Sample-processing age uses a local monotonic clock; it is not DDS receipt age, header age, '
+        prompt += 'or proof of publisher activity. Missing legacy fields remain unknown.\n'
+    elif family == 'diagnostics':
+        prompt += '\n\nDiagnostic names are opaque task labels. Report issue references as declared, '
+        prompt += 'including absent legacy fields, without treating a task name, hardware ID or sole graph '
+        prompt += 'publisher as per-status node identity. Issue observations include all diagnostic issues '
+        prompt += 'in the frame, not an inferred association with the focus task.\n'
     prompt += '\n\nDoes the evidence establish each of these conclusions?\n' + '\n'.join('- ' + c['id'] for c in rubric['limitations'])
     prompt += '\n\nChoose next_check from: ' + ', '.join(sorted({c['next_check'] for c in rubric['limitations']})) + '.\n'
     prompt += '\nUse only participant inputs. Evaluator files contain reference answers and provenance; do not expose them to a model.\n'
@@ -349,6 +424,21 @@ def prepare(args):
         index, snapshot = next((i, s) for i, s in enumerate(rows)
                                if any(c.get('node') == args.duration_target for c in s.get('callbacks', [])))
         cases.append((snapshot, header, 'duration', args.duration_target, args.duration_recording, index))
+    for option, target_option, family in (
+        ('window_recording', 'window_topic', 'topic_window'),
+        ('diagnostic_recording', 'diagnostic_name', 'diagnostics'),
+    ):
+        sources = getattr(args, option, None) or []
+        target = getattr(args, target_option, None)
+        assert not sources or target, f'--{option.replace("_", "-")} requires --{target_option.replace("_", "-")}'
+        for source in sources:
+            header, rows = read_recording(str(source))
+            assert rows, f'{source}: no snapshots'
+            index = len(rows) - 1
+            snapshot = rows[index]
+            if family == 'topic_window':
+                assert any(t['name'] == target for t in snapshot['topics']), f'{source}: target topic absent'
+            cases.append((snapshot, header, family, target, source, index))
     for source in (args.public_live, args.public_legacy):
         if source:
             rows = json.loads(source.read_text())
@@ -375,7 +465,11 @@ def prepare(args):
         ident = f'case-{index + 1:03d}'
         kind = 'provided_source' if index < source_cases else 'synthetic_control'
         export_case(args.output, ident, snapshot, header, family, target, source, source_index, kind)
-        manifest.append({'case_id': ident, 'target': target})
+        entry = {'case_id': ident, 'target': target}
+        if family == 'diagnostics':
+            # A diagnostic task label is not a node/topic focus query.
+            entry['briefing_tool'] = 'get_runtime_briefing'
+        manifest.append(entry)
     save(args.output / 'manifest.json', manifest)
     print(f'Prepared {source_cases} source cases and {len(cases) - source_cases} synthetic control cases; no model invoked.')
 
@@ -389,6 +483,10 @@ def main():
                  'public-live', 'public-legacy', 'public-bag'):
         p.add_argument('--' + name, type=Path)
     p.add_argument('--duration-target')
+    p.add_argument('--window-recording', type=Path, action='append', help='Freeze the last frame; repeat for multiple recordings')
+    p.add_argument('--window-topic')
+    p.add_argument('--diagnostic-recording', type=Path, action='append', help='Freeze declared task/issue observations; repeat for multiple recordings')
+    p.add_argument('--diagnostic-name')
     p.add_argument('--synthetic-demo', action='store_true', help='Add an explicitly synthetic duration control')
     p = sub.add_parser('score')
     p.add_argument('--bundle', type=Path, required=True)
