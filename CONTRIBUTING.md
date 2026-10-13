@@ -159,6 +159,23 @@ under the output directory. CI uploads them even on failure as
 job has a five-minute timeout; the runner allows 180 seconds for the scenarios
 and then cleans up. It does not run as part of ordinary `pytest test/`.
 
+### Agent shutdown under DDS traffic
+
+The Humble/Jazzy integration job also checks five fresh agent processes while a
+separate `std_msgs/Float64` publisher continues sending messages:
+
+```bash
+python3 test/integration/run_agent_shutdown_scenario.py --output /tmp/rgd-agent-shutdown
+```
+
+The output directory must be new. The scenario preserves `ROS_DOMAIN_ID` when
+set (CI uses 91), otherwise uses 96, and serves the agent on port 3983. It polls
+for an actual probed stream and its publisher/subscriber endpoints before each
+SIGINT, then requires agent exit 0. Process-group escalation or an abort fails
+the check. Agent logs, readiness snapshots and per-cycle exit results remain
+in the output directory and the existing integration failure artifacts. The
+standalone watchdog is 90 seconds; all child groups are cleaned up on failure.
+
 ### Real LTTng integration
 
 The `trace-integration` CI job records actual rclcpp subscription, timer and
