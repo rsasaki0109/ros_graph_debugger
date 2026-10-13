@@ -72,7 +72,8 @@ def quality(path):
     return discarded
 
 
-def scenario(output, executable):
+def scenario(output, executable, loss_unit):
+    packets = loss_unit == 'packets'
     processes = Processes(output)
     daemon = processes.start('sessiond', ['lttng-sessiond', '--no-kernel'])
     created = False
@@ -94,11 +95,13 @@ def scenario(output, executable):
             directory = output / mode
             directory.mkdir()
             session = 'rgd-trace-loss-' + mode
-            expected = 500 if mode == 'healthy' else 5000
+            expected = 5500 if packets else (500 if mode == 'healthy' else 5000)
             lttng('create', session, '--output', str(directory / 'trace'))
             created = True
+            normal_size = '1048576' if packets else '262144'
             lttng('enable-channel', '--userspace', '--buffers-pid',
-                  '--subbuf-size=' + ('262144' if mode == 'healthy' else '4096'),
+                  *(['--overwrite'] if packets else []),
+                  '--subbuf-size=' + (normal_size if mode == 'healthy' else '4096'),
                   '--num-subbuf=' + ('4' if mode == 'healthy' else '2'),
                   'callbacks', '--session', session)
             lttng('enable-event', '--userspace', '--channel', 'callbacks',
@@ -110,8 +113,23 @@ def scenario(output, executable):
             # predictably while the owned consumer is deliberately suspended.
             cpu = min(os.sched_getaffinity(0))
             fixture = processes.start('fixture-' + mode, ['taskset', '--cpu-list', str(cpu),
-                str(executable), str(directory), str(expected)])
+                str(executable), str(directory), str(expected), *(['packets'] if packets else [])])
             poll(lambda: (directory / 'ready').exists(), daemon, fixture)
+            if packets:
+                (directory / 'warm-go').touch()
+                poll(lambda: int((directory / 'warm-done').read_text()) == 500, daemon, fixture)
+                # Drain initial packets before the burst so overwriting middle
+                # packets produces an observable sequence gap in the real CTF.
+                lttng('stop', session)
+                warm_notifications = quality(directory / 'trace')
+                assert not warm_notifications, warm_notifications
+                warm_rows, warm_counts = convert_trace(str(directory / 'trace'))
+                assert len(warm_rows) == warm_counts['attributed'] == 500, warm_counts
+                assert warm_counts['unattributed'] == 0, warm_counts
+                (directory / 'warm-quality.json').write_text(json.dumps(
+                    {'discard_notifications': warm_notifications,
+                     'conversion_counts': warm_counts}, indent=2) + '\n')
+                lttng('start', session)
             if mode == 'loss':
                 members = poll(lambda: consumers(daemon), daemon, fixture)
                 (directory / 'paused-consumers.json').write_text(json.dumps(members, indent=2) + '\n')
@@ -131,7 +149,7 @@ def scenario(output, executable):
             lttng('destroy', session)
             created = False
             notifications = quality(directory / 'trace')
-            result = {'fixture_pid': fixture.pid, 'fixture_exit': fixture.returncode,
+            result = {'loss_unit': loss_unit, 'fixture_pid': fixture.pid, 'fixture_exit': fixture.returncode,
                       'fixture_invocations': expected, 'discard_notifications': notifications}
             (directory / 'quality.json').write_text(json.dumps(result, indent=2) + '\n')
             if mode == 'healthy':
@@ -144,10 +162,14 @@ def scenario(output, executable):
                 assert load_duration_rows(str(directory / 'callbacks.ndjson')) == rows
                 result.update(conversion_counts=counts, cli_exit=0)
             else:
-                assert notifications, 'the deliberately blocked recorder did not report loss'
+                expected_type = ('_DiscardedPacketsMessageConst' if packets
+                                 else '_DiscardedEventsMessageConst')
+                assert notifications and all(n['type'] == expected_type for n in notifications), notifications
+                assert any(n['count'] is not None and n['count'] > 0 for n in notifications), notifications
                 try:
                     convert_trace(str(directory / 'trace'))
                 except TraceDataLoss as exc:
+                    assert f'discarded {loss_unit}' in str(exc), str(exc)
                     result['conversion_error'] = str(exc)
                 else:
                     raise AssertionError('lossy CTF became normal callback statistics')
@@ -162,7 +184,7 @@ def scenario(output, executable):
                      '--trace-file', str(directory / 'trace')], directory, 'agent', expected=2)
                 for name in ('convert', 'agent'):
                     text = (directory / (name + '.stderr.log')).read_text()
-                    assert 'discarded events' in text or 'discarded packets' in text, text
+                    assert f'discarded {loss_unit}' in text, text
                 result.update(cli_exit=2, agent_exit=2, existing_output_preserved=True)
             results[mode] = result
             (output / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
@@ -193,12 +215,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--fixture', type=Path, required=True)
+    parser.add_argument('--loss-unit', choices=('events', 'packets'), default='events',
+                        help='discarded events or overwritten packets; each has a counted normal control')
     args = parser.parse_args()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     os.environ['LTTNG_HOME'] = str(output / 'lttng-home')
     Path(os.environ['LTTNG_HOME']).mkdir()
-    os.environ['ROS_DOMAIN_ID'] = '95'
+    os.environ['ROS_DOMAIN_ID'] = '94' if args.loss_unit == 'packets' else '95'
 
     def terminate(signum, _frame):
         signal.signal(signum, signal.SIG_IGN)
@@ -211,7 +235,7 @@ def main():
     signal.signal(signal.SIGALRM, timeout)
     signal.setitimer(signal.ITIMER_REAL, 90)
     try:
-        scenario(output, args.fixture.resolve())
+        scenario(output, args.fixture.resolve(), args.loss_unit)
     finally:
         signal.setitimer(signal.ITIMER_REAL, 0)
 
