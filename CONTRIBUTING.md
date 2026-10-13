@@ -189,9 +189,21 @@ cmake -S test/integration/trace_fixture -B /tmp/rgd-trace-fixture
 cmake --build /tmp/rgd-trace-fixture --parallel 2
 python3 test/integration/run_trace_scenario.py \
   --output /tmp/rgd-trace-test --fixture /tmp/rgd-trace-fixture/trace_fixture
+python3 test/integration/run_trace_loss_scenario.py \
+  --output /tmp/rgd-trace-loss-test --fixture /tmp/rgd-trace-fixture/trace_loss_fixture
 ```
 
 Use a fresh output directory and a container without another session daemon.
+The loss scenario fixes domain 95, has a 90-second budget, and checks 500 real
+timer callbacks as a normal control. It deliberately suspends only its owned
+LTTng consumers while 5,000 callbacks overflow a small per-CPU buffer. Consumer
+PID/start-time/group/executable identities are checked before signaling, and
+all suspended consumers are resumed before cleanup. Raw discard notifications,
+CLI/agent errors, previous-output preservation and owned-group cleanup are
+saved under `trace-artifacts/loss-validation` in both CI distributions. This is
+a test of rejecting reported loss, not a performance benchmark or proof that
+traces without notifications are complete.
+
 The script owns its foreground `lttng-sessiond`, sessions and child process
 groups, and polls daemon readiness and completed callback counts. It fixes
 domain 92 and loopback port 3951 (`--port` overrides it), with a 150-second

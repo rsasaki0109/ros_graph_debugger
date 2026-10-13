@@ -21,6 +21,10 @@ class TraceReaderUnavailable(RuntimeError):
     """babeltrace2's Python bindings are not importable."""
 
 
+class TraceDataLoss(RuntimeError):
+    """The CTF reader reported discarded events or packets."""
+
+
 def _import_bt2():
     try:
         import bt2
@@ -49,9 +53,21 @@ def _vpid(event):
 
 def read_ctf_events(path: str) -> Iterator[dict]:
     """Yield ``{name, pid, t_ns, fields}`` for every ``ros2:*`` event in the
-    CTF trace at ``path`` (a `ros2 trace` session directory), in time order."""
+    CTF trace at ``path`` (a `ros2 trace` session directory), in time order.
+
+    Raise TraceDataLoss on any discarded-event or discarded-packet message;
+    partial callback populations must not be presented as ordinary statistics.
+    """
     bt2 = _import_bt2()
     for msg in bt2.TraceCollectionMessageIterator(path):
+        if isinstance(msg, (bt2._DiscardedEventsMessageConst,
+                            bt2._DiscardedPacketsMessageConst)):
+            unit = 'events' if isinstance(msg, bt2._DiscardedEventsMessageConst) else 'packets'
+            count = msg.count if msg.count is not None else 'unknown'
+            raise TraceDataLoss(
+                f'CTF trace reports discarded {unit} (count: {count}); '
+                'callback statistics were not produced. Re-record with larger '
+                'LTTng buffers or fewer enabled events.')
         if type(msg) is not bt2._EventMessageConst:
             continue
         event = msg.event

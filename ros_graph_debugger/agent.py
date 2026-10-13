@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 import threading
 import webbrowser
 
@@ -100,10 +101,13 @@ def main(argv=None) -> None:
     store = RuntimeGraphStore()
 
     if args.trace_file:
-        from .trace_convert import TraceReaderUnavailable
+        from .trace_convert import TraceDataLoss, TraceReaderUnavailable
         from .tracing import callbacks_from_trace_file
         try:
             store.set_callbacks(callbacks_from_trace_file(args.trace_file))
+        except TraceDataLoss as exc:
+            print(f'error: {exc}', file=sys.stderr)
+            raise SystemExit(2) from exc
         except (OSError, TraceReaderUnavailable) as exc:
             print(f'[warn] could not read --trace-file: {exc}')
 
