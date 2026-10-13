@@ -11,6 +11,7 @@ import pytest
 
 from ros_graph_debugger.recording import make_header, write_recording
 from ros_graph_debugger.tracing import aggregate_callback_durations
+from ros_graph_debugger.model import callback_trace_window_label
 
 integration = Path(__file__).parent / 'integration'
 sys.path.insert(0, str(integration))
@@ -25,7 +26,9 @@ finally:
 def conversion(tmp_path, monkeypatch, mode='slow'):
     node = '/trace_' + mode
     rows = [{'node': node, 'callback': cb, 'topic': topic,
-             'duration_ms': 150.0 if mode == 'slow' else 1.0, 'source': 'trace'}
+             'duration_ms': 150.0 if mode == 'slow' else 1.0, 'source': 'trace',
+             'start_ns': 0, 'end_ns': 150_000_000 if mode == 'slow' else 1_000_000,
+             'clock': 'ctf_ns_from_origin:4f3ccacf-8e09-45a6-8083-1761c14b6027'}
             for cb, topic in ((f'sub {node}/input', node + '/input'),
                               ('timer 200 ms', ''), (f'srv {node}/reset', ''))
             for _ in range(scenario.MIN_INVOCATIONS)]
@@ -38,7 +41,8 @@ def conversion(tmp_path, monkeypatch, mode='slow'):
 
 
 @pytest.mark.parametrize('failure', ['missing_owner', 'unattributed', 'missing_service',
-                                     'cli_mismatch', 'missing_trace_source'])
+                                     'cli_mismatch', 'missing_trace_source',
+                                     'missing_clock', 'missing_boundary'])
 def test_conversion_rejects_missing_real_trace_evidence(tmp_path, monkeypatch, failure):
     rows, counts, event = conversion(tmp_path, monkeypatch)
     if failure == 'missing_owner':
@@ -51,6 +55,9 @@ def test_conversion_rejects_missing_real_trace_evidence(tmp_path, monkeypatch, f
     elif failure == 'missing_trace_source':
         for row in rows:
             del row['source']
+        (tmp_path / 'callbacks.ndjson').write_text(''.join(json.dumps(r) + '\n' for r in rows))
+    elif failure in ('missing_clock', 'missing_boundary'):
+        del rows[0]['clock' if failure == 'missing_clock' else 'end_ns']
         (tmp_path / 'callbacks.ndjson').write_text(''.join(json.dumps(r) + '\n' for r in rows))
     else:
         (tmp_path / 'callbacks.ndjson').write_text('')
@@ -66,7 +73,9 @@ def test_all_three_real_callback_contracts(tmp_path, monkeypatch, mode):
     issues = [{'kind': 'slow_callback', 'related_nodes': [node],
                'related_topics': [c.topic] if c.topic else [],
                'evidence': [f'p95: {c.p95_ms:.0f} ms (limit 100 ms)', f'samples: {c.count}',
-                            'duration source: paired callback trace']}
+                            'duration source: paired callback trace',
+                            f'imported trace window: {callback_trace_window_label(c)}',
+                            'Imported trace duration does not establish current node activity.']}
               for c in stats] if mode == 'slow' else []
     snapshots = [{'timestamp': float(t), 'callbacks': [asdict(c) for c in stats],
                   'issues': copy.deepcopy(issues)} for t in range(4)]

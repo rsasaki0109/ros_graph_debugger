@@ -149,6 +149,10 @@ class CallbackStat:
     p95_ms: Optional[float] = None
     max_ms: Optional[float] = None
     source: Optional[str] = None
+    # Bounds of the invocations used in this imported aggregate, not live age.
+    trace_window_start_ns: Optional[int] = None
+    trace_window_end_ns: Optional[int] = None
+    trace_window_clock: Optional[str] = None
 
 
 _CALLBACK_SOURCES = {
@@ -165,6 +169,40 @@ def callback_source(value) -> Optional[str]:
 
 def callback_source_label(value) -> str:
     return _CALLBACK_SOURCES.get(callback_source(value), 'unknown')
+
+
+TRACE_WINDOW_NOTE = (
+    'Imported trace windows cover the aggregated invocations, not current node '
+    'activity. CTF clock nanoseconds are not ROS/header time; synchronization '
+    'with other clocks and capture completeness are not established. Missing '
+    'or mixed clock/boundary metadata stays unknown.')
+
+
+def callback_trace_window(value):
+    """Validated declared bounds, or None; legacy data is never repaired."""
+    import uuid
+    get = value.get if isinstance(value, dict) else lambda k: getattr(value, k, None)
+    start, end, clock = (get('trace_window_start_ns'), get('trace_window_end_ns'),
+                         get('trace_window_clock'))
+    if get('source') != 'trace' or type(start) is not int or type(end) is not int \
+            or end < start or not isinstance(clock, str):
+        return None
+    prefix = 'ctf_ns_from_origin:'
+    if not clock.startswith(prefix):
+        return None
+    try:
+        if str(uuid.UUID(clock[len(prefix):])) != clock[len(prefix):]:
+            return None
+    except ValueError:
+        return None
+    return {'start_ns': start, 'end_ns': end, 'clock': clock}
+
+
+def callback_trace_window_label(value) -> str:
+    window = callback_trace_window(value)
+    if window is None:
+        return 'unknown'
+    return f'{window["start_ns"]}..{window["end_ns"]} ns ({window["clock"]})'
 
 
 @dataclass

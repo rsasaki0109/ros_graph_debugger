@@ -21,6 +21,10 @@ invocation**:
 - `topic` (optional) — the subscription topic; `callback` defaults to
   `sub <topic>` when omitted.
 - `callback` (optional) — a human label (e.g. `timer`).
+- `start_ns`, `end_ns`, `clock` (optional) — exact callback boundaries before
+  millisecond rounding. CTF conversion emits Babeltrace's `ns_from_origin`
+  integers and `ctf_ns_from_origin:<clock UUID>`; without a clock UUID the clock
+  stays `null`. Starts and ends from different declared clocks are not paired.
 - `source` (optional) — `trace`, `application_report`, `synthetic`, or `null`
   (unknown). The CTF converter writes `trace` after pairing callback start/end
   events. Processing-time subscriptions and bag analysis write
@@ -44,6 +48,24 @@ Snapshots retain all existing callback fields and add `source`. The existing
 identifies the duration source. An application report follows the publisher's
 definition of processing time and may cover a cycle or several callbacks. It
 does not establish callback start/end time or explain downstream rate loss.
+
+Imported callback aggregates also expose `trace_window_start_ns`,
+`trace_window_end_ns` and `trace_window_clock`: the minimum start and maximum
+end of **all accepted invocations in that group**. These are emitted only if
+every invocation has integer, non-reversed bounds on the same declared CTF
+clock. Incomplete, mixed, old or non-trace input leaves all three `null`.
+Zero nanoseconds is a valid boundary. This interval is not the entire trace's
+capture interval, and does not establish event completeness.
+
+The aggregate is loaded once from the imported capture. Later snapshot times
+do not refresh these observations or establish current node activity. The
+clock UUID identifies declared CTF clock metadata; it does not authenticate the
+input or establish synchronization with ROS `/clock`, message headers, another
+trace or another host. No live age or fault/recovery phase alignment is inferred.
+CLI/HTTP/MCP preserve the fields; slow-callback evidence, Markdown briefings and
+Markdown/HTML reports state these limits. Reports deduplicate identical windows
+across snapshots and retain distinct windows and unknown observations separately.
+Legacy recordings are read unchanged, with missing windows displayed as unknown.
 
 MCP `get_callbacks`, Markdown briefings and Markdown/HTML reports expose the
 source. Reports keep different sources/topics in separate series, and `rgd diff`

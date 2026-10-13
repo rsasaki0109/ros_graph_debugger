@@ -278,7 +278,7 @@ def analyze(store: RuntimeGraphStore, thresholds,
 
 def _slow_callbacks(callbacks, thresholds, counter) -> list[Issue]:
     """Apply the existing duration budget without inferring a measurement source."""
-    from .model import callback_source_label
+    from .model import callback_source_label, callback_trace_window_label
     out: list[Issue] = []
     for c in callbacks:
         p95 = c.p95_ms
@@ -289,6 +289,9 @@ def _slow_callbacks(callbacks, thresholds, counter) -> list[Issue]:
         evidence = [f'p95: {p95:.0f} ms (limit {limit:.0f} ms)']
         source = callback_source_label(c.source)
         evidence.append(f'duration source: {source}')
+        if c.source == 'trace':
+            evidence.append(f'imported trace window: {callback_trace_window_label(c)}')
+            evidence.append('Imported trace duration does not establish current node activity.')
         if c.mean_ms is not None:
             evidence.append(f'mean: {c.mean_ms:.0f} ms')
         if c.count:
