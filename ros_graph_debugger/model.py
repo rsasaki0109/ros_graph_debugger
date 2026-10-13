@@ -69,6 +69,12 @@ class TopicInfo:
     status: str = UNKNOWN  # ok | warning | critical | unknown
     # Where samples were observed; this does not establish delivery completeness.
     rate_measurement_scope: Optional[str] = None
+    # Bounded probe rate window and time since its latest processed sample.
+    # None means unavailable (including non-probe and legacy measurements).
+    probe_rate_window_samples: Optional[int] = None
+    probe_rate_window_duration_ms: Optional[float] = None
+    probe_rate_window_clock: Optional[str] = None
+    probe_last_sample_age_ms: Optional[float] = None
     # Local system-clock gap from middleware receipt to Python probe entry.
     probe_callback_delay_p95_ms: Optional[float] = None
     probe_callback_delay_samples: int = 0
@@ -231,6 +237,10 @@ class RuntimeGraphStore:
                     new.probed = old.probed
                     new.rate_source = old.rate_source
                     new.rate_measurement_scope = old.rate_measurement_scope
+                    new.probe_rate_window_samples = old.probe_rate_window_samples
+                    new.probe_rate_window_duration_ms = old.probe_rate_window_duration_ms
+                    new.probe_rate_window_clock = old.probe_rate_window_clock
+                    new.probe_last_sample_age_ms = old.probe_last_sample_age_ms
                     new.probe_callback_delay_p95_ms = old.probe_callback_delay_p95_ms
                     new.probe_callback_delay_samples = old.probe_callback_delay_samples
                     new.probe_callback_delay_window_samples = old.probe_callback_delay_window_samples

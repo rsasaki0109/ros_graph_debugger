@@ -116,6 +116,8 @@ pattern.
                   "deadline_ms", "liveliness_lease_ms" }],   // ms; null = infinite
                 "rate_hz", "bandwidth_bps", "p95_msg_size_bytes",
                 "header_age_p95_ms", "rate_source", "rate_measurement_scope",
+                "probe_rate_window_samples", "probe_rate_window_duration_ms",
+                "probe_rate_window_clock", "probe_last_sample_age_ms",
                 "probe_callback_delay_p95_ms", "probe_callback_delay_samples",
                 "probe_callback_delay_window_samples",
                 "probe_source_receipt_gap_p95_ms", "probe_source_receipt_gap_samples",
@@ -184,6 +186,25 @@ rclcpp topic statistics, and `bag_recording` for messages stored in a bag.
 `null` means unknown, including recordings created before this field existed.
 The existing `rate_source` field remains compatible; bag analysis historically
 sets it to `probe`. Use the new scope to distinguish a bag from a live probe.
+
+Live probes add `probe_rate_window_samples` (the number of processed samples in
+the bounded rate window), `probe_rate_window_duration_ms` (first-to-last span),
+and `probe_rate_window_clock` (`rmw_received_timestamp` or
+`callback_monotonic`). The rate uses `(samples - 1) / span`; the clock and span
+describe exactly the existing rate computation, including fallback when any
+RMW timestamp is missing, backward, or the receive span is zero. Fewer than two
+samples or no positive span gives a `null` duration and clock, never zero Hz.
+
+`probe_last_sample_age_ms` is local monotonic elapsed time since the probe
+processed its latest sample, measured when metrics are collected. It is `null`
+before the first sample. It does not measure middleware receipt age, header
+age, publisher activity, or time elapsed since a replay snapshot was served.
+Queued samples can keep processing recent after publishing stops. ROS/system
+clock changes do not affect this elapsed time. Polling advances sample age but
+does not extend the rate window or invent received samples. All four fields
+survive graph polling; non-probed topics, bag analysis, subscriber statistics
+and older recordings have no such measurement (missing or `null`, not zero).
+Existing rate values, stale-topic evidence and thresholds are unchanged.
 
 These rates describe observed messages. Delivery completeness and publisher-side
 throughput remain unknown: a low rate can reflect slow publishing, receiver

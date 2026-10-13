@@ -41,7 +41,7 @@ Synthetic callback "sub /sensing/camera/image_raw" has a 210 ms p95, above the 1
 | /planning/scenario_planning/trajectory | Trajectory | 1 | 1 | 10.0 Hz | unknown | — | — | — | 40.0 KB/s | ok | ok |
 | /sensing/camera/image_raw | Image | 1 | 1 | 30.0 Hz | unknown | — | — | — | 420.0 KB/s | ok | ok |
 
-Rates describe observed messages. Delivery completeness and publisher-side throughput are unknown; a low rate alone does not prove a slow publishing callback.
+Rates describe observed messages. Delivery completeness and publisher-side throughput are unknown; a low rate alone does not prove a slow publishing callback. A live probe retains its last sample window during silence; use sample freshness and stale-topic evidence to check whether delivery has stopped.
 Probe wait uses local system timestamps from middleware receipt to Python callback entry; it excludes the probe callback body and is affected by clock adjustments.
 DDS stamp gap is the signed middleware receipt minus source system timestamp; clock synchronization is unknown. Clock skew or adjustments can affect either sign; this is not a measured network latency or publisher callback duration.
 
@@ -100,7 +100,7 @@ camera → /sensing/camera/image_raw (30.0 Hz) → **detector** [duration 210 ms
 | /perception/object_recognition/objects | DetectedObjects | 1 | 1 | 4.1 Hz | unknown | — | — | — | 120.0 KB/s | ok | critical |
 | /sensing/camera/image_raw | Image | 1 | 1 | 30.0 Hz | unknown | — | — | — | 420.0 KB/s | ok | ok |
 
-Rates describe observed messages. Delivery completeness and publisher-side throughput are unknown; a low rate alone does not prove a slow publishing callback.
+Rates describe observed messages. Delivery completeness and publisher-side throughput are unknown; a low rate alone does not prove a slow publishing callback. A live probe retains its last sample window during silence; use sample freshness and stale-topic evidence to check whether delivery has stopped.
 Probe wait uses local system timestamps from middleware receipt to Python callback entry; it excludes the probe callback body and is affected by clock adjustments.
 DDS stamp gap is the signed middleware receipt minus source system timestamp; clock synchronization is unknown. Clock skew or adjustments can affect either sign; this is not a measured network latency or publisher callback duration.
 

@@ -8,6 +8,7 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 - Add an opt-in public-input Autoware component scenario that verifies IMU omission, diagnostic evidence, stopped output and recovery with pinned unmodified upstream sources.
 - Exclude shared ROS control/telemetry buses from default pipeline paths while retaining explicit topic inspection, full graph evidence and duration sources.
+- Expose live probe rate-window counts, duration and clock alongside monotonic sample-processing age, retaining rates and strict stale-topic evidence during silence.
 
 - Grade duration values, declared sources and same-row citations in investigation tasks, rejecting application/trace/synthetic confusion and unknown provenance inference against real ROS/LTTng recordings.
 
