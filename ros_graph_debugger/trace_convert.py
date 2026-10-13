@@ -3,7 +3,7 @@
 `ros2 trace` records an LTTng session as CTF; this reads it with the
 babeltrace2 Python bindings (`python3-bt2`, an optional dependency imported
 lazily) and flattens each `ros2:*` event into a plain
-``{name, pid, t_ns, fields}`` dict. Everything after that — owner resolution,
+``{name, pid, tid, t_ns, fields}`` dict. Everything after that — owner resolution,
 start/end pairing, aggregation — is the pure, unit-tested code in
 `tracing.py`.
 """
@@ -44,15 +44,15 @@ def _value(field):
     return str(field)
 
 
-def _vpid(event):
+def _context_id(event, name):
     ctx = event.common_context_field
-    if ctx is not None and 'vpid' in ctx:
-        return int(ctx['vpid'])
+    if ctx is not None and name in ctx:
+        return int(ctx[name])
     return None
 
 
 def read_ctf_events(path: str) -> Iterator[dict]:
-    """Yield ``{name, pid, t_ns, fields}`` for every ``ros2:*`` event in the
+    """Yield ``{name, pid, tid, t_ns, fields}`` for every ``ros2:*`` event in the
     CTF trace at ``path`` (a `ros2 trace` session directory), in time order.
 
     Raise TraceDataLoss on any discarded-event or discarded-packet message;
@@ -76,7 +76,8 @@ def read_ctf_events(path: str) -> Iterator[dict]:
         payload = event.payload_field
         yield {
             'name': event.name,
-            'pid': _vpid(event),
+            'pid': _context_id(event, 'vpid'),
+            'tid': _context_id(event, 'vtid'),
             't_ns': msg.default_clock_snapshot.ns_from_origin,
             'fields': {k: _value(v) for k, v in payload.items()}
             if payload is not None else {},

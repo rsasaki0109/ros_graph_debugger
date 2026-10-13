@@ -6,6 +6,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ## [Unreleased]
 
+- Pair concurrent callback invocations by recorded thread ID as well as process and callback handle, preventing false duration distributions in reentrant executors; validate with real Humble/Jazzy traces.
+
 - Independently audit real CTF loss artifacts after capture, checking raw callback counts, repeated CLI/agent rejection, unchanged evidence and six corruption controls in Humble/Jazzy CI.
 
 - Exercise real overwritten CTF packets, counted normal captures and CLI/agent rejection in Humble/Jazzy CI alongside discarded-event validation.

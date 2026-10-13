@@ -221,6 +221,8 @@ jobs:
             --capture trace-artifacts/loss-validation --output trace-artifacts/loss-audit
           python3 test/integration/audit_trace_loss.py --loss-unit packets \
             --capture trace-artifacts/packet-loss-validation --output trace-artifacts/packet-loss-audit
+          python3 test/integration/run_trace_thread_scenario.py \
+            --output trace-artifacts/thread-pairing --fixture .trace-fixture-build/trace_reentrant_fixture
       - name: Save real traces and diagnostics
         if: always()
         uses: actions/upload-artifact@v4

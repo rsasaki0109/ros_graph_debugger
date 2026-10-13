@@ -73,7 +73,9 @@ def pair_callback_events(events) -> list[dict]:
     without babeltrace2. ``events`` is an iterable of
     ``{kind: 'start'|'end', handle, t_ns}`` in time order; returns one
     ``{handle, duration_ms, t_ns}`` per matched pair. A per-handle stack handles
-    reentrancy; unmatched ends are ignored, unmatched starts are dropped."""
+    reentrancy within a thread. Optional ``tid`` separates concurrent executions
+    of the same handle; without it, pairing retains the legacy per-handle stack.
+    Unmatched ends are ignored, unmatched starts are dropped."""
     pending: dict[object, list] = {}
     rows: list[dict] = []
     for e in events:
@@ -81,10 +83,11 @@ def pair_callback_events(events) -> list[dict]:
         t = e.get('t_ns')
         if handle is None or not isinstance(t, (int, float)):
             continue
+        key = (handle, e.get('tid'))
         if e.get('kind') == 'start':
-            pending.setdefault(handle, []).append(t)
+            pending.setdefault(key, []).append(t)
         elif e.get('kind') == 'end':
-            stack = pending.get(handle)
+            stack = pending.get(key)
             if stack:
                 t0 = stack.pop()
                 rows.append({'handle': handle, 't_ns': t0,
@@ -192,6 +195,7 @@ def trace_events_to_rows(events) -> tuple[list[dict], dict]:
         if name in ('callback_start', 'callback_end'):
             marks.append({'kind': 'start' if name == 'callback_start' else 'end',
                           'handle': (e.get('pid'), e['fields'].get('callback')),
+                          'tid': e.get('tid'),
                           't_ns': e.get('t_ns')})
     paired = pair_callback_events(marks)
     rows = rows_with_owners(paired, owners)

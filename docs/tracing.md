@@ -110,6 +110,23 @@ What is resolved, per process (handles are pointers, so everything is keyed by
 | timer | `rcl_timer_init` + `rclcpp_timer_link_node` + `rclcpp_timer_callback_added` | `timer <period> ms` |
 | service | `rcl_service_init` + `rclcpp_service_callback_added` | `srv <service>` |
 
+Duration pairing also uses the recorded `vtid` thread context when present.
+This separates overlapping executions of the same reentrant callback on
+different executor threads; registration ownership still uses `(vpid, handle)`.
+For an LTTng userspace channel, add both contexts before starting the session:
+
+```bash
+lttng add-context --userspace --type vpid --session rgd_session
+lttng add-context --userspace --type vtid --session rgd_session
+```
+
+Older captures without `vtid` keep per-handle stack pairing. They cannot
+disambiguate cross-thread overlap, so do not treat their duration distribution
+as verified for concurrently executed callbacks. Same-thread nested callbacks
+retain stack pairing. CI records a real reentrant subscription on two executor
+threads and compares conversion with thread-separated raw trace pairs and
+independent callback wall-time measurements.
+
 Invocations whose chain is incomplete are counted as *without a resolvable
 owner* and dropped, never guessed. These are the rclcpp tracepoints; callbacks
 from client libraries that don't emit them are dropped the same way.
