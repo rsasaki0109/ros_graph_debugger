@@ -115,7 +115,7 @@ def test_duration_source_semantics_and_direct_citations(source, limitation, next
     assert 'duration_0_authenticated_provenance_from_source_field' in limits
     for label, answer in negative_controls(rubric).items():
         assert not score(evidence, rubric, answer)['passed'], label
-    assert len(negative_controls(rubric)) == 10
+    assert len(negative_controls(rubric)) == 18
 
 
 @pytest.mark.parametrize('source', ['future_source', True, ['trace'], {'source': 'trace'}])

@@ -99,6 +99,24 @@ invalid and unrecognized values stay unknown and cite the callback parent.
 Missing timing/sample-count values are unknown, not zero. An empty observed
 callback list differs from a missing list and does not prove no callback work.
 
+Each duration row also requests `trace_window_start_ns`, `trace_window_end_ns`
+and `trace_window_clock`. A complete integer, non-reversed tuple with a declared
+`ctf_ns_from_origin:<clock UUID>` on a trace row is an observed **declaration**;
+values cite that same callback row. Missing, invalid, incomplete or non-trace
+tuples make all three window claims unknown, citing the callback parent. Zero
+is valid; nanoseconds must stay exact JSON integers, including values beyond
+floating-point precision. The evaluator does not reconstruct bounds from
+duration, sample count, snapshot time, filenames or recording header clocks.
+
+Windows describe historical imported invocations. The rubric requires separate
+checks for current node activity, CTF/ROS/header alignment, fault-phase markers,
+trace completeness and authenticated clock metadata. A recent snapshot, valid
+UUID or ROS header-age clock setting establishes none of those conclusions.
+The exporter retains the original frame and header without adding nodes. When
+a callback owner is absent from the graph, the manifest selects
+`get_runtime_briefing`; callbacks and snapshot remain separately available via
+MCP. Older manifests still default to `get_node_briefing`.
+
 The rubric rejects a single-callback start/end conclusion from an application
 report or unknown source, measured runtime timing from synthetic data, and an
 application-cycle measurement inferred from a callback trace. A source string
@@ -106,11 +124,16 @@ alone does not authenticate provenance, and p95 alone does not establish a
 downstream rate-loss cause. Those questions require verifying original duration
 provenance, inspecting cycle boundaries or collecting paired measurements.
 
-Duration tasks retain the seven existing negative controls and add three:
+Duration tasks retain the seven original negative controls and the three source controls:
 source confusion, a value/source citation mismatch, and a source-specific timing
-overclaim. Each duration case rejects ten deliberately invalid answers. The ten
-CI cases therefore reject 82 invalid answers per distro. These are rubric
-calibration controls, not answers produced by a model.
+overclaim. Eight additional controls reject fabricated boundaries, wrong-row
+boundary citations, invented clocks and each of the five unsupported window
+conclusions. A complete declared window also adds a floating-point nanosecond
+control. Thus a duration case with rows rejects 18 invalid answers, or 19 with
+complete windows. The ten main-based CI cases reject 114 per distro with legacy
+window metadata; with complete windows in both real-trace cases the count is
+116. Counts depend on the actual source fields, never on filling in missing
+metadata. These controls calibrate the rubric, not a model.
 
 Place each response at `answers/case-NNN.json`, then run:
 
@@ -152,3 +175,26 @@ matches exactly, and replay groups are reaped. The legacy source remains unknown
 Derived hashes and controls are in
 [duration-investigation-results.json](duration-investigation-results.json).
 These results do not measure model accuracy or investigation time.
+
+The trace-window extension reuses two actual imported public-input Autoware
+frames: one with exact CTF window metadata from
+[PR #34](https://github.com/rsasaki0109/ros_graph_debugger/pull/34), and the original
+import without those fields from [PR #33](https://github.com/rsasaki0109/ros_graph_debugger/pull/33).
+Each frame supplies separate gyro-odometer and velocity-converter tasks (four
+tasks, not four new experiments). All 74 invalid answers fail; scoring CLI exits
+0 for scripted references and 1 for unsupported-current-activity controls.
+The callback owners are absent from both captured graphs, so each case uses a
+full briefing without inserting nodes. CLI, stdio MCP, callback lists, original
+headers and Markdown are exact; source file hashes are unchanged and replay
+groups are reaped. No model is invoked.
+
+The existing 12-case integration/trace/legacy/synthetic bundle was separately
+reprepared from its retained sources and rejects 150 invalid answers. Latest
+helper recalibration preserves all 16 transported case rubrics and rejects 224
+controls in total. This main-based benchmark can read newer frozen window
+fields without requiring the runtime change to be merged; main-generated
+legacy fields remain unknown. Window declarations do not authenticate raw
+traces, align phases or establish current health. Derived source hashes and
+results are in [trace-window-investigation-results.json](trace-window-investigation-results.json);
+raw inputs and evaluator material remain outside Git in
+`/workspace/trace-window-investigation-validation/`.
