@@ -185,6 +185,8 @@ class Issue:
     related_nodes: list[str] = field(default_factory=list)
     related_topics: list[str] = field(default_factory=list)
     related_frames: list[str] = field(default_factory=list)
+    # Diagnostic task labels are references to diagnostics[].name, not ROS IDs.
+    related_diagnostics: list[str] = field(default_factory=list)
 
 
 @dataclass

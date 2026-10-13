@@ -91,6 +91,9 @@ def _merge_one(host: str, snap: dict) -> dict:
         m['related_nodes'] = [_pfx_abs(host, n) for n in i.get('related_nodes', [])]
         m['related_topics'] = [_pfx_abs(host, t) for t in i.get('related_topics', [])]
         m['related_frames'] = [_pfx_frame(host, f) for f in i.get('related_frames', [])]
+        if 'related_diagnostics' in i:
+            m['related_diagnostics'] = [f'{_host_tag(host)}/{name}'
+                                        for name in i['related_diagnostics']]
         m['host'] = host
         return m
 

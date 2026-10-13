@@ -1,0 +1,379 @@
+{
+  "scope": "Diagnostic task references, not graph-node attribution; unmodified Jazzy Autoware CPP with public DLR replay inputs",
+  "base_feature_commit": "c37170b54b7ce842bc0b3d3f96b150bfb0caa348",
+  "native_suites": {
+    "jazzy": {
+      "passed": 453,
+      "skipped": 0,
+      "existing_skip": null
+    },
+    "humble": {
+      "passed": 452,
+      "skipped": 1,
+      "existing_skip": "optional MCAP storage unavailable"
+    }
+  },
+  "public_scenario": {
+    "healthy": {
+      "assert_exit": 0,
+      "output_receipts_during_assert": 184,
+      "playback_start_offset_s": 0.0
+    },
+    "missing-imu": {
+      "assert_exit": 1,
+      "output_receipts_during_assert": 0,
+      "playback_start_offset_s": 7.208402441
+    },
+    "recovered": {
+      "assert_exit": 0,
+      "output_receipts_during_assert": 182,
+      "playback_start_offset_s": 15.539575040999999
+    }
+  },
+  "phases": {
+    "healthy": {
+      "snapshots": 7,
+      "settled_samples": 5,
+      "diagnostic_error_refs": [],
+      "recording_sha256": "96687029ea05980bb14ccc4e85ee6194a7cf74906e152492771929512a2baec8",
+      "report_sha256": "c9d20fa910a0d8d4449d4a9d38d010cc992d56d4e6a8b65e9f61080544b61815"
+    },
+    "missing-imu": {
+      "snapshots": 7,
+      "settled_samples": 5,
+      "diagnostic_error_refs": [
+        {
+          "id": "issue_diagnostics_10",
+          "severity": "critical",
+          "kind": "diagnostics_error",
+          "title": "Diagnostics ERROR: gyro_odometer: gyro_odometer_status",
+          "explanation": "IMU msg is timeout. imu_dt: 2.016248866[sec], tolerance 0.2[sec]",
+          "evidence": [
+            "level: 2",
+            "hardware_id: gyro_odometer",
+            "diagnostic name: gyro_odometer: gyro_odometer_status",
+            "node attribution: unknown"
+          ],
+          "suggested_actions": [
+            "Inspect the reporting component"
+          ],
+          "related_nodes": [],
+          "related_topics": [],
+          "related_frames": [],
+          "related_diagnostics": [
+            "gyro_odometer: gyro_odometer_status"
+          ]
+        },
+        {
+          "id": "issue_diagnostics_10",
+          "severity": "critical",
+          "kind": "diagnostics_error",
+          "title": "Diagnostics ERROR: gyro_odometer: gyro_odometer_status",
+          "explanation": "IMU msg is timeout. imu_dt: 3.016302915[sec], tolerance 0.2[sec]",
+          "evidence": [
+            "level: 2",
+            "hardware_id: gyro_odometer",
+            "diagnostic name: gyro_odometer: gyro_odometer_status",
+            "node attribution: unknown"
+          ],
+          "suggested_actions": [
+            "Inspect the reporting component"
+          ],
+          "related_nodes": [],
+          "related_topics": [],
+          "related_frames": [],
+          "related_diagnostics": [
+            "gyro_odometer: gyro_odometer_status"
+          ]
+        },
+        {
+          "id": "issue_diagnostics_10",
+          "severity": "critical",
+          "kind": "diagnostics_error",
+          "title": "Diagnostics ERROR: gyro_odometer: gyro_odometer_status",
+          "explanation": "IMU msg is timeout. imu_dt: 4.016258139[sec], tolerance 0.2[sec]",
+          "evidence": [
+            "level: 2",
+            "hardware_id: gyro_odometer",
+            "diagnostic name: gyro_odometer: gyro_odometer_status",
+            "node attribution: unknown"
+          ],
+          "suggested_actions": [
+            "Inspect the reporting component"
+          ],
+          "related_nodes": [],
+          "related_topics": [],
+          "related_frames": [],
+          "related_diagnostics": [
+            "gyro_odometer: gyro_odometer_status"
+          ]
+        },
+        {
+          "id": "issue_diagnostics_10",
+          "severity": "critical",
+          "kind": "diagnostics_error",
+          "title": "Diagnostics ERROR: gyro_odometer: gyro_odometer_status",
+          "explanation": "IMU msg is timeout. imu_dt: 5.016235647[sec], tolerance 0.2[sec]",
+          "evidence": [
+            "level: 2",
+            "hardware_id: gyro_odometer",
+            "diagnostic name: gyro_odometer: gyro_odometer_status",
+            "node attribution: unknown"
+          ],
+          "suggested_actions": [
+            "Inspect the reporting component"
+          ],
+          "related_nodes": [],
+          "related_topics": [],
+          "related_frames": [],
+          "related_diagnostics": [
+            "gyro_odometer: gyro_odometer_status"
+          ]
+        },
+        {
+          "id": "issue_diagnostics_10",
+          "severity": "critical",
+          "kind": "diagnostics_error",
+          "title": "Diagnostics ERROR: gyro_odometer: gyro_odometer_status",
+          "explanation": "IMU msg is timeout. imu_dt: 6.016245506[sec], tolerance 0.2[sec]",
+          "evidence": [
+            "level: 2",
+            "hardware_id: gyro_odometer",
+            "diagnostic name: gyro_odometer: gyro_odometer_status",
+            "node attribution: unknown"
+          ],
+          "suggested_actions": [
+            "Inspect the reporting component"
+          ],
+          "related_nodes": [],
+          "related_topics": [],
+          "related_frames": [],
+          "related_diagnostics": [
+            "gyro_odometer: gyro_odometer_status"
+          ]
+        },
+        {
+          "id": "issue_diagnostics_10",
+          "severity": "critical",
+          "kind": "diagnostics_error",
+          "title": "Diagnostics ERROR: gyro_odometer: gyro_odometer_status",
+          "explanation": "IMU msg is timeout. imu_dt: 7.016273902[sec], tolerance 0.2[sec]",
+          "evidence": [
+            "level: 2",
+            "hardware_id: gyro_odometer",
+            "diagnostic name: gyro_odometer: gyro_odometer_status",
+            "node attribution: unknown"
+          ],
+          "suggested_actions": [
+            "Inspect the reporting component"
+          ],
+          "related_nodes": [],
+          "related_topics": [],
+          "related_frames": [],
+          "related_diagnostics": [
+            "gyro_odometer: gyro_odometer_status"
+          ]
+        },
+        {
+          "id": "issue_diagnostics_10",
+          "severity": "critical",
+          "kind": "diagnostics_error",
+          "title": "Diagnostics ERROR: gyro_odometer: gyro_odometer_status",
+          "explanation": "IMU msg is timeout. imu_dt: 8.01624438[sec], tolerance 0.2[sec]",
+          "evidence": [
+            "level: 2",
+            "hardware_id: gyro_odometer",
+            "diagnostic name: gyro_odometer: gyro_odometer_status",
+            "node attribution: unknown"
+          ],
+          "suggested_actions": [
+            "Inspect the reporting component"
+          ],
+          "related_nodes": [],
+          "related_topics": [],
+          "related_frames": [],
+          "related_diagnostics": [
+            "gyro_odometer: gyro_odometer_status"
+          ]
+        }
+      ],
+      "recording_sha256": "ab8bbbe1cd9d38b63a9ece8fc3fd1499021b6e1e7fe3b197b4eb743e2da6a891",
+      "report_sha256": "f9d64e21684f414563a28c21b4d39fee0fa355e0c148c488995f579728387ac3"
+    },
+    "recovered": {
+      "snapshots": 7,
+      "settled_samples": 5,
+      "diagnostic_error_refs": [],
+      "recording_sha256": "da990f37478bd8e413912b79c53747c22e405d20dea1a5f69a107301be2cabc6",
+      "report_sha256": "cc1c2c3449947e231304a431c30d7893daacf0d81bbb32870f6c4377e8da2cc5"
+    }
+  },
+  "original_bug": {
+    "source_recording": "/workspace/probe-rate-window-validation/public-cpp-final/scenario/missing-imu/run.rgd.json",
+    "sha256": "74ed15a43a9234fb0ab7744732ca9340f361dba240985260b36f06a154d6623b",
+    "diagnostic_issues": [
+      {
+        "kind": "diagnostics_error",
+        "related_nodes": [
+          "gyro_odometer: gyro_odometer_status"
+        ],
+        "invalid_graph_ids": [
+          "gyro_odometer: gyro_odometer_status"
+        ],
+        "evidence": [
+          "level: 2",
+          "hardware_id: gyro_odometer"
+        ]
+      }
+    ],
+    "current_diagnostic_publishers": [
+      [
+        "/gyro_odometer"
+      ]
+    ],
+    "node_attribution_proven": false
+  },
+  "transport": [
+    {
+      "case": "healthy",
+      "recording_sha256": "96687029ea05980bb14ccc4e85ee6194a7cf74906e152492771929512a2baec8",
+      "diagnostic_issues": [],
+      "rate_hz": 30.0,
+      "legacy": false,
+      "cli_http_mcp_snapshot_exact": true,
+      "http_mcp_full_markdown_exact": true,
+      "unknown_diagnostic_not_inferred_into_node_focus": true,
+      "cli_report_exact": true,
+      "legacy_issue_values_preserved": false,
+      "model_invoked": false
+    },
+    {
+      "case": "missing-imu",
+      "recording_sha256": "ab8bbbe1cd9d38b63a9ece8fc3fd1499021b6e1e7fe3b197b4eb743e2da6a891",
+      "diagnostic_issues": [
+        {
+          "id": "issue_diagnostics_10",
+          "severity": "critical",
+          "kind": "diagnostics_error",
+          "title": "Diagnostics ERROR: gyro_odometer: gyro_odometer_status",
+          "explanation": "IMU msg is timeout. imu_dt: 8.01624438[sec], tolerance 0.2[sec]",
+          "evidence": [
+            "level: 2",
+            "hardware_id: gyro_odometer",
+            "diagnostic name: gyro_odometer: gyro_odometer_status",
+            "node attribution: unknown"
+          ],
+          "suggested_actions": [
+            "Inspect the reporting component"
+          ],
+          "related_nodes": [],
+          "related_topics": [],
+          "related_frames": [],
+          "related_diagnostics": [
+            "gyro_odometer: gyro_odometer_status"
+          ]
+        }
+      ],
+      "rate_hz": 30.0,
+      "legacy": false,
+      "cli_http_mcp_snapshot_exact": true,
+      "http_mcp_full_markdown_exact": true,
+      "unknown_diagnostic_not_inferred_into_node_focus": true,
+      "cli_report_exact": true,
+      "legacy_issue_values_preserved": false,
+      "model_invoked": false
+    },
+    {
+      "case": "recovered",
+      "recording_sha256": "da990f37478bd8e413912b79c53747c22e405d20dea1a5f69a107301be2cabc6",
+      "diagnostic_issues": [],
+      "rate_hz": 30.0,
+      "legacy": false,
+      "cli_http_mcp_snapshot_exact": true,
+      "http_mcp_full_markdown_exact": true,
+      "unknown_diagnostic_not_inferred_into_node_focus": true,
+      "cli_report_exact": true,
+      "legacy_issue_values_preserved": false,
+      "model_invoked": false
+    },
+    {
+      "case": "legacy-missing-imu",
+      "recording_sha256": "3c02ae8f82823a58509ff14cef380519c193690cfedf906e755f6c3a8e9cf709",
+      "diagnostic_issues": [
+        {
+          "id": "issue_diagnostics_10",
+          "severity": "critical",
+          "kind": "diagnostics_error",
+          "title": "Diagnostics ERROR: gyro_odometer: gyro_odometer_status",
+          "explanation": "IMU msg is timeout. imu_dt: 8.653463566[sec], tolerance 0.2[sec]",
+          "evidence": [
+            "level: 2",
+            "hardware_id: gyro_odometer"
+          ],
+          "suggested_actions": [
+            "Inspect the reporting component"
+          ],
+          "related_nodes": [
+            "gyro_odometer: gyro_odometer_status"
+          ],
+          "related_topics": [],
+          "related_frames": []
+        }
+      ],
+      "rate_hz": 30.0,
+      "legacy": true,
+      "cli_http_mcp_snapshot_exact": true,
+      "http_mcp_full_markdown_exact": true,
+      "unknown_diagnostic_not_inferred_into_node_focus": true,
+      "cli_report_exact": true,
+      "legacy_issue_values_preserved": true,
+      "model_invoked": false
+    }
+  ],
+  "receipt_audit": {
+    "count": 478,
+    "all_stamps_in_public_inputs": true,
+    "nondecreasing": true,
+    "finite": true,
+    "frame": "base_link",
+    "sha256": "b13fa7cf9f2858c79a5606cea9ead0de905f9bacf116325cb348c16a3a7c6c80"
+  },
+  "recovery_diff": {
+    "verdict": "improved",
+    "remaining_health": "degraded"
+  },
+  "investigation_calibration": {
+    "cases": 12,
+    "rejected_invalid_answers": 102,
+    "model_invoked": false
+  },
+  "tested_source_sha256": {
+    "ros_graph_debugger/analysis.py": "bf292fbc18deb2b85c2e5a89f91d816a0549269da99425366f4e9328d991fa1c",
+    "ros_graph_debugger/model.py": "d2516e124343397165741a24a1a53b8726ff74bf17670b6c59792f961b2741db",
+    "ros_graph_debugger/federation.py": "61aa6ad3f99c5ff6cbefd39b44b0036e8d3cbe84bc3998b59350a64e213d6ebc",
+    "ros_graph_debugger/markdown.py": "afa16b8d7f551445e837d8d02f12c7a565ddc4e316e2733bc9abbcef0cc1068e",
+    "ros_graph_debugger/report.py": "2450184827fb3f1d3d35f33363984486b5df183db2e00ec4a337798c23a992f1",
+    "test/integration/run_autoware_scenario.py": "83a9ecb0e85d9dffd09822d0a51e81dba5433ce1112fead4ff9d71b305ebeeff",
+    "test/test_autoware_integration_scenario.py": "fd6b84d1892c4da9f689d3f192d26ac2618921fb096bd21a03845ca6eb04f675",
+    "test/test_diagnostic_references.py": "b7c452f71944468f3fa9c85fa5e860d131850227586e6208603053a0cb300167"
+  },
+  "browser_report": {
+    "diagnostic_section_visible": true,
+    "unknown_attribution_visible": true,
+    "correct_task_reference_visible": true,
+    "mode": "inline authorized report HTML",
+    "observed_requests": [],
+    "external_requests": false,
+    "html_sha256": "ea343f1c4847e7dc9aa43dd9f43837f18e2314c42fc973bedbd1bb78eecbdaf4",
+    "png_sha256": "469bd5f594f9ecf0521b816cdf19e42942b9cf19d9255fea7c15e2b1da687d5c",
+    "source_recording_sha256": "f610ee190cbcf3eb731389c08571239eca4ef0384813e5340991fe5003b1af8a"
+  },
+  "limits": [
+    "Task/hardware labels and currently sole publisher do not identify the origin of a status",
+    "Unknown-origin diagnostic issues stay in full snapshot/briefing, not guessed into a node focus",
+    "Original recordings retain historical related_nodes labels",
+    "Report references/evidence are representative samples, not all observations",
+    "No reconstruction of original full stack or localization accuracy",
+    "No actual Humble CPP run, actual model accuracy or adoption measured"
+  ]
+}
