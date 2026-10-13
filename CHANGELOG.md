@@ -6,6 +6,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ## [Unreleased]
 
+- Independently audit real CTF loss artifacts after capture, checking raw callback counts, repeated CLI/agent rejection, unchanged evidence and six corruption controls in Humble/Jazzy CI.
+
 - Exercise real overwritten CTF packets, counted normal captures and CLI/agent rejection in Humble/Jazzy CI alongside discarded-event validation.
 
 - Reject CTF traces with reported discarded events or packets before producing callback statistics or starting an agent with incomplete trace evidence.

@@ -152,6 +152,11 @@ requires all 5,500 callbacks in its normal control and a real discarded-packet
 notification in its loss capture. Both CLI conversion and agent startup must
 reject that capture, preserving previous output. See the
 [real LTTng integration commands](../CONTRIBUTING.md#real-lttng-integration).
+After producers exit, CI also re-reads raw callback pairs and loss notifications,
+repeats CLI/agent loading, checks that original evidence is unchanged, and
+requires six deliberately corrupted artifact copies to fail the independent
+audit. A matching hash manifest records what was checked; it does not establish
+capture completeness when no loss notification was emitted.
 
 ## Converting — other tools
 
