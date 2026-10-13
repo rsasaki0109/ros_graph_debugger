@@ -12,6 +12,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 - Exclude shared ROS control/telemetry buses from default pipeline paths while retaining explicit topic inspection, full graph evidence and duration sources.
 - Expose live probe rate-window counts, duration and clock alongside monotonic sample-processing age, retaining rates and strict stale-topic evidence during silence.
 
+- Add frozen investigation cases for retained probe windows and diagnostic task references, preserving unknown legacy fields and rejecting unsupported delivery or node-origin claims.
+
 - Grade duration values, declared sources and same-row citations in investigation tasks, rejecting application/trace/synthetic confusion and unknown provenance inference against real ROS/LTTng recordings.
 
 - Distinguish traced, application-reported, synthetic and unknown duration sources in diagnostic evidence, MCP, pipelines and reports without pooling or comparing different sources.

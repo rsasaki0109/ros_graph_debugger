@@ -32,6 +32,53 @@ are in a separate `evaluator/` directory. Never give that directory to a model.
 Case IDs do not name the phase. This separation prepares future evaluations; it
 does not establish that a blind model experiment has already occurred.
 
+### Probe windows and diagnostic tasks
+
+Two optional case families accept existing recordings without ROS or a model.
+They freeze the **last original frame** and header; preparation does not validate
+the experiment's healthy/fault/recovery contracts or authenticate its producer.
+Check those contracts independently before using a run as runtime evidence.
+
+`--window-recording PATH --window-topic TOPIC` grades the existing rate/scope and
+the sample count, window span, rate clock and local processed-sample age. A retained
+rate is not current delivery. Processing age is not DDS receipt age, header age
+or evidence of publisher activity; a backlog may keep processing recent.
+Legacy fields and unsupported clocks remain unknown, with parent-object citations.
+
+`--diagnostic-recording PATH --diagnostic-name NAME` grades matching task rows and
+all declared diagnostic issue references/evidence in the frame. Diagnostic names
+are opaque task labels; graph-name or hardware-ID matches and a sole graph
+publisher do not authenticate per-status node identity. Old `related_nodes` values
+are preserved as declared, without retrofitting missing `related_diagnostics`.
+An absent diagnostic list is unknown; an available list with no matching task is
+an observed count of zero. Neither proves system health. Diagnostic cases use the
+full runtime briefing, because their task labels are not node/topic focus queries.
+
+Repeat either recording option to export multiple independent frames. For example,
+after independently validating the public-input Autoware scenario, use its three
+`run.rgd.json` files for normal/omission/recovery tasks:
+
+```bash
+python3 test/benchmarks/investigation_cases.py prepare --output /tmp/fresh-window-tasks \
+  --window-recording /path/to/scenario/healthy/run.rgd.json \
+  --window-recording /path/to/scenario/missing-imu/run.rgd.json \
+  --window-recording /path/to/scenario/recovered/run.rgd.json \
+  --window-topic /localization/twist_estimator/twist_with_covariance \
+  --diagnostic-recording /path/to/scenario/healthy/run.rgd.json \
+  --diagnostic-recording /path/to/scenario/missing-imu/run.rgd.json \
+  --diagnostic-recording /path/to/scenario/recovered/run.rgd.json \
+  --diagnostic-name 'gyro_odometer: gyro_odometer_status'
+python3 test/benchmarks/validate_investigation.py --bundle /tmp/fresh-window-tasks \
+  --output /tmp/fresh-window-validation
+```
+
+Raw observations come only from the original frame. Evaluator provenance records
+its file hash and index; it does not certify sensor accuracy, original full-stack
+behavior or per-status origin. The scorer rejects citation swaps between window
+span/header age, processing age/DDS timestamp gap and diagnostic/node references,
+as well as unsupported delivery and node-origin conclusions. This is scripted
+rubric calibration, not measured model accuracy or investigation-time improvement.
+
 ## Prepare and validate
 
 From the checkout, with the optional web stack and test-only MCP SDK available
@@ -152,3 +199,23 @@ matches exactly, and replay groups are reaped. The legacy source remains unknown
 Derived hashes and controls are in
 [duration-investigation-results.json](duration-investigation-results.json).
 These results do not measure model accuracy or investigation time.
+
+The window/diagnostic extension adds six cases from the original public-input
+Autoware normal/IMU-omission/recovery recordings and two from a legacy omission
+recording. All 58 and 20 deliberately invalid answers respectively are rejected;
+the existing 12 cases still reject all 102 controls. CLI/actual stdio MCP preserve
+snapshots and original headers exactly, topic-focused and diagnostic-full
+Markdown match the complete renderer, and owned replay groups are reaped.
+The scoring CLI exits 0 for scripted reference answers and 1 for unsupported
+current-delivery/node-origin claims. No model was invoked.
+
+The omission frame retains 29.98 Hz over 50 samples/1,634.279 ms while processed
+sample age is 10,698.5 ms; the diagnostic task is ERROR with an empty declared
+node reference. These observations are distinct from independent receipt counts
+and the experiment's fault injection, which were verified separately. Legacy
+window/diagnostic-reference fields remain unknown, and original node-label values
+remain unchanged. Local derived results, original frame indexes/file hashes and
+benchmark source hashes are in
+[window-diagnostic-investigation-results.json](window-diagnostic-investigation-results.json).
+Those file hashes bind retained local inputs; they do not authenticate producers
+or measure model accuracy, free-text reasoning or investigation time.
