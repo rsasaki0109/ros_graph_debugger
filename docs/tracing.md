@@ -145,8 +145,12 @@ trace without notifications is complete: events outside the capture window,
 unmatched start/end events, missing registration chains and already-exported
 NDJSON have separate limits. NDJSON contains no original CTF loss metadata.
 
-Humble and Jazzy CI exercise real rclcpp timer callbacks in both a counted
-normal capture and a deliberately overflowing capture. See the
+Humble and Jazzy CI exercise real rclcpp timer callbacks in counted normal
+captures and both discard-mode event loss and overwrite-mode packet loss.
+The packet test drains and verifies 500 warm callbacks before the burst, then
+requires all 5,500 callbacks in its normal control and a real discarded-packet
+notification in its loss capture. Both CLI conversion and agent startup must
+reject that capture, preserving previous output. See the
 [real LTTng integration commands](../CONTRIBUTING.md#real-lttng-integration).
 
 ## Converting — other tools

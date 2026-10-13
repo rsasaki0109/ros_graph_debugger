@@ -6,6 +6,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ## [Unreleased]
 
+- Exercise real overwritten CTF packets, counted normal captures and CLI/agent rejection in Humble/Jazzy CI alongside discarded-event validation.
+
 - Reject CTF traces with reported discarded events or packets before producing callback statistics or starting an agent with incomplete trace evidence.
 
 - Grade duration values, declared sources and same-row citations in investigation tasks, rejecting application/trace/synthetic confusion and unknown provenance inference against real ROS/LTTng recordings.

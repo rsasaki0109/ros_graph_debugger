@@ -191,6 +191,8 @@ python3 test/integration/run_trace_scenario.py \
   --output /tmp/rgd-trace-test --fixture /tmp/rgd-trace-fixture/trace_fixture
 python3 test/integration/run_trace_loss_scenario.py \
   --output /tmp/rgd-trace-loss-test --fixture /tmp/rgd-trace-fixture/trace_loss_fixture
+python3 test/integration/run_trace_loss_scenario.py --loss-unit packets \
+  --output /tmp/rgd-trace-packet-test --fixture /tmp/rgd-trace-fixture/trace_loss_fixture
 ```
 
 Use a fresh output directory and a container without another session daemon.
@@ -204,7 +206,17 @@ saved under `trace-artifacts/loss-validation` in both CI distributions. This is
 a test of rejecting reported loss, not a performance benchmark or proof that
 traces without notifications are complete.
 
-The script owns its foreground `lttng-sessiond`, sessions and child process
+The packet variant uses domain 94 and the same 90-second budget. It verifies
+500 warm callbacks without loss before stopping/draining and restarting the
+session. Both captures execute 5,500 callbacks; only the loss capture suspends
+the owned consumers while a small overwrite buffer loses middle packets.
+The normal capture must retain all 5,500 invocations; the loss capture must
+report actual discarded-packet messages and make CLI/agent loading exit 2
+without overwriting existing output. Warm checks, raw CTF, packet counts and
+cleanup evidence are saved under `trace-artifacts/packet-loss-validation`.
+Run these scenarios sequentially, including against other local domain-94 tests.
+
+The subscription/timer/service runner owns its foreground `lttng-sessiond`, sessions and child process
 groups, and polls daemon readiness and completed callback counts. It fixes
 domain 92 and loopback port 3951 (`--port` overrides it), with a 150-second
 runner budget inside a five-minute CI job. Do not run concurrently on this
