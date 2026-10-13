@@ -1,0 +1,3147 @@
+{
+  "completed_cases": [
+    {
+      "case_id": "ros-case-001",
+      "evidence_sha256": "b3ba5b50731feac1993c789ec3be02883fc40b1eadaea2e8caf0f7082854f908",
+      "frozen_input_sha256": "e14f66cb33d7aafd6c467e597d1ac68679b95d1822a240040e2b061c315be035",
+      "snapshot_sha256": "c8459ed3da1ab030e83df8ffaac81cc3f131cb16c47487ad1e81cf4f8d5c77c2",
+      "metadata_sha256": "d86932e73e5b59a6087aeacb03f552a6423b96a83354397290ef1b2293d7cfd3",
+      "mcp_initialization_ns": 417988365,
+      "mcp_discovery_ns": 4900346,
+      "mcp_cold_total_ns": 442889264,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "cli",
+          "mcp"
+        ],
+        "payload_exact": true,
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            86813028,
+            77494213
+          ],
+          "total_ns": 164307241,
+          "application_text_bytes": 45664
+        },
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            15198381,
+            4802172
+          ],
+          "total_ns": 20000553,
+          "application_text_bytes": 45664
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6212051,
+              5349418
+            ],
+            "total_ns": 11561469,
+            "application_text_bytes": 45664
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              63122400,
+              68766308
+            ],
+            "total_ns": 131888708,
+            "application_text_bytes": 45664
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              60698629,
+              60832445
+            ],
+            "total_ns": 121531074,
+            "application_text_bytes": 45664
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6488362,
+              4971594
+            ],
+            "total_ns": 11459956,
+            "application_text_bytes": 45664
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5631611,
+              4512528
+            ],
+            "total_ns": 10144139,
+            "application_text_bytes": 45664
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              60309462,
+              60111106
+            ],
+            "total_ns": 120420568,
+            "application_text_bytes": 45664
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59660903,
+              60549458
+            ],
+            "total_ns": 120210361,
+            "application_text_bytes": 45664
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6458167,
+              5727115
+            ],
+            "total_ns": 12185282,
+            "application_text_bytes": 45664
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6214091,
+              5250890
+            ],
+            "total_ns": 11464981,
+            "application_text_bytes": 45664
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              63870159,
+              61120977
+            ],
+            "total_ns": 124991136,
+            "application_text_bytes": 45664
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 120210361,
+          "median_ns": 121531074,
+          "max_ns": 131888708,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 10144139,
+          "median_ns": 11464981,
+          "max_ns": 12185282,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "ros-case-002",
+      "evidence_sha256": "b3ba5b50731feac1993c789ec3be02883fc40b1eadaea2e8caf0f7082854f908",
+      "frozen_input_sha256": "e14f66cb33d7aafd6c467e597d1ac68679b95d1822a240040e2b061c315be035",
+      "snapshot_sha256": "c8459ed3da1ab030e83df8ffaac81cc3f131cb16c47487ad1e81cf4f8d5c77c2",
+      "metadata_sha256": "d86932e73e5b59a6087aeacb03f552a6423b96a83354397290ef1b2293d7cfd3",
+      "mcp_initialization_ns": 485532838,
+      "mcp_discovery_ns": 6326522,
+      "mcp_cold_total_ns": 523350201,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "mcp",
+          "cli"
+        ],
+        "payload_exact": true,
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            25671515,
+            5819326
+          ],
+          "total_ns": 31490841,
+          "application_text_bytes": 45664
+        },
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            62788973,
+            61920539
+          ],
+          "total_ns": 124709512,
+          "application_text_bytes": 45664
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              62970286,
+              62320216
+            ],
+            "total_ns": 125290502,
+            "application_text_bytes": 45664
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6640654,
+              4788884
+            ],
+            "total_ns": 11429538,
+            "application_text_bytes": 45664
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5734755,
+              4944540
+            ],
+            "total_ns": 10679295,
+            "application_text_bytes": 45664
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              60167746,
+              61007984
+            ],
+            "total_ns": 121175730,
+            "application_text_bytes": 45664
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              60164535,
+              58604932
+            ],
+            "total_ns": 118769467,
+            "application_text_bytes": 45664
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              7190033,
+              5593601
+            ],
+            "total_ns": 12783634,
+            "application_text_bytes": 45664
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5266865,
+              4292251
+            ],
+            "total_ns": 9559116,
+            "application_text_bytes": 45664
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              60055562,
+              60688342
+            ],
+            "total_ns": 120743904,
+            "application_text_bytes": 45664
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              73649693,
+              85077062
+            ],
+            "total_ns": 158726755,
+            "application_text_bytes": 45664
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              13809174,
+              5120039
+            ],
+            "total_ns": 18929213,
+            "application_text_bytes": 45664
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 118769467,
+          "median_ns": 121175730,
+          "max_ns": 158726755,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 9559116,
+          "median_ns": 11429538,
+          "max_ns": 18929213,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "ros-case-003",
+      "evidence_sha256": "3f3ef97f449e6e4512b9e5f41f24a22fe1e897789525c3870c5269092481d6dd",
+      "frozen_input_sha256": "c202f525fabd07524037feb8d2ad159a3e8e7e49aab82e77a46cc87f2d6f85d8",
+      "snapshot_sha256": "6288a490725a248aaca98b1cd4e90f01775923ac6aae9838dee556e4b9fd08a6",
+      "metadata_sha256": "eb711bac6894907ed5a162d055630ef5c52692f6478e7065993f5174ebe02365",
+      "mcp_initialization_ns": 397704993,
+      "mcp_discovery_ns": 4489454,
+      "mcp_cold_total_ns": 422583481,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "cli",
+          "mcp"
+        ],
+        "payload_exact": true,
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            63095875,
+            78993353
+          ],
+          "total_ns": 142089228,
+          "application_text_bytes": 43444
+        },
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            15304521,
+            5084513
+          ],
+          "total_ns": 20389034,
+          "application_text_bytes": 43444
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5657915,
+              4438212
+            ],
+            "total_ns": 10096127,
+            "application_text_bytes": 43444
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              61389065,
+              60085343
+            ],
+            "total_ns": 121474408,
+            "application_text_bytes": 43444
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              62745813,
+              60971450
+            ],
+            "total_ns": 123717263,
+            "application_text_bytes": 43444
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6016987,
+              4657853
+            ],
+            "total_ns": 10674840,
+            "application_text_bytes": 43444
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5717951,
+              4530094
+            ],
+            "total_ns": 10248045,
+            "application_text_bytes": 43444
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59058452,
+              59624551
+            ],
+            "total_ns": 118683003,
+            "application_text_bytes": 43444
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              61476019,
+              60066945
+            ],
+            "total_ns": 121542964,
+            "application_text_bytes": 43444
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6214590,
+              4610003
+            ],
+            "total_ns": 10824593,
+            "application_text_bytes": 43444
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5584859,
+              4335279
+            ],
+            "total_ns": 9920138,
+            "application_text_bytes": 43444
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59312061,
+              60732152
+            ],
+            "total_ns": 120044213,
+            "application_text_bytes": 43444
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 118683003,
+          "median_ns": 121474408,
+          "max_ns": 123717263,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 9920138,
+          "median_ns": 10248045,
+          "max_ns": 10824593,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "ros-case-004",
+      "evidence_sha256": "3f3ef97f449e6e4512b9e5f41f24a22fe1e897789525c3870c5269092481d6dd",
+      "frozen_input_sha256": "c202f525fabd07524037feb8d2ad159a3e8e7e49aab82e77a46cc87f2d6f85d8",
+      "snapshot_sha256": "6288a490725a248aaca98b1cd4e90f01775923ac6aae9838dee556e4b9fd08a6",
+      "metadata_sha256": "eb711bac6894907ed5a162d055630ef5c52692f6478e7065993f5174ebe02365",
+      "mcp_initialization_ns": 521225536,
+      "mcp_discovery_ns": 5356567,
+      "mcp_cold_total_ns": 547584353,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "mcp",
+          "cli"
+        ],
+        "payload_exact": true,
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            16165005,
+            4837245
+          ],
+          "total_ns": 21002250,
+          "application_text_bytes": 43444
+        },
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            66576659,
+            64611028
+          ],
+          "total_ns": 131187687,
+          "application_text_bytes": 43444
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59373573,
+              61145520
+            ],
+            "total_ns": 120519093,
+            "application_text_bytes": 43444
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              9015603,
+              6360736
+            ],
+            "total_ns": 15376339,
+            "application_text_bytes": 43444
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              9453113,
+              6629633
+            ],
+            "total_ns": 16082746,
+            "application_text_bytes": 43444
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              61643980,
+              57661858
+            ],
+            "total_ns": 119305838,
+            "application_text_bytes": 43444
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              61073295,
+              58041146
+            ],
+            "total_ns": 119114441,
+            "application_text_bytes": 43444
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6788037,
+              4637277
+            ],
+            "total_ns": 11425314,
+            "application_text_bytes": 43444
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6276865,
+              5098401
+            ],
+            "total_ns": 11375266,
+            "application_text_bytes": 43444
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              60247094,
+              60315823
+            ],
+            "total_ns": 120562917,
+            "application_text_bytes": 43444
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              57931717,
+              59838046
+            ],
+            "total_ns": 117769763,
+            "application_text_bytes": 43444
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5873659,
+              4425295
+            ],
+            "total_ns": 10298954,
+            "application_text_bytes": 43444
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 117769763,
+          "median_ns": 119305838,
+          "max_ns": 120562917,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 10298954,
+          "median_ns": 11425314,
+          "max_ns": 16082746,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "ros-case-005",
+      "evidence_sha256": "82e238c3d58f492a4590a7a828bd14024017464504d83ea0bd3ad1cb958053d2",
+      "frozen_input_sha256": "1909876226bf910eb06febc186f0ce487f799b6611f85b9bfe7a35144c96a868",
+      "snapshot_sha256": "db0998ebf3058e0f27b6c51f7233b1518f845594c76794dc6e99934da1141d8d",
+      "metadata_sha256": "4ab78792689907be701020012a052dc92fe53a1e2980da4f81f908f24d0e82ab",
+      "mcp_initialization_ns": 407103658,
+      "mcp_discovery_ns": 4313227,
+      "mcp_cold_total_ns": 431104010,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "cli",
+          "mcp"
+        ],
+        "payload_exact": true,
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            64879653,
+            61971212
+          ],
+          "total_ns": 126850865,
+          "application_text_bytes": 8932
+        },
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            14701322,
+            4985803
+          ],
+          "total_ns": 19687125,
+          "application_text_bytes": 8932
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4946973,
+              4908097
+            ],
+            "total_ns": 9855070,
+            "application_text_bytes": 8932
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              61010207,
+              65834677
+            ],
+            "total_ns": 126844884,
+            "application_text_bytes": 8932
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              60347228,
+              73625858
+            ],
+            "total_ns": 133973086,
+            "application_text_bytes": 8932
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6022197,
+              6367767
+            ],
+            "total_ns": 12389964,
+            "application_text_bytes": 8932
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4595439,
+              4388746
+            ],
+            "total_ns": 8984185,
+            "application_text_bytes": 8932
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              60548987,
+              60004733
+            ],
+            "total_ns": 120553720,
+            "application_text_bytes": 8932
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59874995,
+              71929297
+            ],
+            "total_ns": 131804292,
+            "application_text_bytes": 8932
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5278237,
+              6559846
+            ],
+            "total_ns": 11838083,
+            "application_text_bytes": 8932
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              8792144,
+              6963815
+            ],
+            "total_ns": 15755959,
+            "application_text_bytes": 8932
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              62215557,
+              59037826
+            ],
+            "total_ns": 121253383,
+            "application_text_bytes": 8932
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 120553720,
+          "median_ns": 126844884,
+          "max_ns": 133973086,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 8984185,
+          "median_ns": 11838083,
+          "max_ns": 15755959,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "ros-case-006",
+      "evidence_sha256": "ba58f996f3653b723398c9f3f583dda160c40981e4328358fb6fcb57e28265f5",
+      "frozen_input_sha256": "1e0a50b671fe9012f9c1161688d8ffcd38e4d9e4138654cc5fb4a284adb87104",
+      "snapshot_sha256": "1213fe0dabc4eb3f9ceb311a1bfac6549fbd5f73dcfb3e53343e77e90bd8f821",
+      "metadata_sha256": "0e6f71b629d790ab048abf1310e7dddba47314c9a767c8243868808c57bcc8fc",
+      "mcp_initialization_ns": 477649580,
+      "mcp_discovery_ns": 6487960,
+      "mcp_cold_total_ns": 513192262,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "mcp",
+          "cli"
+        ],
+        "payload_exact": true,
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            17497382,
+            11557340
+          ],
+          "total_ns": 29054722,
+          "application_text_bytes": 9320
+        },
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            102969494,
+            105190393
+          ],
+          "total_ns": 208159887,
+          "application_text_bytes": 9320
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              70179190,
+              79370657
+            ],
+            "total_ns": 149549847,
+            "application_text_bytes": 9320
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6396084,
+              6482355
+            ],
+            "total_ns": 12878439,
+            "application_text_bytes": 9320
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              7130040,
+              8331440
+            ],
+            "total_ns": 15461480,
+            "application_text_bytes": 9320
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              74576834,
+              73479281
+            ],
+            "total_ns": 148056115,
+            "application_text_bytes": 9320
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              73500784,
+              91490544
+            ],
+            "total_ns": 164991328,
+            "application_text_bytes": 9320
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              9708720,
+              9924280
+            ],
+            "total_ns": 19633000,
+            "application_text_bytes": 9320
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              7259796,
+              5261228
+            ],
+            "total_ns": 12521024,
+            "application_text_bytes": 9320
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              93990560,
+              92372180
+            ],
+            "total_ns": 186362740,
+            "application_text_bytes": 9320
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              65171976,
+              81109731
+            ],
+            "total_ns": 146281707,
+            "application_text_bytes": 9320
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              8125902,
+              6026828
+            ],
+            "total_ns": 14152730,
+            "application_text_bytes": 9320
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 146281707,
+          "median_ns": 149549847,
+          "max_ns": 186362740,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 12521024,
+          "median_ns": 14152730,
+          "max_ns": 19633000,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "ros-case-007",
+      "evidence_sha256": "81eac5339c9c01cd215af7f98a0fca7c1ba6bf9d0e6df548f81f755de8f58154",
+      "frozen_input_sha256": "86a283589bb487c024aad1c579381eece6e79d5ec711ae3f9533a5541cc59c64",
+      "snapshot_sha256": "4ffb8e61be33be4107963db53609441e70a6b3f2db1c3cb67e9461875d0a6d79",
+      "metadata_sha256": "b6b76607f417ad03f4fa50df77380777b737eaf4f1e68cd50a465da58a3e1589",
+      "mcp_initialization_ns": 472911623,
+      "mcp_discovery_ns": 10108174,
+      "mcp_cold_total_ns": 509232739,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "cli",
+          "mcp"
+        ],
+        "payload_exact": true,
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            140224915,
+            137036620
+          ],
+          "total_ns": 277261535,
+          "application_text_bytes": 8933
+        },
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            17570991,
+            8641951
+          ],
+          "total_ns": 26212942,
+          "application_text_bytes": 8933
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5036229,
+              4816223
+            ],
+            "total_ns": 9852452,
+            "application_text_bytes": 8933
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              63527933,
+              60812190
+            ],
+            "total_ns": 124340123,
+            "application_text_bytes": 8933
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59462280,
+              62288475
+            ],
+            "total_ns": 121750755,
+            "application_text_bytes": 8933
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5913302,
+              5172261
+            ],
+            "total_ns": 11085563,
+            "application_text_bytes": 8933
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4491896,
+              4626779
+            ],
+            "total_ns": 9118675,
+            "application_text_bytes": 8933
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              58887242,
+              60529714
+            ],
+            "total_ns": 119416956,
+            "application_text_bytes": 8933
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              72315428,
+              63198298
+            ],
+            "total_ns": 135513726,
+            "application_text_bytes": 8933
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5427581,
+              4591658
+            ],
+            "total_ns": 10019239,
+            "application_text_bytes": 8933
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4743893,
+              5029986
+            ],
+            "total_ns": 9773879,
+            "application_text_bytes": 8933
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59869665,
+              61108736
+            ],
+            "total_ns": 120978401,
+            "application_text_bytes": 8933
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 119416956,
+          "median_ns": 121750755,
+          "max_ns": 135513726,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 9118675,
+          "median_ns": 9852452,
+          "max_ns": 11085563,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "ros-case-008",
+      "evidence_sha256": "5f9e8ebd9e94ccb19071e8fafd147789f539e146522fc27e617bd7b3ed5213b0",
+      "frozen_input_sha256": "d34a2f0439a2699d7c199971c962392cf651b948965f3d49151a5ab23f80d40d",
+      "snapshot_sha256": "e4fe22c5e8061af260a3d5b073d98cc8b3a9839ebc83ceaaed6cac68656ba0b4",
+      "metadata_sha256": "64566391717c0fcee86d5fdf3e9dc1c6922b7bfc97a0dafa99780605e9111f92",
+      "mcp_initialization_ns": 399208652,
+      "mcp_discovery_ns": 4512553,
+      "mcp_cold_total_ns": 423325042,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "mcp",
+          "cli"
+        ],
+        "payload_exact": true,
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            14128929,
+            5474908
+          ],
+          "total_ns": 19603837,
+          "application_text_bytes": 18859
+        },
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            73857973,
+            61022680
+          ],
+          "total_ns": 134880653,
+          "application_text_bytes": 18859
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              69739177,
+              61701157
+            ],
+            "total_ns": 131440334,
+            "application_text_bytes": 18859
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5870463,
+              4922233
+            ],
+            "total_ns": 10792696,
+            "application_text_bytes": 18859
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4850470,
+              4542168
+            ],
+            "total_ns": 9392638,
+            "application_text_bytes": 18859
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              71302897,
+              58590875
+            ],
+            "total_ns": 129893772,
+            "application_text_bytes": 18859
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              103235641,
+              93192030
+            ],
+            "total_ns": 196427671,
+            "application_text_bytes": 18859
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5446728,
+              5011865
+            ],
+            "total_ns": 10458593,
+            "application_text_bytes": 18859
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4752306,
+              4592502
+            ],
+            "total_ns": 9344808,
+            "application_text_bytes": 18859
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              67717426,
+              60679606
+            ],
+            "total_ns": 128397032,
+            "application_text_bytes": 18859
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              64970101,
+              58178530
+            ],
+            "total_ns": 123148631,
+            "application_text_bytes": 18859
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5045399,
+              4389193
+            ],
+            "total_ns": 9434592,
+            "application_text_bytes": 18859
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 123148631,
+          "median_ns": 129893772,
+          "max_ns": 196427671,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 9344808,
+          "median_ns": 9434592,
+          "max_ns": 10792696,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "ros-case-009",
+      "evidence_sha256": "b4877ce8dfb382b80455ad7dfa63c7c311af65426145e6dc095ff68e0539a5f2",
+      "frozen_input_sha256": "bb7db3f2219da75d54dd76e0a3ae5bc78c2683682c3ff7a1592e88c21b33fbb3",
+      "snapshot_sha256": "d76e53366b038e9e85c9e15c6112c1b28b7643891f831a88a0ab1736a417accd",
+      "metadata_sha256": "5004b77d10230f10817543c73133a734de6340ed1f42f802ae021649b8fd412d",
+      "mcp_initialization_ns": 398695205,
+      "mcp_discovery_ns": 4444843,
+      "mcp_cold_total_ns": 422916246,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "cli",
+          "mcp"
+        ],
+        "payload_exact": true,
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            84923434,
+            61386009
+          ],
+          "total_ns": 146309443,
+          "application_text_bytes": 10373
+        },
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            14501972,
+            5274226
+          ],
+          "total_ns": 19776198,
+          "application_text_bytes": 10373
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5085989,
+              4506417
+            ],
+            "total_ns": 9592406,
+            "application_text_bytes": 10373
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              58763786,
+              60910617
+            ],
+            "total_ns": 119674403,
+            "application_text_bytes": 10373
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              58895881,
+              59763205
+            ],
+            "total_ns": 118659086,
+            "application_text_bytes": 10373
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5394599,
+              4521235
+            ],
+            "total_ns": 9915834,
+            "application_text_bytes": 10373
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5457460,
+              4943367
+            ],
+            "total_ns": 10400827,
+            "application_text_bytes": 10373
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              58453231,
+              57868369
+            ],
+            "total_ns": 116321600,
+            "application_text_bytes": 10373
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              58611391,
+              59798687
+            ],
+            "total_ns": 118410078,
+            "application_text_bytes": 10373
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5043413,
+              4435785
+            ],
+            "total_ns": 9479198,
+            "application_text_bytes": 10373
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4959877,
+              4273336
+            ],
+            "total_ns": 9233213,
+            "application_text_bytes": 10373
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              58889939,
+              58927249
+            ],
+            "total_ns": 117817188,
+            "application_text_bytes": 10373
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 116321600,
+          "median_ns": 118410078,
+          "max_ns": 119674403,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 9233213,
+          "median_ns": 9592406,
+          "max_ns": 10400827,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "ros-case-010",
+      "evidence_sha256": "1517ba0ef5b945ee155939b3cea8f306dc38cbf277d7b228ebc108a97fa36dab",
+      "frozen_input_sha256": "5ca51162c91d9b00bd8c477a8ab0402be1d0e5342cafd2608800cd34af344000",
+      "snapshot_sha256": "7f0801b4bb559faec482c227ca63af57be545ef7c0a66be7022fea3bb2072d43",
+      "metadata_sha256": "bcf5ea324a1d7ea9830e41f2ff1bd5f9a95b7b4673e41af97ba2280e0f0cdb4b",
+      "mcp_initialization_ns": 391666859,
+      "mcp_discovery_ns": 4320856,
+      "mcp_cold_total_ns": 413858654,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "mcp",
+          "cli"
+        ],
+        "payload_exact": true,
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            13105854,
+            4765085
+          ],
+          "total_ns": 17870939,
+          "application_text_bytes": 8593
+        },
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            63399140,
+            73857860
+          ],
+          "total_ns": 137257000,
+          "application_text_bytes": 8593
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              61710157,
+              59755135
+            ],
+            "total_ns": 121465292,
+            "application_text_bytes": 8593
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5448228,
+              4372594
+            ],
+            "total_ns": 9820822,
+            "application_text_bytes": 8593
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4328221,
+              4216999
+            ],
+            "total_ns": 8545220,
+            "application_text_bytes": 8593
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59396831,
+              62506444
+            ],
+            "total_ns": 121903275,
+            "application_text_bytes": 8593
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59342590,
+              59834390
+            ],
+            "total_ns": 119176980,
+            "application_text_bytes": 8593
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5117145,
+              4508976
+            ],
+            "total_ns": 9626121,
+            "application_text_bytes": 8593
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4189691,
+              4238565
+            ],
+            "total_ns": 8428256,
+            "application_text_bytes": 8593
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              58803461,
+              59751215
+            ],
+            "total_ns": 118554676,
+            "application_text_bytes": 8593
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              57788339,
+              58284046
+            ],
+            "total_ns": 116072385,
+            "application_text_bytes": 8593
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4916396,
+              4548573
+            ],
+            "total_ns": 9464969,
+            "application_text_bytes": 8593
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 116072385,
+          "median_ns": 119176980,
+          "max_ns": 121903275,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 8428256,
+          "median_ns": 9464969,
+          "max_ns": 9820822,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "ros-case-011",
+      "evidence_sha256": "e4b6119f3dd36e01ebb21b506ed435c6f7e7c8b5bc119907cf8c1cc4c3d3e0d0",
+      "frozen_input_sha256": "6b9151d1e2809c406c0788dcddffc46740ad77e90fc6bbb283887543410b9795",
+      "snapshot_sha256": "3fc622c972ae18c5adb028584c0f428c8f6e034caef34be263822c4653581aaf",
+      "metadata_sha256": "8f154ba6b4b6ce0c6fae189824b3b2297ce804653ab60a6265c3603c98cafadf",
+      "mcp_initialization_ns": 524602810,
+      "mcp_discovery_ns": 8549508,
+      "mcp_cold_total_ns": 583928326,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "cli",
+          "mcp"
+        ],
+        "payload_exact": true,
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            84486705,
+            155953047
+          ],
+          "total_ns": 240439752,
+          "application_text_bytes": 8252
+        },
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            38516399,
+            12259609
+          ],
+          "total_ns": 50776008,
+          "application_text_bytes": 8252
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              10034896,
+              9288668
+            ],
+            "total_ns": 19323564,
+            "application_text_bytes": 8252
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              71259996,
+              61138300
+            ],
+            "total_ns": 132398296,
+            "application_text_bytes": 8252
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              61236851,
+              59663948
+            ],
+            "total_ns": 120900799,
+            "application_text_bytes": 8252
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5558094,
+              5442724
+            ],
+            "total_ns": 11000818,
+            "application_text_bytes": 8252
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5542210,
+              5778541
+            ],
+            "total_ns": 11320751,
+            "application_text_bytes": 8252
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              65182677,
+              59889645
+            ],
+            "total_ns": 125072322,
+            "application_text_bytes": 8252
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              58387651,
+              58055962
+            ],
+            "total_ns": 116443613,
+            "application_text_bytes": 8252
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5014670,
+              4507231
+            ],
+            "total_ns": 9521901,
+            "application_text_bytes": 8252
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4693514,
+              4759230
+            ],
+            "total_ns": 9452744,
+            "application_text_bytes": 8252
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              61056303,
+              58457809
+            ],
+            "total_ns": 119514112,
+            "application_text_bytes": 8252
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 116443613,
+          "median_ns": 120900799,
+          "max_ns": 132398296,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 9452744,
+          "median_ns": 11000818,
+          "max_ns": 19323564,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "autoware-healthy",
+      "evidence_sha256": "89b22e9c38c4793ea2a9e78d714c908ddf5c68537614cc1c314a6607c53baaef",
+      "frozen_input_sha256": "b2518c4bc319d832bf59bf2b877205a4917379e742123cbb1980630b7e0b33ac",
+      "snapshot_sha256": "8e04748100a8738ef01002f87c1a206f0ecde69532aba13237c279eb45901993",
+      "metadata_sha256": "3029e07b643592c18f1a126961b419fb85dcce33b7a47fde05929ea29cf46503",
+      "mcp_initialization_ns": 415711032,
+      "mcp_discovery_ns": 4802890,
+      "mcp_cold_total_ns": 443560791,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "mcp",
+          "cli"
+        ],
+        "payload_exact": true,
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            17425862,
+            5621007
+          ],
+          "total_ns": 23046869,
+          "application_text_bytes": 37240
+        },
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            62595649,
+            65704951
+          ],
+          "total_ns": 128300600,
+          "application_text_bytes": 37240
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              58401340,
+              61254364
+            ],
+            "total_ns": 119655704,
+            "application_text_bytes": 37240
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6962982,
+              4513629
+            ],
+            "total_ns": 11476611,
+            "application_text_bytes": 37240
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5249858,
+              4525577
+            ],
+            "total_ns": 9775435,
+            "application_text_bytes": 37240
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              57628852,
+              60399216
+            ],
+            "total_ns": 118028068,
+            "application_text_bytes": 37240
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              61305905,
+              68365182
+            ],
+            "total_ns": 129671087,
+            "application_text_bytes": 37240
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              7158842,
+              5215995
+            ],
+            "total_ns": 12374837,
+            "application_text_bytes": 37240
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              8000865,
+              4851623
+            ],
+            "total_ns": 12852488,
+            "application_text_bytes": 37240
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              77497633,
+              59859880
+            ],
+            "total_ns": 137357513,
+            "application_text_bytes": 37240
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              61655913,
+              60075499
+            ],
+            "total_ns": 121731412,
+            "application_text_bytes": 37240
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5792246,
+              4769462
+            ],
+            "total_ns": 10561708,
+            "application_text_bytes": 37240
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 118028068,
+          "median_ns": 121731412,
+          "max_ns": 137357513,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 9775435,
+          "median_ns": 11476611,
+          "max_ns": 12852488,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "autoware-missing-imu",
+      "evidence_sha256": "5d66009f0d2f07434a053e31b8a7f3f8a0379705c0fcac1f6814525962c9cc4c",
+      "frozen_input_sha256": "3a600af2aea51a77f23d86fd66e69ca18c40c519cebf359654e58866854b85fe",
+      "snapshot_sha256": "e9c064c43e84c650b1f9ee168ff51ae99674b85440177acb255773a7db08910f",
+      "metadata_sha256": "4d01be3c8a40c3c3434a7e536c493c7f28c5582eafd33644ec870b65da700ce4",
+      "mcp_initialization_ns": 390847107,
+      "mcp_discovery_ns": 4267540,
+      "mcp_cold_total_ns": 415192228,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "cli",
+          "mcp"
+        ],
+        "payload_exact": true,
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            110265757,
+            61170546
+          ],
+          "total_ns": 171436303,
+          "application_text_bytes": 38934
+        },
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            15144706,
+            4932875
+          ],
+          "total_ns": 20077581,
+          "application_text_bytes": 38934
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5343346,
+              4337444
+            ],
+            "total_ns": 9680790,
+            "application_text_bytes": 38934
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59389605,
+              62270154
+            ],
+            "total_ns": 121659759,
+            "application_text_bytes": 38934
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59854366,
+              62659332
+            ],
+            "total_ns": 122513698,
+            "application_text_bytes": 38934
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6101537,
+              4400142
+            ],
+            "total_ns": 10501679,
+            "application_text_bytes": 38934
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5160869,
+              4530399
+            ],
+            "total_ns": 9691268,
+            "application_text_bytes": 38934
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              58092203,
+              60847130
+            ],
+            "total_ns": 118939333,
+            "application_text_bytes": 38934
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              62617890,
+              59585988
+            ],
+            "total_ns": 122203878,
+            "application_text_bytes": 38934
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5915523,
+              4522059
+            ],
+            "total_ns": 10437582,
+            "application_text_bytes": 38934
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4918377,
+              4303971
+            ],
+            "total_ns": 9222348,
+            "application_text_bytes": 38934
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              60293461,
+              59597668
+            ],
+            "total_ns": 119891129,
+            "application_text_bytes": 38934
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 118939333,
+          "median_ns": 121659759,
+          "max_ns": 122513698,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 9222348,
+          "median_ns": 9691268,
+          "max_ns": 10501679,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "autoware-recovered",
+      "evidence_sha256": "01960acea50c2cb9de163d88171f7bf8cf92a800535481640a545d81ab55d5a2",
+      "frozen_input_sha256": "8fbe0a162ade8682f5749a5fa5f38f9ffeca8ec982cc896f8cb6a5233d481c90",
+      "snapshot_sha256": "651d45f2700e5e94137341676fa991b734a63681f3471e456d31ee72bb24fab6",
+      "metadata_sha256": "268ce567530e7c884127c8e3fe91c4f18852fad0f214205198d47eb57172f6a4",
+      "mcp_initialization_ns": 390968712,
+      "mcp_discovery_ns": 4452094,
+      "mcp_cold_total_ns": 414489826,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "mcp",
+          "cli"
+        ],
+        "payload_exact": true,
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            14158970,
+            4910050
+          ],
+          "total_ns": 19069020,
+          "application_text_bytes": 37269
+        },
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            61982378,
+            59032338
+          ],
+          "total_ns": 121014716,
+          "application_text_bytes": 37269
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              77561440,
+              58898405
+            ],
+            "total_ns": 136459845,
+            "application_text_bytes": 37269
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5878859,
+              4708730
+            ],
+            "total_ns": 10587589,
+            "application_text_bytes": 37269
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4846671,
+              4267798
+            ],
+            "total_ns": 9114469,
+            "application_text_bytes": 37269
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              76749933,
+              61009051
+            ],
+            "total_ns": 137758984,
+            "application_text_bytes": 37269
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              71925002,
+              75427230
+            ],
+            "total_ns": 147352232,
+            "application_text_bytes": 37269
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6034775,
+              4881902
+            ],
+            "total_ns": 10916677,
+            "application_text_bytes": 37269
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5048510,
+              4365041
+            ],
+            "total_ns": 9413551,
+            "application_text_bytes": 37269
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              78286810,
+              61152839
+            ],
+            "total_ns": 139439649,
+            "application_text_bytes": 37269
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              72599270,
+              62020265
+            ],
+            "total_ns": 134619535,
+            "application_text_bytes": 37269
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5880754,
+              4610520
+            ],
+            "total_ns": 10491274,
+            "application_text_bytes": 37269
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 134619535,
+          "median_ns": 137758984,
+          "max_ns": 147352232,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 9114469,
+          "median_ns": 10491274,
+          "max_ns": 10916677,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "autoware-trace-legacy",
+      "evidence_sha256": "43938219a215eb033acffbcec361c2c03d8ddcf55c996bc971e88f051d852eec",
+      "frozen_input_sha256": "e9f496c19eefd2e0589968f2762ee590b701faee70860fb803808e290f4595b0",
+      "snapshot_sha256": "57f4d27c3f8abf8caa0f9566787007e54a8fb3a99500c7d855fa19178dd631f2",
+      "metadata_sha256": "5e8c29899960fe7340575e526b607f231c22cf309f5200f6a67dc908f8cde778",
+      "mcp_initialization_ns": 394309717,
+      "mcp_discovery_ns": 4526121,
+      "mcp_cold_total_ns": 417633123,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "cli",
+          "mcp"
+        ],
+        "payload_exact": true,
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            100263829,
+            60500582
+          ],
+          "total_ns": 160764411,
+          "application_text_bytes": 2277
+        },
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            14232455,
+            4564830
+          ],
+          "total_ns": 18797285,
+          "application_text_bytes": 2277
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4582474,
+              4548724
+            ],
+            "total_ns": 9131198,
+            "application_text_bytes": 2277
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59327994,
+              57539061
+            ],
+            "total_ns": 116867055,
+            "application_text_bytes": 2277
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              62145836,
+              58154264
+            ],
+            "total_ns": 120300100,
+            "application_text_bytes": 2277
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6859965,
+              4662219
+            ],
+            "total_ns": 11522184,
+            "application_text_bytes": 2277
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              6582445,
+              4394361
+            ],
+            "total_ns": 10976806,
+            "application_text_bytes": 2277
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              58310295,
+              61306563
+            ],
+            "total_ns": 119616858,
+            "application_text_bytes": 2277
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              60114585,
+              59032208
+            ],
+            "total_ns": 119146793,
+            "application_text_bytes": 2277
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5143281,
+              6144976
+            ],
+            "total_ns": 11288257,
+            "application_text_bytes": 2277
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4734404,
+              4289694
+            ],
+            "total_ns": 9024098,
+            "application_text_bytes": 2277
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              58146502,
+              60227431
+            ],
+            "total_ns": 118373933,
+            "application_text_bytes": 2277
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 116867055,
+          "median_ns": 119146793,
+          "max_ns": 120300100,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 9024098,
+          "median_ns": 10976806,
+          "max_ns": 11522184,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    },
+    {
+      "case_id": "autoware-trace-window",
+      "evidence_sha256": "854b6db935f68210bbab1da487740f7c32a7f27a3f4d99547f881ab27a81505d",
+      "frozen_input_sha256": "29df384b6971be9f7fbf0caee6ac744492b753ff25ff851fe609937a14a3c116",
+      "snapshot_sha256": "11a5b8ee3fe5a46423d84db8daab78aeea38eb5ceef23c2e246308e89f0d3730",
+      "metadata_sha256": "6db666086fde087d3f39796f4a8ad7554d30b0d0bfe7ff61e2b004b15189b56d",
+      "mcp_initialization_ns": 392939155,
+      "mcp_discovery_ns": 4493001,
+      "mcp_cold_total_ns": 416298722,
+      "first_collection": {
+        "iteration": "first",
+        "order": [
+          "mcp",
+          "cli"
+        ],
+        "payload_exact": true,
+        "mcp": {
+          "operation_count": 2,
+          "operation_ns": [
+            13957594,
+            4908972
+          ],
+          "total_ns": 18866566,
+          "application_text_bytes": 4258
+        },
+        "cli": {
+          "operation_count": 2,
+          "operation_ns": [
+            83618313,
+            63495818
+          ],
+          "total_ns": 147114131,
+          "application_text_bytes": 4258
+        }
+      },
+      "connected_session_repetitions": [
+        {
+          "iteration": "repeat-1",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              60957585,
+              60515377
+            ],
+            "total_ns": 121472962,
+            "application_text_bytes": 4258
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5332512,
+              4697016
+            ],
+            "total_ns": 10029528,
+            "application_text_bytes": 4258
+          }
+        },
+        {
+          "iteration": "repeat-2",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4538489,
+              4357974
+            ],
+            "total_ns": 8896463,
+            "application_text_bytes": 4258
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              61499461,
+              59149494
+            ],
+            "total_ns": 120648955,
+            "application_text_bytes": 4258
+          }
+        },
+        {
+          "iteration": "repeat-3",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59513290,
+              59296232
+            ],
+            "total_ns": 118809522,
+            "application_text_bytes": 4258
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5414258,
+              4963021
+            ],
+            "total_ns": 10377279,
+            "application_text_bytes": 4258
+          }
+        },
+        {
+          "iteration": "repeat-4",
+          "order": [
+            "mcp",
+            "cli"
+          ],
+          "payload_exact": true,
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              4888498,
+              4697478
+            ],
+            "total_ns": 9585976,
+            "application_text_bytes": 4258
+          },
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              61092644,
+              60151622
+            ],
+            "total_ns": 121244266,
+            "application_text_bytes": 4258
+          }
+        },
+        {
+          "iteration": "repeat-5",
+          "order": [
+            "cli",
+            "mcp"
+          ],
+          "payload_exact": true,
+          "cli": {
+            "operation_count": 2,
+            "operation_ns": [
+              59775320,
+              58363116
+            ],
+            "total_ns": 118138436,
+            "application_text_bytes": 4258
+          },
+          "mcp": {
+            "operation_count": 2,
+            "operation_ns": [
+              5417642,
+              4571886
+            ],
+            "total_ns": 9989528,
+            "application_text_bytes": 4258
+          }
+        }
+      ],
+      "summary": {
+        "cli": {
+          "min_ns": 118138436,
+          "median_ns": 120648955,
+          "max_ns": 121472962,
+          "operation_count": 2,
+          "repetitions": 5
+        },
+        "mcp": {
+          "min_ns": 8896463,
+          "median_ns": 9989528,
+          "max_ns": 10377279,
+          "operation_count": 2,
+          "repetitions": 5
+        }
+      },
+      "input_unchanged": true,
+      "model_invoked": false
+    }
+  ],
+  "model_invoked": false,
+  "runtime": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "platform": "linux"
+  },
+  "scope": "Sequential loopback snapshot/header retrieval; sums of timed operation intervals, not full collection wall time. Two CLI processes versus two calls in a persistent MCP session. Initialization/discovery separate; replay startup, output writes, JSON decoding, sidecar retrieval, reasoning, scoring and human/model investigation time excluded. Application text bytes, not wire traffic. No synchronized live sampling, speed threshold, AI accuracy or general performance claim.",
+  "source_provenance": [
+    {
+      "case_id": "ros-case-001",
+      "source": "/workspace/callback-source-validation/jazzy-final/source/slow/run.rgd.json",
+      "source_sha256": "fca14b86eb589c855c70b886068e7cb00a879f92a58ad8e18f5ba58427937ed2",
+      "snapshot_index": 6,
+      "family": "topic",
+      "target": "/perception/object_recognition/objects",
+      "source_kind": "provided_source",
+      "original_recording_header_available": true
+    },
+    {
+      "case_id": "ros-case-002",
+      "source": "/workspace/callback-source-validation/jazzy-final/source/slow/run.rgd.json",
+      "source_sha256": "fca14b86eb589c855c70b886068e7cb00a879f92a58ad8e18f5ba58427937ed2",
+      "snapshot_index": 6,
+      "family": "duration",
+      "target": "/control/integration/processing",
+      "source_kind": "provided_source",
+      "original_recording_header_available": true
+    },
+    {
+      "case_id": "ros-case-003",
+      "source": "/workspace/callback-source-validation/jazzy-final/source/healthy/run.rgd.json",
+      "source_sha256": "77e932c58e8bf7356d2c041c2fb64164b8f0b0efaa2cbec254747d5432c7c3c4",
+      "snapshot_index": 6,
+      "family": "topic",
+      "target": "/perception/object_recognition/objects",
+      "source_kind": "provided_source",
+      "original_recording_header_available": true
+    },
+    {
+      "case_id": "ros-case-004",
+      "source": "/workspace/callback-source-validation/jazzy-final/source/healthy/run.rgd.json",
+      "source_sha256": "77e932c58e8bf7356d2c041c2fb64164b8f0b0efaa2cbec254747d5432c7c3c4",
+      "snapshot_index": 6,
+      "family": "duration",
+      "target": "/control/integration/processing",
+      "source_kind": "provided_source",
+      "original_recording_header_available": true
+    },
+    {
+      "case_id": "ros-case-005",
+      "source": "/workspace/callback-source-validation/jazzy-final/source/cpu/warmup.json",
+      "source_sha256": "0e70db3019274894c6846887e4e60e777519703b6d75d4cdacf7e2ed03ad792b",
+      "snapshot_index": 0,
+      "family": "cpu",
+      "target": "/integration/cpu_worker",
+      "source_kind": "provided_source",
+      "original_recording_header_available": false
+    },
+    {
+      "case_id": "ros-case-006",
+      "source": "/workspace/callback-source-validation/jazzy-final/source/cpu/loaded.json",
+      "source_sha256": "9aadaaf7fc59abe4e878fb2d25a66fe1bd007e68135a309441dcfed29bebdffd",
+      "snapshot_index": 0,
+      "family": "cpu",
+      "target": "/integration/cpu_worker",
+      "source_kind": "provided_source",
+      "original_recording_header_available": false
+    },
+    {
+      "case_id": "ros-case-007",
+      "source": "/workspace/callback-source-validation/jazzy-final/source/cpu/recovered.json",
+      "source_sha256": "17dc6b56f870167b1b1b29f008261c4222570d45de0a8bff7d805f946325b5c7",
+      "snapshot_index": 0,
+      "family": "cpu",
+      "target": "/integration/cpu_worker",
+      "source_kind": "provided_source",
+      "original_recording_header_available": false
+    },
+    {
+      "case_id": "ros-case-008",
+      "source": "/workspace/callback-source-validation/jazzy-final/source/clock/unstarted.json",
+      "source_sha256": "3fa3a10edc9a77c64e655eea0d5430ca669d55205ddc1d6dbf196574eca8a039",
+      "snapshot_index": 0,
+      "family": "topic",
+      "target": "/localization/kinematic_state",
+      "source_kind": "provided_source",
+      "original_recording_header_available": false
+    },
+    {
+      "case_id": "ros-case-009",
+      "source": "/workspace/callback-source-validation/jazzy-final/trace/slow/run.rgd.json",
+      "source_sha256": "2a1a21a794ce8f846cdda80a678beb9fd86083c5dbedbb246c7cba3f69436500",
+      "snapshot_index": 2,
+      "family": "duration",
+      "target": "/trace_slow",
+      "source_kind": "provided_source",
+      "original_recording_header_available": true
+    },
+    {
+      "case_id": "ros-case-010",
+      "source": "/workspace/callback-source-validation/jazzy-final/trace/healthy/run.rgd.json",
+      "source_sha256": "c1a3c1b064ab69f992a6e1e8edd4e7d007248478ef8e64606a9b47146c371a93",
+      "snapshot_index": 2,
+      "family": "duration",
+      "target": "/trace_healthy",
+      "source_kind": "provided_source",
+      "original_recording_header_available": true
+    },
+    {
+      "case_id": "ros-case-011",
+      "source": "/workspace/ros-trace-validation/jazzy-ci/scenario/slow/run.rgd.json",
+      "source_sha256": "799069eb315570aefc7f684833bcafa727564f8eb365c35d77047cd83940643a",
+      "snapshot_index": 0,
+      "family": "duration",
+      "target": "/trace_slow",
+      "source_kind": "provided_source",
+      "original_recording_header_available": true
+    },
+    {
+      "case_id": "autoware-healthy",
+      "source": "/workspace/autoware-trace-phase-validation/capture/scenario/healthy/run.rgd.json",
+      "source_sha256": "eab0d381c9999f4074bb4a7e0e864df30311ab87d00c0abffab1732aff9ea737",
+      "snapshot_index": 6,
+      "family": "public_phase_context",
+      "source_kind": "provided_source"
+    },
+    {
+      "case_id": "autoware-missing-imu",
+      "source": "/workspace/autoware-trace-phase-validation/capture/scenario/missing-imu/run.rgd.json",
+      "source_sha256": "581748e24adb1c3c78ce73516d8f9705a5c6f41cb8fb8735ced11b214e504e86",
+      "snapshot_index": 6,
+      "family": "public_phase_context",
+      "source_kind": "provided_source"
+    },
+    {
+      "case_id": "autoware-recovered",
+      "source": "/workspace/autoware-trace-phase-validation/capture/scenario/recovered/run.rgd.json",
+      "source_sha256": "50b36b3fa95c88796c114113e8b3ce049efcba127b476c523c8426b0075f3984",
+      "snapshot_index": 6,
+      "family": "public_phase_context",
+      "source_kind": "provided_source"
+    },
+    {
+      "case_id": "autoware-trace-legacy",
+      "source": "/workspace/autoware-callback-trace-validation/imported/run.rgd.json",
+      "source_sha256": "265a1a5b64fc5c78bb731208f48df9df160f0220aba3970c8dcf038463225e00",
+      "snapshot_index": 0,
+      "family": "public_trace_import",
+      "source_kind": "provided_source"
+    },
+    {
+      "case_id": "autoware-trace-window",
+      "source": "/workspace/trace-measurement-window-validation/imported/run.rgd.json",
+      "source_sha256": "0814c50317097fc7b25e6ea3a2de188d81980e650ae2310e0e794f56a41c3a8e",
+      "snapshot_index": 0,
+      "family": "public_trace_import",
+      "source_kind": "provided_source"
+    }
+  ],
+  "source_files_unchanged": true,
+  "case_entries": 16,
+  "unique_snapshot_metadata_pairs": 14,
+  "code_sha256": {
+    "ros_graph_debugger/cli.py": "e357b50a2215134f7fd22ad3faf5f093615ecfa54c358c8c3a616bf3eb8c82af",
+    "test/benchmarks/measure_collection.py": "d230d71fad28ec9ba9e51963cc674e1997e8b9c174ef0a07e85f2c864cfc279f",
+    "test/test_collection_baseline.py": "5acb5575ade0bafaecdcbb87ae77fa1e78bd227bc8dd29cf473bdd0d483aacde",
+    "test/test_recording_provenance.py": "c56d8fdfa3e7c6aefe40c8ced4dc0f13809ac1dbb8014ab0dc8abf3485363da5"
+  }
+}

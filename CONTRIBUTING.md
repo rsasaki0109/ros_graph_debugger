@@ -53,6 +53,11 @@ For optional public-input callback-phase investigation tasks, see
 recordings and a separate trace-audit sidecar, and validates structured evidence
 claims through the existing CLI/MCP test workflow without invoking a model.
 
+For exact CLI/MCP snapshot and recording-header collection timings, see
+[the recording collection baseline](docs/recording-collection.md). Downstream
+investigation CI retains timings and responses as artifacts; evidence equality
+and cleanup are required, and speed is not a pass/fail contract.
+
 The multiprocess job also checks `/clock` startup and message-age recovery:
 
 ```bash

@@ -491,6 +491,7 @@ def main(argv=None) -> int:
     sp.add_argument('--out', default=None, help='write to file instead of stdout')
 
     sub.add_parser('markdown', help='fetch the AI-friendly Markdown briefing')
+    sub.add_parser('metadata', help='fetch recording-header provenance (unavailable in live mode)')
     sub.add_parser('issues', help='list current issues')
     sub.add_parser('doctor', help='check that the agent is reachable')
     sub.add_parser('version', help='print version')
@@ -669,6 +670,8 @@ def main(argv=None) -> int:
                 sys.stdout.write(data.decode())
         elif args.cmd == 'markdown':
             sys.stdout.write(_get(args.base, '/api/v1/snapshot.md').decode())
+        elif args.cmd == 'metadata':
+            sys.stdout.write(_get(args.base, '/api/v1/recording').decode())
         elif args.cmd == 'issues':
             issues = json.loads(_get(args.base, '/api/v1/issues'))
             if not issues:

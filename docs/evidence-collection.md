@@ -10,6 +10,11 @@ every sensor or callback.
 
 ## Reproducible evaluation
 
+For the current snapshot **plus original recording header** comparison, CLI
+`rgd metadata`, separate MCP initialization timing and exact JSON type checks,
+see [the recording collection baseline](recording-collection.md). The six-case
+evaluation below remains its original snapshot-only historical protocol.
+
 The experiment uses frozen snapshots from actual separate-process ROS runs:
 
 - Official Jazzy Nav2 map server, NavFn planner, regulated pure pursuit

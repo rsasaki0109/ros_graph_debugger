@@ -58,7 +58,7 @@ def serving(app):
 
 
 @pytest.mark.parametrize('h', [header(), header('bag'), make_header(40, 1), None])
-def test_replay_metadata_round_trips_and_snapshot_is_unchanged(h):
+def test_replay_metadata_round_trips_and_snapshot_is_unchanged(h, capsys):
     replay = ReplayStore([FRAME])
     app = create_app(replay, '/nonexistent', replay=replay, recording_header=h)
     path = next(p for name, p, _ in READ_TOOLS if name == 'get_recording_metadata')
@@ -66,6 +66,8 @@ def test_replay_metadata_round_trips_and_snapshot_is_unchanged(h):
         before = json.loads(fetch('/api/v1/snapshot', base))
         assert before == FRAME
         assert json.loads(fetch(path, base)) == {'mode': 'replay', 'recording_header': h}
+        assert main(['--base', base, 'metadata']) == 0
+        assert json.loads(capsys.readouterr().out) == {'mode': 'replay', 'recording_header': h}
         req = urllib.request.Request(base + '/api/v1/replay/seek?index=0', data=b'')
         with urllib.request.urlopen(req, timeout=2) as response:
             assert not json.load(response)['playing']
@@ -80,11 +82,22 @@ def test_replay_metadata_round_trips_and_snapshot_is_unchanged(h):
             assert 'Unknown: this recording does not identify the header-age clock.' in md
 
 
-def test_live_metadata_does_not_claim_a_recording_or_infer_clock():
+def test_live_metadata_does_not_claim_a_recording_or_infer_clock(capsys):
     app = create_app(RuntimeGraphStore(), '/nonexistent', recording_header=header())
     with serving(app) as base:
         assert json.loads(fetch('/api/v1/recording', base)) == {'mode': 'live', 'recording_header': None}
+        assert main(['--base', base, 'metadata']) == 0
+        assert json.loads(capsys.readouterr().out) == {'mode': 'live', 'recording_header': None}
         assert '## Header age clock' not in fetch('/api/v1/snapshot.md', base)
+
+
+def test_cli_metadata_failure_is_nonzero_without_fabricating_a_header(monkeypatch, capsys):
+    def unavailable(*args):
+        raise OSError('agent unavailable')
+    monkeypatch.setattr('ros_graph_debugger.cli._get', unavailable)
+    assert main(['metadata']) == 1
+    captured = capsys.readouterr()
+    assert captured.out == '' and 'agent unavailable' in captured.err
 
 
 @pytest.mark.parametrize('selected', ['ros', 'bag', None])
