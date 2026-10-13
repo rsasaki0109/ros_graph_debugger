@@ -166,6 +166,12 @@ and then cleans up. It does not run as part of ordinary `pytest test/`.
 
 ### Real LTTng integration
 
+For optional same-clock Autoware phase evidence, see
+[assertion-envelope validation](docs/autoware-trace-phases.md). The test-only
+marker and audit retain raw 1 GHz clock coordinates, reject mixed/unknown clocks
+and count boundary crossings separately; `pytest test/test_trace_phases.py`
+checks the pure controls without DDS or a live session.
+
 The `trace-integration` CI job records actual rclcpp subscription, timer and
 service callbacks on Humble and Jazzy using userspace LTTng. It needs no kernel
 tracing or privileged container. Install `build-essential`, `cmake`,

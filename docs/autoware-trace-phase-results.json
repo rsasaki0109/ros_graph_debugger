@@ -1,0 +1,353 @@
+{
+  "capture_source": {
+    "producer_commit": "dbddd94b655183a5e539f518920cc76f72d94cb5",
+    "producer_tree": "6ba6f71c937d63b404c0085046a4f01e1be277ad",
+    "marker_tool_initial_commit": "6345a044962a2d12bdf40bdc1bb5def53ba563d2",
+    "sdk_image_id": "sha256:a8bde66f76e8039dce37608a1c2936eb49d5478d553d9d587c562eb4c5c93588",
+    "artifact_sha256": {
+      "marked_capture.py": "050bd195109d84c9dd1467b3b2028c21ce4d613173bef6d430f9eb2b7916b448",
+      "marked_scenario.py": "f847c38b9ef1ff51c8fcc06c572fad96386665cc5e34b19de977b880debfee3c",
+      "trace_phases.py": "d65db4a8a13ab8bb09f4b25d2cc2b5b33b21bfafb2b4fcb6c758fe1e6254f1ad",
+      "phase_marker.c": "a9061bbfadd8fd2505382964712f3135dc63de67218fe004c6b0b3c2719f1e94",
+      "phase_marker": "b13e291f7d24b3ed5533b8641a2eb7f7ec7805b4322fb537a02adc445feaa426"
+    },
+    "marker_tool_initial_commit_scope": "unpushed local checkpoint before final raw-clock audit; exact executed artifact hashes retained"
+  },
+  "analysis_method": "CTF raw 1 GHz clock ticks, not per-stream ns_from_origin offsets",
+  "final_audit_sha256": "12b3819e7b90a3e6341e25642cbf1b524f332498c215381deceb6ea7a761e576",
+  "raw_phase_audit": {
+    "run_id": "rgd-autoware-7ba14caf34084c768a20b692dab15d04",
+    "marker_pid": 83,
+    "markers": 6,
+    "total_paired": 6047,
+    "phases": [
+      {
+        "phase": "healthy",
+        "begin_ns": 101030183515186,
+        "end_ns": 101036309361892,
+        "clock": "ctf_raw_1ghz:aa6f1a7b-967e-406d-89ca-bcc739ae56a6",
+        "invocations": 1534,
+        "boundary_crossing": 0,
+        "callbacks": [
+          {
+            "node": "/gyro_odometer",
+            "callback": "sub /clock",
+            "topic": "/clock",
+            "count": 307,
+            "mean_ms": 0.0,
+            "p95_ms": 0.0,
+            "max_ms": 0.1,
+            "source": "trace"
+          },
+          {
+            "node": "/gyro_odometer",
+            "callback": "sub /sensing/imu/tamagawa/imu_raw",
+            "topic": "/sensing/imu/tamagawa/imu_raw",
+            "count": 184,
+            "mean_ms": 0.0,
+            "p95_ms": 0.0,
+            "max_ms": 0.1,
+            "source": "trace"
+          },
+          {
+            "node": "/gyro_odometer",
+            "callback": "sub /sensing/vehicle_velocity_converter/twist_with_covariance",
+            "topic": "/sensing/vehicle_velocity_converter/twist_with_covariance",
+            "count": 184,
+            "mean_ms": 0.1,
+            "p95_ms": 0.1,
+            "max_ms": 0.5,
+            "source": "trace"
+          },
+          {
+            "node": "/gyro_odometer",
+            "callback": "timer 100 ms",
+            "topic": "",
+            "count": 61,
+            "mean_ms": 0.1,
+            "p95_ms": 0.1,
+            "max_ms": 0.4,
+            "source": "trace"
+          },
+          {
+            "node": "/rosbag2_player",
+            "callback": "timer 20 ms",
+            "topic": "",
+            "count": 307,
+            "mean_ms": 0.1,
+            "p95_ms": 0.1,
+            "max_ms": 0.2,
+            "source": "trace"
+          },
+          {
+            "node": "/transform_listener_impl_55d0cc842960",
+            "callback": "sub /clock",
+            "topic": "/clock",
+            "count": 307,
+            "mean_ms": 0.0,
+            "p95_ms": 0.0,
+            "max_ms": 0.0,
+            "source": "trace"
+          },
+          {
+            "node": "/vehicle_velocity_converter",
+            "callback": "sub /vehicle/status/velocity_status",
+            "topic": "/vehicle/status/velocity_status",
+            "count": 184,
+            "mean_ms": 0.1,
+            "p95_ms": 0.1,
+            "max_ms": 0.2,
+            "source": "trace"
+          }
+        ]
+      },
+      {
+        "phase": "missing-imu",
+        "begin_ns": 101039174885062,
+        "end_ns": 101045252311623,
+        "clock": "ctf_raw_1ghz:aa6f1a7b-967e-406d-89ca-bcc739ae56a6",
+        "invocations": 1339,
+        "boundary_crossing": 0,
+        "callbacks": [
+          {
+            "node": "/gyro_odometer",
+            "callback": "sub /clock",
+            "topic": "/clock",
+            "count": 304,
+            "mean_ms": 0.0,
+            "p95_ms": 0.0,
+            "max_ms": 0.2,
+            "source": "trace"
+          },
+          {
+            "node": "/gyro_odometer",
+            "callback": "sub /sensing/vehicle_velocity_converter/twist_with_covariance",
+            "topic": "/sensing/vehicle_velocity_converter/twist_with_covariance",
+            "count": 183,
+            "mean_ms": 0.0,
+            "p95_ms": 0.0,
+            "max_ms": 0.1,
+            "source": "trace"
+          },
+          {
+            "node": "/gyro_odometer",
+            "callback": "timer 100 ms",
+            "topic": "",
+            "count": 61,
+            "mean_ms": 0.1,
+            "p95_ms": 0.2,
+            "max_ms": 0.2,
+            "source": "trace"
+          },
+          {
+            "node": "/rosbag2_player",
+            "callback": "timer 20 ms",
+            "topic": "",
+            "count": 304,
+            "mean_ms": 0.1,
+            "p95_ms": 0.1,
+            "max_ms": 0.6,
+            "source": "trace"
+          },
+          {
+            "node": "/transform_listener_impl_55d0cc842960",
+            "callback": "sub /clock",
+            "topic": "/clock",
+            "count": 304,
+            "mean_ms": 0.0,
+            "p95_ms": 0.0,
+            "max_ms": 0.0,
+            "source": "trace"
+          },
+          {
+            "node": "/vehicle_velocity_converter",
+            "callback": "sub /vehicle/status/velocity_status",
+            "topic": "/vehicle/status/velocity_status",
+            "count": 183,
+            "mean_ms": 0.1,
+            "p95_ms": 0.1,
+            "max_ms": 0.5,
+            "source": "trace"
+          }
+        ]
+      },
+      {
+        "phase": "recovered",
+        "begin_ns": 101048220189542,
+        "end_ns": 101054347044244,
+        "clock": "ctf_raw_1ghz:aa6f1a7b-967e-406d-89ca-bcc739ae56a6",
+        "invocations": 1528,
+        "boundary_crossing": 0,
+        "callbacks": [
+          {
+            "node": "/gyro_odometer",
+            "callback": "sub /clock",
+            "topic": "/clock",
+            "count": 306,
+            "mean_ms": 0.0,
+            "p95_ms": 0.0,
+            "max_ms": 0.4,
+            "source": "trace"
+          },
+          {
+            "node": "/gyro_odometer",
+            "callback": "sub /sensing/imu/tamagawa/imu_raw",
+            "topic": "/sensing/imu/tamagawa/imu_raw",
+            "count": 183,
+            "mean_ms": 0.0,
+            "p95_ms": 0.0,
+            "max_ms": 0.0,
+            "source": "trace"
+          },
+          {
+            "node": "/gyro_odometer",
+            "callback": "sub /sensing/vehicle_velocity_converter/twist_with_covariance",
+            "topic": "/sensing/vehicle_velocity_converter/twist_with_covariance",
+            "count": 183,
+            "mean_ms": 0.1,
+            "p95_ms": 0.1,
+            "max_ms": 0.2,
+            "source": "trace"
+          },
+          {
+            "node": "/gyro_odometer",
+            "callback": "timer 100 ms",
+            "topic": "",
+            "count": 61,
+            "mean_ms": 0.1,
+            "p95_ms": 0.1,
+            "max_ms": 0.2,
+            "source": "trace"
+          },
+          {
+            "node": "/rosbag2_player",
+            "callback": "timer 20 ms",
+            "topic": "",
+            "count": 306,
+            "mean_ms": 0.1,
+            "p95_ms": 0.1,
+            "max_ms": 1.0,
+            "source": "trace"
+          },
+          {
+            "node": "/transform_listener_impl_55d0cc842960",
+            "callback": "sub /clock",
+            "topic": "/clock",
+            "count": 306,
+            "mean_ms": 0.0,
+            "p95_ms": 0.0,
+            "max_ms": 0.2,
+            "source": "trace"
+          },
+          {
+            "node": "/vehicle_velocity_converter",
+            "callback": "sub /vehicle/status/velocity_status",
+            "topic": "/vehicle/status/velocity_status",
+            "count": 183,
+            "mean_ms": 0.1,
+            "p95_ms": 0.1,
+            "max_ms": 0.8,
+            "source": "trace"
+          }
+        ]
+      }
+    ],
+    "scope": "Same-CTF-clock raw 1 GHz ticks (nanoseconds), without per-stream epoch offsets; assertion command envelopes, wholly contained invocations only. Not settled sample windows, ROS/header alignment, completeness, current health or causal timing."
+  },
+  "strict_original_scenario": {
+    "healthy": {
+      "assert_exit": 0,
+      "output_receipts_during_assert": 184,
+      "playback_start_offset_s": 0.0
+    },
+    "missing-imu": {
+      "assert_exit": 1,
+      "output_receipts_during_assert": 0,
+      "playback_start_offset_s": 7.405023572999999
+    },
+    "recovered": {
+      "assert_exit": 0,
+      "output_receipts_during_assert": 183,
+      "playback_start_offset_s": 15.873995874
+    }
+  },
+  "input_audit": {
+    "sqlite_sha256": "224683a07c61e21a0ae416d9fec80e558cffde76534f340b96492f6772a28797",
+    "message_counts": {
+      "/awsim/ground_truth/localization/kinematic_state": 3470,
+      "/awsim/ground_truth/vehicle/pose": 3469,
+      "/initialpose": 1,
+      "/localization/pose_twist_fusion_filter/biased_pose_with_covariance": 2817,
+      "/sensing/camera/traffic_light/camera_info": 476,
+      "/sensing/camera/traffic_light/image_raw": 461,
+      "/sensing/gnss/pose": 58,
+      "/sensing/gnss/pose_with_covariance": 58,
+      "/sensing/imu/tamagawa/imu_raw": 1735,
+      "/tf_static": 2,
+      "/vehicle/status/velocity_status": 1735
+    },
+    "first_receive_ns": 68666677922,
+    "last_receive_ns": 126483354065
+  },
+  "conversion": {
+    "events": 78232,
+    "callbacks_resolved": 87,
+    "invocations": 6047,
+    "attributed": 6047,
+    "unattributed": 0
+  },
+  "trace_quality": {
+    "_StreamBeginningMessageConst": 55,
+    "_PacketBeginningMessageConst": 68,
+    "_EventMessageConst": 78238,
+    "_PacketEndMessageConst": 68,
+    "_StreamEndMessageConst": 55
+  },
+  "clock_descriptors": [
+    {
+      "frequency_hz": 1000000000,
+      "offset_cycles": 948808186,
+      "offset_seconds": 1791769773
+    },
+    {
+      "frequency_hz": 1000000000,
+      "offset_cycles": 948808187,
+      "offset_seconds": 1791769773
+    },
+    {
+      "frequency_hz": 1000000000,
+      "offset_cycles": 948808189,
+      "offset_seconds": 1791769773
+    }
+  ],
+  "ctf_files": 121,
+  "ctf_bytes": 2061968,
+  "original_capture_reused_for_corrected_analysis": true,
+  "initial_epoch_based_analysis": "capture/phase-results.json retained; per-stream offsets differ; replaced for membership by raw-clock audit",
+  "marker_socket_removed": true,
+  "raw_artifact_root": "/workspace/autoware-trace-phase-validation",
+  "model_invoked": false,
+  "limits": [
+    "assert-command envelopes are not settled snapshot windows",
+    "declared raw clock domain does not authenticate input or align ROS/header time",
+    "complete trace pairing does not prove DDS delivery completeness",
+    "no paired overhead, whole-stack/localization accuracy, current health or model/human-time/adoption proof"
+  ],
+  "humble_jazzy_raw_decode_exact": true,
+  "native_pytest": {
+    "jazzy": {
+      "passed": 427,
+      "skipped": 0
+    },
+    "humble": {
+      "passed": 426,
+      "skipped": 1,
+      "reason": "existing optional MCAP storage unavailable"
+    }
+  },
+  "new_unit_cases": 27,
+  "marker_compilation": {
+    "jazzy": "-Wall -Wextra -Werror passed",
+    "humble": "-Wall -Wextra -Werror passed"
+  }
+}
