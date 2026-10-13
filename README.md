@@ -316,6 +316,7 @@ ros2 run ros_graph_debugger agent [--profile autoware] [--port 3939] ...
 
 # one-shot queries (rgd talks to a running agent over REST)
 ros2 run ros_graph_debugger rgd snapshot --out snap.json
+ros2 run ros_graph_debugger rgd metadata        # recording header and clock provenance
 ros2 run ros_graph_debugger rgd markdown        # AI briefing to stdout
 ros2 run ros_graph_debugger rgd issues          # list current issues
 ros2 run ros_graph_debugger rgd doctor          # is the agent up?
@@ -409,8 +410,8 @@ that also contain an unrelated ROS clock. Arrival rates, bandwidth, receipt
 freshness and TF freshness continue to use bag receive time.
 
 `rgd report` includes this clock basis in Markdown and HTML. When serving a
-recording, the full original header is available at `GET /api/v1/recording`
-and the MCP tool `get_recording_metadata`; read it alongside
+recording, the full original header is available through `rgd metadata`,
+`GET /api/v1/recording` and the MCP tool `get_recording_metadata`; read it alongside
 `get_runtime_snapshot` when interpreting delayed messages. Replay briefings
 also include the clock basis. Missing metadata in older recordings is shown
 as **unknown**, without guessing from the topic list or measured age. Clock
