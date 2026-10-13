@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from .health import health_line
 from .measurement import RATE_DELIVERY_NOTE, RATE_SCOPE_LABELS, rate_measurement_scope
-from .model import callback_source_label
+from .model import callback_source_label, callback_trace_window_label, TRACE_WINDOW_NOTE
 from .pipeline import resolve_focus, trace_pipeline_path
 
 
@@ -249,6 +249,13 @@ def snapshot_to_markdown(snap, focus: str | None = None) -> str:
                          f'{source} | '
                          f'{c["p95_ms"]:.0f} ms | — | {c.get("count", "—")} |')
         lines.append('')
+        traced = [c for c in callbacks[:8] if c.get('source') == 'trace']
+        if traced:
+            lines += ['### Imported trace windows', '', TRACE_WINDOW_NOTE, '']
+            for c in traced:
+                lines.append(f'- {c["node"]} / {c.get("callback", "—")}: '
+                             f'{callback_trace_window_label(c)}')
+            lines.append('')
         lines.append('Only paired callback traces measure callback start/end '
                      'wall time. Application reports follow publisher semantics; '
                      'missing source stays unknown. These durations do not '

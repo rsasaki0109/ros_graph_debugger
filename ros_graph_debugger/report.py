@@ -12,7 +12,8 @@ import html
 import re
 
 from .measurement import RATE_DELIVERY_NOTE, RATE_SCOPE_LABELS, rate_measurement_scope
-from .model import callback_source, callback_source_label
+from .model import (callback_source, callback_source_label, callback_trace_window,
+                    TRACE_WINDOW_NOTE)
 from .pipeline import pipeline_timeline, spark
 from .recording import header_age_clock_note
 
@@ -111,7 +112,11 @@ def build_report(header: dict, snapshots: list[dict],
                 'node': c.get('node', ''), 'callback': c.get('callback', ''),
                 'topic': c.get('topic', ''), 'source': source,
                 'max_p95': 0.0, 'max_mean': 0.0,
-                'seen': 0})
+                'seen': 0, 'trace_windows': []})
+            if source == 'trace':
+                window = callback_trace_window(c)
+                if window not in rec['trace_windows']:
+                    rec['trace_windows'].append(window)
             rec['seen'] += 1
             rec['max_p95'] = max(rec['max_p95'], p95)
             mean = c.get('mean_ms')
@@ -372,6 +377,15 @@ def render_markdown(summary: dict) -> str:
                    'Missing source stays unknown. Pipeline sources may change '
                    'over time; inspect the per-sample cb_source values.')
         out.append('')
+        if any(c.get('source') == 'trace' for c in summary['callbacks']):
+            out += ['### Imported trace windows', '', TRACE_WINDOW_NOTE, '']
+            for c in summary['callbacks']:
+                if c.get('source') == 'trace':
+                    for window in c.get('trace_windows') or [None]:
+                        label = (f'{window["start_ns"]}..{window["end_ns"]} ns '
+                                 f'({window["clock"]})') if window else 'unknown'
+                        out.append(f'- {c["node"]} / {c["callback"]}: {label}')
+            out.append('')
 
     if summary['tf_stale']:
         out.append('## Stale transforms observed')
@@ -549,12 +563,21 @@ def render_html(summary: dict) -> str:
             f'<td>{c["max_p95"]:.0f} ms</td>'
             f'<td>{(str(round(c["max_mean"])) + " ms") if c["max_mean"] else "—"}</td></tr>'
             for c in summary['callbacks'])
+        trace_rows = []
+        for c in summary['callbacks']:
+            if c.get('source') == 'trace':
+                for window in c.get('trace_windows') or [None]:
+                    label = (f'{window["start_ns"]}..{window["end_ns"]} ns '
+                             f'({window["clock"]})') if window else 'unknown'
+                    trace_rows.append(f'<li>{e(c["node"])} / {e(c["callback"])}: {e(label)}</li>')
+        windows = ('<h3>Imported trace windows</h3><p>' + e(TRACE_WINDOW_NOTE) + '</p><ul>'
+                   + ''.join(trace_rows) + '</ul>') if trace_rows else ''
         return ('<h2>Slowest callbacks / processing durations (per source)</h2>'
                 '<p>Application reports follow publisher semantics; only paired '
                 'callback traces measure callback start/end wall time. '
                 'Missing source stays unknown.</p>'
                 '<table><tr><th>node</th><th>callback</th><th>source</th>'
-                f'<th>max p95</th><th>max mean</th></tr>{rows}</table>')
+                f'<th>max p95</th><th>max mean</th></tr>{rows}</table>' + windows)
 
     def tf_rows():
         if not summary['tf_stale']:

@@ -58,6 +58,14 @@ def validate_conversion(directory, mode, fixture_pid):
     assert {c.callback for c in stats if c.node == node} == expected, stats
     assert all(c.node == node and c.count >= MIN_INVOCATIONS for c in stats), stats
     assert all(c.source == 'trace' for c in stats), stats
+    for stat in stats:
+        invocations = [r for r in rows if r['node'] == stat.node and r['callback'] == stat.callback
+                       and r['topic'] == stat.topic]
+        clocks = {r.get('clock') for r in invocations}
+        assert len(clocks) == 1 and stat.trace_window_clock in clocks \
+            and stat.trace_window_clock is not None, (stat, clocks)
+        assert stat.trace_window_start_ns == min(r['start_ns'] for r in invocations), stat
+        assert stat.trace_window_end_ns == max(r['end_ns'] for r in invocations), stat
     assert all(c.p95_ms >= 150 if mode == 'slow' else c.p95_ms < 100 for c in stats), stats
     (directory / 'callback-stats.json').write_text(json.dumps([asdict(c) for c in stats], indent=2))
     return stats
@@ -97,6 +105,10 @@ def validate_diagnosis(directory, mode, stats):
             for issue in issues:
                 assert issue['related_nodes'] == [node], issue
                 assert 'duration source: paired callback trace' in issue['evidence'], issue
+                assert any(e.startswith('imported trace window: ') and 'ctf_ns_from_origin:' in e
+                           for e in issue['evidence']), issue
+                assert 'Imported trace duration does not establish current node activity.' \
+                    in issue['evidence'], issue
                 assert any(p95 in issue['evidence'] and samples in issue['evidence']
                            for p95, samples in expected_evidence), issue
             assert sum(i['related_topics'] == [node + '/input'] for i in issues) == 1
