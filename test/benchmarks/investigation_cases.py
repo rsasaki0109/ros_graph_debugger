@@ -8,6 +8,7 @@ import copy
 import hashlib
 import json
 import math
+import uuid
 from pathlib import Path
 
 from ros_graph_debugger.recording import make_header, read_recording, write_recording
@@ -16,6 +17,14 @@ OBJECTS = '/perception/object_recognition/objects'
 IMAGE = '/sensing/camera/front/image'
 PROCESSING_NODE = '/control/integration/processing'
 DURATION_SOURCES = ('trace', 'application_report', 'synthetic')
+TRACE_WINDOW_FIELDS = ('trace_window_start_ns', 'trace_window_end_ns', 'trace_window_clock')
+TRACE_WINDOW_LIMITS = {
+    'current_activity_from_duration_snapshot_time': 'collect_current_node_activity',
+    'ros_header_alignment_from_duration_window': 'verify_trace_and_ros_clock_alignment',
+    'fault_phase_from_duration_window': 'collect_same_clock_phase_markers',
+    'complete_capture_from_duration_window': 'audit_trace_loss_and_registration',
+    'authenticated_clock_from_window_metadata': 'verify_original_trace_clock_metadata',
+}
 TOPIC_LIMITS = {
     'publisher_execution_from_rate_or_header_age': 'collect_publisher_callback_trace',
     'network_latency_from_dds_stamp_gap': 'check_capture_points_and_clock_sync',
@@ -76,6 +85,25 @@ def field_claim(evidence, ident, path, numeric=False, allowed=None):
             'evidence': [citation]}
 
 
+def declared_trace_window_known(callback):
+    """Validate the declared tuple, never infer clocks or authenticate provenance.
+
+    Kept test-only so legacy main can grade frozen frames produced by newer
+    converters without depending on their runtime implementation.
+    """
+    start, end, clock = (callback.get(k) for k in TRACE_WINDOW_FIELDS)
+    if callback.get('source') != 'trace' or type(start) is not int or type(end) is not int \
+            or end < start or not isinstance(clock, str):
+        return False
+    prefix = 'ctf_ns_from_origin:'
+    if not clock.startswith(prefix):
+        return False
+    try:
+        return str(uuid.UUID(clock[len(prefix):])) == clock[len(prefix):]
+    except ValueError:
+        return False
+
+
 def rubric_for(case_id, evidence, family, target):
     snapshot = evidence['snapshot']
     claims = []
@@ -87,7 +115,8 @@ def rubric_for(case_id, evidence, family, target):
                        'status': 'observed' if isinstance(callbacks, list) else 'unknown',
                        'value': len(indexes) if isinstance(callbacks, list) else None,
                        'evidence': ['/snapshot/callbacks' if isinstance(callbacks, list) else '/snapshot']})
-        limits = {'end_to_end_p95_from_duration_percentiles': 'collect_paired_per_message_timings'}
+        limits = {'end_to_end_p95_from_duration_percentiles': 'collect_paired_per_message_timings',
+                  **TRACE_WINDOW_LIMITS}
         if not indexes:
             limits['no_callback_work_from_missing_observations'] = 'collect_attributed_callback_trace'
         for index in indexes:
@@ -103,6 +132,15 @@ def rubric_for(case_id, evidence, family, target):
             limits[prefix + '_authenticated_provenance_from_source_field'] = 'verify_original_duration_source'
             limits[prefix + '_downstream_rate_cause_from_p95'] = 'collect_paired_pipeline_measurements'
             source = declared['value']
+            known_window = declared_trace_window_known(callbacks[index])
+            for key in TRACE_WINDOW_FIELDS:
+                claim = {'id': prefix + '_' + key,
+                         'status': 'observed' if known_window else 'unknown',
+                         'value': callbacks[index][key] if known_window else None,
+                         'evidence': [root + '/' + key if known_window else root]}
+                if key.endswith('_ns'):
+                    claim['value_type'] = 'integer'
+                claims.append(claim)
             if source == 'application_report':
                 limits[prefix + '_callback_start_end_from_application_report'] = 'collect_paired_callback_start_end'
             elif source == 'trace':
@@ -186,6 +224,9 @@ def score(evidence, rubric, answer):
             if section == 'claims':
                 if 'value' not in item or not equal_value(item.get('value'), wanted['value']):
                     errors.append(item['id'] + ': value does not match the cited observation')
+                if wanted.get('value_type') == 'integer' and wanted['status'] == 'observed' \
+                        and type(item.get('value')) is not int:
+                    errors.append(item['id'] + ': nanosecond boundary must be an exact integer')
                 if item.get('evidence') != wanted['evidence']:
                     errors.append(item['id'] + ': citation refers to the wrong measurement')
                 else:
@@ -230,6 +271,32 @@ def negative_controls(answer):
                                                    '_downstream_rate_cause_from_p95')))
         limitation['status'] = 'established'
         cases['duration_semantics_overclaim'] = bad
+    for ident in TRACE_WINDOW_LIMITS:
+        if any(c['id'] == ident for c in answer['limitations']):
+            bad = copy.deepcopy(answer)
+            next(c for c in bad['limitations'] if c['id'] == ident)['status'] = 'established'
+            cases[ident] = bad
+    starts = [c for c in answer['claims'] if c['id'].endswith('_trace_window_start_ns')]
+    if starts:
+        start = starts[0]
+        prefix = start['id'].removesuffix('_trace_window_start_ns')
+        bad = copy.deepcopy(answer)
+        next(c for c in bad['claims'] if c['id'] == start['id']).update(
+            status='observed', value=start['value'] + 1 if start['status'] == 'observed' else 0)
+        cases['trace_boundary_fabrication'] = bad
+        bad = copy.deepcopy(answer)
+        value = next(c for c in bad['claims'] if c['id'] == start['id'])
+        value['evidence'] = starts[1]['evidence'] if len(starts) > 1 else ['/snapshot/timestamp']
+        cases['trace_boundary_wrong_row'] = bad
+        bad = copy.deepcopy(answer)
+        clock = next(c for c in bad['claims'] if c['id'] == prefix + '_trace_window_clock')
+        clock.update(status='observed', value='ros_header_clock')
+        cases['trace_clock_invention'] = bad
+        exact_start = next((c for c in starts if c['status'] == 'observed'), None)
+        if exact_start is not None:
+            bad = copy.deepcopy(answer)
+            next(c for c in bad['claims'] if c['id'] == exact_start['id'])['value'] = float(exact_start['value'])
+            cases['trace_boundary_float'] = bad
     return cases
 
 
@@ -255,6 +322,14 @@ def export_case(output, ident, snapshot, header, family, target, source, index, 
         prompt += 'Report each duration and its source from the same callback row; '
         prompt += 'a label or filename does not establish a missing measurement method. '
         prompt += 'An application report need not time a single callback; synthetic data is not measured runtime evidence.\n'
+        prompt += 'Trace windows require a complete integer start/end tuple on one declared CTF UUID clock. '
+        prompt += 'Otherwise report all three window fields as unknown and cite the callback row; zero is valid. '
+        prompt += 'Nanosecond boundaries must stay exact JSON integers, without conversion to floating point. '
+        prompt += 'Imported windows are historical invocations, not fresh activity at the snapshot time. '
+        prompt += 'A clock UUID does not establish ROS/header alignment, fault phases, capture completeness or authenticated origin.\n'
+        if not any(n.get('id') == target for n in snapshot.get('nodes', [])):
+            prompt += 'The callback owner is absent from the captured graph. Read get_callbacks and '
+            prompt += 'get_runtime_snapshot/get_runtime_briefing; a focused graph briefing cannot supply its imported durations.\n'
     prompt += '\n\nDoes the evidence establish each of these conclusions?\n' + '\n'.join('- ' + c['id'] for c in rubric['limitations'])
     prompt += '\n\nChoose next_check from: ' + ', '.join(sorted({c['next_check'] for c in rubric['limitations']})) + '.\n'
     prompt += '\nUse only participant inputs. Evaluator files contain reference answers and provenance; do not expose them to a model.\n'
@@ -375,7 +450,10 @@ def prepare(args):
         ident = f'case-{index + 1:03d}'
         kind = 'provided_source' if index < source_cases else 'synthetic_control'
         export_case(args.output, ident, snapshot, header, family, target, source, source_index, kind)
-        manifest.append({'case_id': ident, 'target': target})
+        entry = {'case_id': ident, 'target': target}
+        if family == 'duration' and not any(n.get('id') == target for n in snapshot.get('nodes', [])):
+            entry['briefing_tool'] = 'get_runtime_briefing'
+        manifest.append(entry)
     save(args.output / 'manifest.json', manifest)
     print(f'Prepared {source_cases} source cases and {len(cases) - source_cases} synthetic control cases; no model invoked.')
 
