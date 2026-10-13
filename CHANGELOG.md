@@ -6,6 +6,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ## [Unreleased]
 
+- Add test-only same-clock phase markers and raw-tick audits for actual public-input Autoware healthy, IMU-omission and recovery assertions, preserving boundary and clock uncertainty.
+
 - Grade duration values, declared sources and same-row citations in investigation tasks, rejecting application/trace/synthetic confusion and unknown provenance inference against real ROS/LTTng recordings.
 
 - Distinguish traced, application-reported, synthetic and unknown duration sources in diagnostic evidence, MCP, pipelines and reports without pooling or comparing different sources.
