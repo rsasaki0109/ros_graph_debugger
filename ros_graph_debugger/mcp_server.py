@@ -119,9 +119,11 @@ def main() -> None:
         """Get the constraining source->sink pipeline path through a node/topic.
 
         Returns JSON ``{target, pivot, nodes, hops, bottleneck_topic}`` where the
-        path follows the lowest-rate link at each branch, so ``bottleneck_topic``
-        is the throttling hop. Use this to reason about *where* a pipeline is
-        slow, not just which node — e.g. after get_issues flags a bottleneck.
+        path follows the lowest observed rate at each branch. Shared ROS
+        parameter, log, clock, diagnostics, statistics and TF buses are excluded
+        unless their topic is explicitly selected. A topic query traverses that
+        topic; unrelated branches cannot replace it. This is representative
+        graph topology, not proof of a slow publisher or a causal dependency.
         ``target`` may be a node id/name, topic name, or a suffix."""
         return fetch('/api/v1/path?target=' + quote(target, safe=''))
 

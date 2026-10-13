@@ -1,0 +1,78 @@
+[
+  {
+    "phase": "healthy",
+    "original_recording_sha256": "5b57c1f914a0feff758a0c514d67b461b1545e7139c91733ae358dee14571628",
+    "nodes": [
+      "/rosbag2_player",
+      "/gyro_odometer",
+      "/autoware_public_scenario_driver"
+    ],
+    "hops": [
+      "/sensing/imu/tamagawa/imu_raw",
+      "/localization/twist_estimator/twist_with_covariance"
+    ],
+    "control_hops_in_default_path": 0,
+    "http_and_mcp_paths_exact": true,
+    "explicit_clock_traversed": true,
+    "snapshot_including_issues_exact": true,
+    "cli_report_exact": true,
+    "original_issue_kinds": [
+      "no_publisher",
+      "no_subscriber"
+    ],
+    "model_invoked": false,
+    "pipeline_source_sha256": "0fcb14ee5a8a7303263ef644757903e1e9bcfa2cb1dbe3e1e562e811b420ba6a"
+  },
+  {
+    "phase": "missing-imu",
+    "original_recording_sha256": "3c02ae8f82823a58509ff14cef380519c193690cfedf906e755f6c3a8e9cf709",
+    "nodes": [
+      "/rosbag2_player",
+      "/vehicle_velocity_converter",
+      "/gyro_odometer",
+      "/autoware_public_scenario_driver"
+    ],
+    "hops": [
+      "/vehicle/status/velocity_status",
+      "/sensing/vehicle_velocity_converter/twist_with_covariance",
+      "/localization/twist_estimator/twist_with_covariance"
+    ],
+    "control_hops_in_default_path": 0,
+    "http_and_mcp_paths_exact": true,
+    "explicit_clock_traversed": true,
+    "snapshot_including_issues_exact": true,
+    "cli_report_exact": true,
+    "original_issue_kinds": [
+      "diagnostics_error",
+      "no_publisher",
+      "no_subscriber",
+      "topic_stale"
+    ],
+    "model_invoked": false,
+    "pipeline_source_sha256": "0fcb14ee5a8a7303263ef644757903e1e9bcfa2cb1dbe3e1e562e811b420ba6a"
+  },
+  {
+    "phase": "recovered",
+    "original_recording_sha256": "cbda344e11ae7c383b6cd4d4fd70cf73baf1d0ffd8aa0d903ac89833f122cbd2",
+    "nodes": [
+      "/rosbag2_player",
+      "/gyro_odometer",
+      "/autoware_public_scenario_driver"
+    ],
+    "hops": [
+      "/sensing/imu/tamagawa/imu_raw",
+      "/localization/twist_estimator/twist_with_covariance"
+    ],
+    "control_hops_in_default_path": 0,
+    "http_and_mcp_paths_exact": true,
+    "explicit_clock_traversed": true,
+    "snapshot_including_issues_exact": true,
+    "cli_report_exact": true,
+    "original_issue_kinds": [
+      "no_publisher",
+      "no_subscriber"
+    ],
+    "model_invoked": false,
+    "pipeline_source_sha256": "0fcb14ee5a8a7303263ef644757903e1e9bcfa2cb1dbe3e1e562e811b420ba6a"
+  }
+]

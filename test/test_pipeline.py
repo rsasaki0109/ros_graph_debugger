@@ -58,6 +58,17 @@ def test_path_follows_the_lowest_rate_branch():
     assert first_out['topic'] == '/obj'
 
 
+def test_explicit_topic_selects_that_branch_even_if_another_output_is_slower():
+    d = _linear()
+    d['nodes'].append(_node('/logger', [], ['/obj_fast']))
+    d['nodes'][1]['publishers'].append('/obj_fast')
+    d['topics'].append(_topic('/obj_fast', 50., ['/detector'], ['/logger']))
+    path = trace_pipeline_path(d, '/obj_fast')
+    assert path['target'] == '/obj_fast'
+    assert [h['topic'] for h in path['hops']] == ['/cam', '/obj_fast']
+    assert path['nodes'] == ['/camera', '/detector', '/logger']
+
+
 def test_cycle_terminates():
     d = {'nodes': [_node('/a', ['/t1'], ['/t2']), _node('/b', ['/t2'], ['/t1'])],
          'topics': [_topic('/t1', 5.0, ['/a'], ['/b']),

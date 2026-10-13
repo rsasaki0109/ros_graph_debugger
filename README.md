@@ -228,6 +228,9 @@ detection into one live view — and one Markdown briefing you can hand to an AI
   `GET /api/v1/path`. Each hop also carries the consuming node's **callback
   p95**, so the path shows the rate bottleneck *and* the execution bottleneck
   together (`detector [cb 210 ms ⟵ slowest cb] → /objects (4.1 Hz ⟵ slowest)`).
+  Shared ROS control/telemetry buses are excluded from default data paths;
+  select their topic explicitly to inspect them. See the
+  [path semantics and public-run validation](docs/pipeline-paths.md).
 - **Profiles**: `autoware`, `nav2`, `moveit` (grouping + expected rates, incl.
   regex patterns like `^/control/command/.*` that set a floor for a whole stage).
 - **Live tuning**: a Settings tab (and `POST /api/v1/config`) to adjust expected
