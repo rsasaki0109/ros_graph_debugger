@@ -1,0 +1,242 @@
+{
+  "scope": "Unmodified actual Jazzy C++ Autoware components with controlled public DLR input replay; complete whole-run callback trace",
+  "producer_commit": "dbddd94b655183a5e539f518920cc76f72d94cb5",
+  "producer_tree": "6ba6f71c937d63b404c0085046a4f01e1be277ad",
+  "sdk_image": "rgd-autoware-gyro-source:jazzy",
+  "sdk_image_id": "sha256:a8bde66f76e8039dce37608a1c2936eb49d5478d553d9d587c562eb4c5c93588",
+  "upstream_sources": [
+    {
+      "repository": "autowarefoundation/autoware_core",
+      "commit": "f25f83c632c1984ec276c894c41857d4abc0dad8",
+      "url": "https://codeload.github.com/autowarefoundation/autoware_core/tar.gz/f25f83c632c1984ec276c894c41857d4abc0dad8",
+      "bytes": 42703885,
+      "local_sha256": "234744570f6828d7bcefefc54c6e7da7886abab1a57d1d2dfac488cf884f394b"
+    },
+    {
+      "repository": "autowarefoundation/autoware_utils",
+      "commit": "9cb6f102ab4fce01a1ba1b847c9a57e822184268",
+      "url": "https://codeload.github.com/autowarefoundation/autoware_utils/tar.gz/9cb6f102ab4fce01a1ba1b847c9a57e822184268",
+      "bytes": 394654,
+      "local_sha256": "cfc86cce48d812a5549fc2c9b9e66fdb54935fb59602b64f467215d0524d7856"
+    },
+    {
+      "repository": "autowarefoundation/autoware_cmake",
+      "commit": "7796130d9fe9e45d8ec5e24815db9364dc4300f0",
+      "url": "https://codeload.github.com/autowarefoundation/autoware_cmake/tar.gz/7796130d9fe9e45d8ec5e24815db9364dc4300f0",
+      "bytes": 24858,
+      "local_sha256": "74aecd1b077531e6f9add4021e37d583bcc4a911c84f24883191a73337d9782f"
+    },
+    {
+      "repository": "autowarefoundation/autoware_msgs",
+      "commit": "bb8e7bf5d97168663e0e7b357929e4fcdbd3a967",
+      "bytes": 173438,
+      "local_sha256": "ef85ef1adc9813574e46554dc107c30308ac86ff88e2dbca5331d06300160977"
+    },
+    {
+      "repository": "autowarefoundation/autoware_internal_msgs",
+      "commit": "4144effa727d194554ad78d343683201bbbbc427",
+      "bytes": 25966,
+      "local_sha256": "7024bdcada474001f0668c4d0fbb259d710bbbda11a69c7ec17cf45b692428e3"
+    }
+  ],
+  "ctf": {
+    "files": 110,
+    "bytes": 2155880,
+    "local_file_manifest_sha256": "5fb5ce5f21e45befe863c4436ff2ac39330937dbc8da77951aaaea3ec0a77709",
+    "quality": {
+      "_StreamBeginningMessageConst": 50,
+      "_PacketBeginningMessageConst": 65,
+      "_EventMessageConst": 83762,
+      "_PacketEndMessageConst": 65,
+      "_StreamEndMessageConst": 50
+    },
+    "conversion": {
+      "events": 83762,
+      "callbacks_resolved": 87,
+      "invocations": 6590,
+      "attributed": 6590,
+      "unattributed": 0
+    },
+    "independent_pair_audit": {
+      "events": 83762,
+      "callback_starts": 6590,
+      "callback_ends": 6590,
+      "paired": 6590,
+      "unmatched_starts": 0,
+      "unmatched_ends": 0,
+      "negative_intervals": 0,
+      "raw_zero_ns_intervals": 0,
+      "paired_by_vpid": {
+        "112": 4356,
+        "103": 437,
+        "144": 743,
+        "179": 577,
+        "198": 477
+      },
+      "all_converted_values_finite_nonnegative": true,
+      "trace_pair_scope": "whole capture; no per-phase alignment inferred"
+    },
+    "rows_sha256": "f09422538c3d80555129ffbdbe3b6907be66a78449018f8c746e1410f571ce0c",
+    "component_registration_sha256": "a8f97da2966226e94fa8e8ca322440147ec61204b905939eef6ad35011ceb568",
+    "component_registrations": [
+      {
+        "name": "ros2:rcl_node_init",
+        "pid": 112,
+        "t_ns": 1791864079902692088,
+        "fields": {
+          "node_handle": 94912459620832,
+          "rmw_handle": 94912461193616,
+          "node_name": "gyro_odometer",
+          "namespace": "/"
+        }
+      },
+      {
+        "name": "ros2:rcl_node_init",
+        "pid": 144,
+        "t_ns": 1791864080032420766,
+        "fields": {
+          "node_handle": 94331064342560,
+          "rmw_handle": 94331065929616,
+          "node_name": "vehicle_velocity_converter",
+          "namespace": "/"
+        }
+      }
+    ]
+  },
+  "target_callback_stats": [
+    {
+      "node": "/gyro_odometer",
+      "callback": "sub /sensing/imu/tamagawa/imu_raw",
+      "topic": "/sensing/imu/tamagawa/imu_raw",
+      "count": 488,
+      "mean_ms": 0.1,
+      "p95_ms": 0.2,
+      "max_ms": 1.3,
+      "source": "trace"
+    },
+    {
+      "node": "/gyro_odometer",
+      "callback": "sub /sensing/vehicle_velocity_converter/twist_with_covariance",
+      "topic": "/sensing/vehicle_velocity_converter/twist_with_covariance",
+      "count": 735,
+      "mean_ms": 0.0,
+      "p95_ms": 0.0,
+      "max_ms": 0.1,
+      "source": "trace"
+    },
+    {
+      "node": "/vehicle_velocity_converter",
+      "callback": "sub /vehicle/status/velocity_status",
+      "topic": "/vehicle/status/velocity_status",
+      "count": 735,
+      "mean_ms": 0.1,
+      "p95_ms": 0.1,
+      "max_ms": 1.6,
+      "source": "trace"
+    }
+  ],
+  "all_callback_groups": 12,
+  "scenario": {
+    "input_audit": {
+      "sqlite_sha256": "224683a07c61e21a0ae416d9fec80e558cffde76534f340b96492f6772a28797",
+      "message_counts": {
+        "/awsim/ground_truth/localization/kinematic_state": 3470,
+        "/awsim/ground_truth/vehicle/pose": 3469,
+        "/initialpose": 1,
+        "/localization/pose_twist_fusion_filter/biased_pose_with_covariance": 2817,
+        "/sensing/camera/traffic_light/camera_info": 476,
+        "/sensing/camera/traffic_light/image_raw": 461,
+        "/sensing/gnss/pose": 58,
+        "/sensing/gnss/pose_with_covariance": 58,
+        "/sensing/imu/tamagawa/imu_raw": 1735,
+        "/tf_static": 2,
+        "/vehicle/status/velocity_status": 1735
+      },
+      "first_receive_ns": 68666677922,
+      "last_receive_ns": 126483354065
+    },
+    "phases": {
+      "healthy": {
+        "assert_exit": 0,
+        "output_receipts_during_assert": 184,
+        "playback_start_offset_s": 0.0
+      },
+      "missing-imu": {
+        "assert_exit": 1,
+        "output_receipts_during_assert": 0,
+        "playback_start_offset_s": 7.3492625689999995
+      },
+      "recovered": {
+        "assert_exit": 0,
+        "output_receipts_during_assert": 183,
+        "playback_start_offset_s": 15.813068530999999
+      }
+    },
+    "scenario_script_sha256": "83a9ecb0e85d9dffd09822d0a51e81dba5433ce1112fead4ff9d71b305ebeeff",
+    "recordings": {
+      "healthy": {
+        "sha256": "fbe31453867a08c0f9e5b7761564c379102d50a063c0eea63ca5754e962e54b4",
+        "snapshots": 7,
+        "settled_samples": 5
+      },
+      "missing-imu": {
+        "sha256": "9d467aa1bc5024142bceefbefc32c339ca1c8d117cf96f4dd2d18e6e036386ac",
+        "snapshots": 7,
+        "settled_samples": 5
+      },
+      "recovered": {
+        "sha256": "1426df35d216c422f4a7379c72abaa4c7bd223fec8b2109d0a6b4dbef4f4a4e3",
+        "snapshots": 7,
+        "settled_samples": 5
+      }
+    },
+    "receipt_audit": {
+      "count": 482,
+      "all_original_input_stamps": true,
+      "nondecreasing": true,
+      "all_finite": true,
+      "frame": "base_link",
+      "sha256": "00449ad33fc521c3c361c74e176a240ace4d40fc444e28e44958340de755ec00"
+    },
+    "recovery_diff": "improved"
+  },
+  "historical_import": {
+    "callback_groups": 12,
+    "all_source_trace": true,
+    "agent_ctf_import_exact": true,
+    "http_cli_callbacks_exact": true,
+    "recorded_snapshots": 3,
+    "recording_callbacks_exact": true,
+    "autoware_components_not_running_during_import": true,
+    "scope": "imported historical whole-capture statistics; no current component health or per-phase timing claim"
+  },
+  "mcp": {
+    "callback_groups": 12,
+    "snapshot_callbacks_metadata_markdown_exact": true,
+    "model_invoked": false,
+    "scope": "read-only transport of imported historical whole-capture stats"
+  },
+  "validator_source_hashes": {
+    "capture.py": "fecb47e294bee32aa27af4252ccbee48512c5d9c1187772d870ce18822f0c782",
+    "audit.py": "3b166db5eda34aab957416690bc8d32027b3a648127083d295596c6c9bbe2271",
+    "validate_import.py": "72f37f159f5f9d3e0035b820ae27232cf381a844de253acf8226e2cd1f35ae48",
+    "validate_mcp.py": "bbbb37bb27233aeda7b40e74deca3a3e68a2e1495b5a282ef31fedde79cf3ca1"
+  },
+  "trace_module_hashes": {
+    "ros_graph_debugger/trace_convert.py": "02618f2b35f95351cd1149c93e8f519314e9d5eb0115bfe028a5bbf40935dd27",
+    "ros_graph_debugger/tracing.py": "9d359a19dfb1736bc761a45cd5e54afd5cb457b01e5b54abb1bd783d2fdab417"
+  },
+  "host_binding_limit": "The host runtime Python 3.12 does not import bt2; CTF conversion/audit/import ran in the cached Jazzy SDK system Python. No host binding or fresh-cloud restore claim.",
+  "limits": [
+    "Two actual CPP components, not original full stack or localization accuracy",
+    "Whole-capture stats mix healthy/omission/recovery; no per-phase trace/message clock alignment or causal proof",
+    "Callback elapsed start/end includes scheduling/waiting, not CPU time, publisher execution budget or end-to-end latency",
+    "Rows round to 0.001 ms and aggregate stats to 0.1 ms; a displayed zero does not prove zero work",
+    "No paired no-trace control or measured tracing overhead",
+    "No application processing_time publisher in the two selected components",
+    "Historical import is not fresh live component timing or current component health",
+    "No CTF discard notifications and complete pair accounting are not DDS delivery completeness",
+    "No model/human-time/adoption/fresh-cloud restore measurement",
+    "File/source archive hashes are locally measured, not upstream published checksums"
+  ]
+}
