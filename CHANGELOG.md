@@ -6,6 +6,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ## [Unreleased]
 
+- Reject non-finite and negative application processing times and keep finite means JSON-safe, with real ROS invalid-data and recovery checks in Humble/Jazzy CI.
+
 - Independently audit real CTF loss artifacts after capture, checking raw callback counts, repeated CLI/agent rejection, unchanged evidence and six corruption controls in Humble/Jazzy CI.
 
 - Exercise real overwritten CTF packets, counted normal captures and CLI/agent rejection in Humble/Jazzy CI alongside discarded-event validation.

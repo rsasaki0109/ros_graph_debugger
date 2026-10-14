@@ -19,6 +19,8 @@ field (``std_msgs/Float64``, ``Float64Stamped``, …), in milliseconds.
 from __future__ import annotations
 
 import re
+import math
+from statistics import mean
 from collections import deque
 
 from .model import CallbackStat
@@ -35,12 +37,19 @@ def matches(topic: str, compiled) -> bool:
     return any(rgx.search(topic) for rgx in compiled)
 
 
-def value_ms(msg) -> float | None:
-    """The numeric ``data`` field of a processing-time message, else None."""
-    v = getattr(msg, 'data', None)
+def _duration_ms(v) -> float | None:
     if isinstance(v, bool) or not isinstance(v, (int, float)):
         return None
-    return float(v)
+    try:
+        value = float(v)
+    except OverflowError:
+        return None
+    return value if math.isfinite(value) and value >= 0 else None
+
+
+def value_ms(msg) -> float | None:
+    """Finite, non-negative ``data`` in milliseconds, else unknown (None)."""
+    return _duration_ms(getattr(msg, 'data', None))
 
 
 def node_for(topic: str, publishers) -> str | None:
@@ -68,6 +77,7 @@ class ProcessingTimes:
         self._values: dict[str, deque] = {}
 
     def add(self, topic: str, value: float | None) -> None:
+        value = _duration_ms(value)
         if value is None:
             return
         self._values.setdefault(topic, deque(maxlen=self.window)).append(value)
@@ -85,6 +95,6 @@ class ProcessingTimes:
             out.append(CallbackStat(
                 node=node, callback=LABEL, topic=topic, count=len(v),
                 source='application_report',
-                mean_ms=round(sum(v) / len(v), 1), p95_ms=_p95(v),
+                mean_ms=round(mean(v), 1), p95_ms=_p95(v),
                 max_ms=round(max(v), 1)))
         return out
