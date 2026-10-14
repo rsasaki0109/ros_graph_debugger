@@ -7,6 +7,7 @@ Those observations are not callback samples or evidence of source freshness.
 from __future__ import annotations
 
 from collections import Counter
+from decimal import Decimal, InvalidOperation
 import json
 import math
 from pathlib import Path
@@ -104,6 +105,17 @@ def _duration(entry):
         return None, 'non_finite_value'
     if duration < 0:
         return None, 'negative_duration'
+    if duration == 0:
+        # Float conversion can hide a negative value or turn a tiny positive
+        # string into zero. Keep explicit zero distinct from underflow.
+        try:
+            exact = Decimal(value)
+        except InvalidOperation:
+            return None, 'non_numeric_value'
+        if exact < 0:
+            return None, 'negative_duration'
+        if not exact.is_zero():
+            return None, 'underflow_duration'
     return duration, None
 
 

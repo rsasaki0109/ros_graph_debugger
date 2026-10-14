@@ -45,6 +45,8 @@ def test_republication_is_not_unique_source_measurements_or_freshness():
     (metric('-inf'), 'non_finite_value'),
     (metric('1e999'), 'non_finite_value'),
     (metric('-1'), 'negative_duration'),
+    (metric('-1e-400'), 'negative_duration'),
+    (metric('1e-400'), 'underflow_duration'),
     (metric('bad'), 'non_numeric_value'),
     (metric(''), 'non_numeric_value'),
     (metric(True), 'invalid_value_type'),

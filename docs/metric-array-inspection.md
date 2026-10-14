@@ -24,8 +24,10 @@ Each entry preserves its name, unit, original string value and position.
 `processing_time_ms` only when numeric, finite and non-negative. Zero is valid.
 NaN, infinities, negative durations, non-string values, unsupported units and
 other metric names remain visible with an `unusable_duration` status and a
-specific reason, never a fabricated zero. Entries with duplicate names remain
-separate and are marked `duplicate_name`; duplicate JSON/YAML object fields
+specific reason, never a fabricated zero. Tiny nonzero strings that underflow
+a float are unusable, so a negative value cannot be accepted as zero and a
+positive value is not silently replaced by zero. Entries with duplicate names
+remain separate and are marked `duplicate_name`; duplicate JSON/YAML object fields
 are an error because they would silently overwrite evidence.
 
 Counts describe input messages and metric **observations**, including repeated
