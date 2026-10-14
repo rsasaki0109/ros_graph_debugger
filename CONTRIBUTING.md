@@ -41,6 +41,18 @@ python3 -m pytest test/ -v
 node --check ros_graph_debugger/web/app.js
 ```
 
+MetricArray inspection has pure regression tests:
+
+```bash
+python3 -m pytest test/test_metric_arrays.py -q
+```
+
+They cover cached republication, duplicate names/fields, unusable durations,
+unknown timestamps/ownership and the JSON CLI without PyYAML. YAML is tested
+using the existing development dependency. See
+[MetricArray inspection](docs/metric-array-inspection.md) for the command and
+public source references; raw public dumps are kept outside the repository.
+
 CI runs the same on Humble and Jazzy (`.github/workflows/ci.yml`).
 
 The multiprocess job also checks `/clock` startup and message-age recovery:

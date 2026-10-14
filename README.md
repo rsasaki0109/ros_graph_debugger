@@ -323,6 +323,9 @@ ros2 run ros_graph_debugger rgd doctor          # is the agent up?
 # Tier C: turn a `ros2 trace` session into callback durations (needs python3-bt2)
 ros2 run ros_graph_debugger rgd trace convert ~/.ros/tracing/my_session --out run.ndjson
 
+# inspect a processing MetricArray dump (YAML needs the existing web extra)
+rgd metrics inspect processing_time_metrics.txt --out metrics.inspect.json
+
 # terminal dashboard (requires optional TUI extra)
 pip install ros_graph_debugger[tui]
 ros2 run ros_graph_debugger rgd top             # live agent from --base
@@ -527,6 +530,7 @@ node is modified.
 - [HTTP API](docs/api.md) — REST / WebSocket / config schema (kept in sync by a test)
 - [Performance & safety](docs/performance_safety.md) — probing policy, latency tiers
 - [Tier C tracing](docs/tracing.md) — feed real `ros2_tracing` callback durations
+- [MetricArray inspection](docs/metric-array-inspection.md) — examine public processing values with explicit unknown ownership and source freshness
 - [Releasing](docs/releasing.md) — PyPI, container image, ROS buildfarm
 - [Roadmap](docs/roadmap.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
 
