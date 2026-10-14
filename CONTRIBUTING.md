@@ -112,6 +112,24 @@ diff and real bag even on failure as `nav2-humble` / `nav2-jazzy`.
 
 ### Multiprocess ROS integration
 
+The same integration job checks invalid application processing-time values:
+
+```bash
+python3 test/integration/run_processing_validation_scenario.py --output /tmp/rgd-processing-validity
+```
+
+An independent Float64 publisher sends finite slow samples, infinity, NaN,
+negative values, extreme finite samples and recovery samples. A separate real
+collector and HTTP server must keep snapshot responses valid, retain the
+existing slow-callback evidence for previously accepted values, and recover
+after 100 accepted low samples. An independent subscriber confirms delivery of
+the injected values. The job's domain is preserved (standalone default 99),
+port 3988 must be free, and the scenario has a 60-second deadline, polling gates,
+atomic phase files and owned process-group cleanup. All measurements/snapshots
+and logs are saved in the existing integration artifact. See
+[processing-time validation](docs/processing-time-validation.md) for input and
+window semantics.
+
 The separate `integration` CI job runs real DDS discovery and message delivery
 on both Humble and Jazzy, without a robot. With the workspace built and sourced
 as above, run the same scenario locally:
