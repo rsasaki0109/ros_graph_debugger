@@ -139,6 +139,23 @@ def _cmd_report(args) -> int:
     return 0
 
 
+def _cmd_metrics(args) -> int:
+    from .metric_arrays import inspect_arrays, read_dump
+
+    try:
+        result = inspect_arrays(read_dump(args.file, args.input_format), args.topic)
+        output = json.dumps(result, indent=2, allow_nan=False) + '\n'
+        if args.out:
+            with open(args.out, 'w', encoding='utf-8') as fh:
+                fh.write(output)
+        else:
+            sys.stdout.write(output)
+    except (OSError, ValueError) as exc:
+        print(f'error: {exc}', file=sys.stderr)
+        return 2
+    return 0
+
+
 def _parse_agents(specs):
     """Turn ``[NAME=]URL`` specs into ``[(host, base_url)]``."""
     agents = []
@@ -495,6 +512,15 @@ def main(argv=None) -> int:
     sub.add_parser('doctor', help='check that the agent is reachable')
     sub.add_parser('version', help='print version')
 
+    metrics = sub.add_parser('metrics', help='inspect application metric evidence')
+    metric_sub = metrics.add_subparsers(dest='metrics_cmd', required=True)
+    inspect = metric_sub.add_parser('inspect', help='inspect a MetricArray dump; '
+                                    'no node ownership or source freshness inferred')
+    inspect.add_argument('file', help='JSON object/list or ROS echo YAML stream')
+    inspect.add_argument('--input-format', choices=('auto', 'json', 'yaml'), default='auto')
+    inspect.add_argument('--topic', help='user-supplied array-topic context')
+    inspect.add_argument('--out', help='write inspection JSON instead of stdout')
+
     rp = sub.add_parser('record', help='record snapshots to an NDJSON file')
     rp.add_argument('--out', required=True, help='output .rgd.json file')
     rp.add_argument('--duration', type=float, default=30.0, help='seconds')
@@ -643,6 +669,8 @@ def main(argv=None) -> int:
         return _cmd_record(args)
     if args.cmd == 'report':
         return _cmd_report(args)
+    if args.cmd == 'metrics':
+        return _cmd_metrics(args)
     if args.cmd == 'diff':
         return _cmd_diff(args)
     if args.cmd == 'assert':
