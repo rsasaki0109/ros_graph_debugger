@@ -325,6 +325,7 @@ ros2 run ros_graph_debugger rgd trace convert ~/.ros/tracing/my_session --out ru
 
 # inspect a processing MetricArray dump (YAML needs the existing web extra)
 rgd metrics inspect processing_time_metrics.txt --out metrics.inspect.json
+ros2 run ros_graph_debugger rgd bag metrics run_bag --topic /system/processing_time_checker/metrics
 
 # terminal dashboard (requires optional TUI extra)
 pip install ros_graph_debugger[tui]

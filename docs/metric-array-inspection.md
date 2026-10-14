@@ -47,6 +47,45 @@ dump was inspected, including any unusable values; it does not mean a healthy
 ROS system. Malformed/unreadable input or output failures exit 2. This inspection
 format is separate from `.rgd.json` recordings and is not input to `rgd assert`.
 
+## From an actual bag
+
+With a sourced ROS 2 installation and `rosbag2_py`, inspect one explicit topic
+directly, without generating an intermediate dump:
+
+```bash
+rgd bag metrics run_bag --topic /system/processing_time_checker/metrics \
+  --out metrics.inspect.json
+```
+
+Directories use the storage identifier in `metadata.yaml`; standalone `.mcap`
+and `.db3` files select their corresponding storage plugin. The plugin must be
+installed. Individual Autoware message bindings are not required. The reader
+supports only the verified schemas `tier4_metric_msgs/msg/MetricArray` and
+`autoware_internal_metric_msgs/msg/MetricArray`: `builtin_interfaces/Time stamp`
+followed by a sequence of `Metric` entries with string `name`, `unit`, `value`.
+It decodes plain CDR1 in either byte order with zero encapsulation options,
+including optional final 4-byte aggregate-alignment padding from C++ serializers.
+Unknown types, other encodings/serializations, broken lengths/UTF-8/terminators,
+incorrect trailing lengths, ambiguous metadata or corrupt selected messages
+fail with exit 2. Nothing is silently skipped to produce a successful result.
+
+The topic is mandatory; a storage filter selects it before messages are
+returned to inspection. No topic name is used to
+guess a schema. A metadata-listed topic with no recorded messages is an error;
+recorded empty arrays are preserved as observations with no metric entries.
+All selected messages must decode before an existing output is opened.
+
+Bag inspection adds `bag_source` (type, storage/serialization, bag-recording
+timestamp clock and unknown delivery completeness) and each message's exact
+integer `bag_received_timestamp_ns`. Its topic context comes from bag metadata.
+Array stamps stay separate from these bag timestamps; neither is an individual
+module's measurement timestamp or proof of clock synchronization/freshness.
+Source count and ownership remain unknown, even if many arrays have the same
+value. Results remain inspection JSON, not graph recordings or health gates.
+
+The schemas are pinned in [tier4 messages](https://github.com/tier4/tier4_autoware_msgs/tree/efa4129394ad0b83a1de6c6d90ad937d74e9e426/tier4_metric_msgs/msg)
+and [internal messages](https://github.com/autowarefoundation/autoware_internal_msgs/tree/4144effa727d194554ad78d343683201bbbbc427/autoware_internal_metric_msgs/msg).
+
 ## Why ownership and freshness remain unknown
 
 The [public DLR v2 example](https://github.com/tier4/driving_log_replayer_v2/blob/38d08c178663a28a558158797fa323544de53602/sample/planning_control/processing_time_metrics.txt)
@@ -67,8 +106,8 @@ original deployment.
 
 Prefer original scalar processing-time topics and independently verified
 publishers for live graph attribution. MetricArray inspection is a first step
-for examining published evidence; it does not add live or bag MetricArray
-ingestion, infer a mapping, or treat aggregated observations as fresh callbacks.
+for examining published evidence; it does not add live collection or pipeline
+budget attribution, infer a mapping, or treat aggregated observations as fresh callbacks.
 Some processing topics also carry DiagnosticStatus maps, not scalar `data` or
 MetricArray. A topic regex alone does not establish its schema or unit.
 

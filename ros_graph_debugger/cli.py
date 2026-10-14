@@ -323,6 +323,8 @@ def _cmd_trace(args) -> int:
 
 def _cmd_bag(args) -> int:
     """Turn a rosbag2 / MCAP bag into a snapshot recording, offline."""
+    if args.bag_cmd == 'metrics':
+        return _cmd_bag_metrics(args)
     from .bag_analyze import BagReaderUnavailable, analyze_bag
     from .config import Thresholds
     from .health import summarize_health
@@ -388,6 +390,23 @@ def _cmd_bag(args) -> int:
           file=sys.stderr)
     print(f'next: rgd report {args.out} | rgd assert {args.out} | '
           f'rgd serve {args.out}', file=sys.stderr)
+    return 0
+
+
+def _cmd_bag_metrics(args) -> int:
+    from .bag_metrics import inspect_metric_bag
+
+    try:
+        result = inspect_metric_bag(args.bag, args.topic)
+        output = json.dumps(result, indent=2, allow_nan=False) + '\n'
+        if args.out:
+            with open(args.out, 'w', encoding='utf-8') as fh:
+                fh.write(output)
+        else:
+            sys.stdout.write(output)
+    except Exception as exc:  # storage plugins raise plain RuntimeError
+        print(f'error: cannot inspect bag metrics: {exc}', file=sys.stderr)
+        return 2
     return 0
 
 
@@ -581,6 +600,11 @@ def main(argv=None) -> int:
 
     bg = sub.add_parser('bag', help='offline rosbag2 / MCAP analysis')
     bgs = bg.add_subparsers(dest='bag_cmd', required=True)
+    bgm = bgs.add_parser('metrics', help='inspect a recorded MetricArray topic; '
+                         'ownership/source freshness remain unknown')
+    bgm.add_argument('bag', help='bag directory, .mcap or .db3 file')
+    bgm.add_argument('--topic', required=True, help='exact recorded MetricArray topic')
+    bgm.add_argument('--out', help='write inspection JSON instead of stdout')
     bga = bgs.add_parser('analyze',
                          help='turn a bag into a snapshot recording for '
                               'report / diff / assert / serve (no live ROS graph)')
