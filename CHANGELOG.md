@@ -6,6 +6,8 @@ roadmap-driven 0.x line where each minor version is a coherent feature set
 
 ## [Unreleased]
 
+- Inspect recorded MetricArray topics directly from rosbag2/MCAP without custom message bindings, preserving separate bag/array clocks and rejecting unsupported or corrupt CDR.
+
 - Add offline MetricArray dump inspection with explicit units, unusable-value reasons, duplicate preservation and unknown node ownership/source freshness.
 
 - Independently audit real CTF loss artifacts after capture, checking raw callback counts, repeated CLI/agent rejection, unchanged evidence and six corruption controls in Humble/Jazzy CI.

@@ -53,6 +53,12 @@ using the existing development dependency. See
 [MetricArray inspection](docs/metric-array-inspection.md) for the command and
 public source references; raw public dumps are kept outside the repository.
 
+`test/test_bag_metrics.py` additionally checks strict CDR parsing and direct bag
+inspection. Its two mandatory SQLite cases use `rosbag2_py` on both native
+Humble/Jazzy CI jobs without custom Autoware bindings; do not skip them when
+testing a sourced ROS environment. On a host without ROS, run the pure subset
+explicitly with `-k 'not real_sqlite'` and report the two unrun cases separately.
+
 CI runs the same on Humble and Jazzy (`.github/workflows/ci.yml`).
 
 The multiprocess job also checks `/clock` startup and message-age recovery:
